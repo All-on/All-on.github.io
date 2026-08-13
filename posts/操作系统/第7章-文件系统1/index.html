@@ -94,16 +94,16 @@
 1. 如何启动所存储的操作系统？
 磁盘的引导区（通常为第一个扇区）存储引导程序和分区表。计算机启动时，BIOS/UEFI 读取主引导记录（MBR）或GPT，找到活动分区，加载该分区的引导扇区，进而启动操作系统。">
 <meta name="author" content="All-on">
-<link rel="canonical" href="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC7%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F1/">
+<link rel="canonical" href="https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC7%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F1/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.4f7a70c28f67918d50819ad94370c535de5b6f0d6c6299d10477402264aea5fd.css" integrity="sha256-T3pwwo9nkY1QgZrZQ3DFNd5bbw1sYpnRBHdAImSupf0=" rel="preload stylesheet" as="style">
-<link rel="icon" href="https://all-on.github.io/images/site-icon.jpg">
-<link rel="icon" type="image/png" sizes="16x16" href="https://all-on.github.io/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://all-on.github.io/favicon-32x32.png">
-<link rel="apple-touch-icon" href="https://all-on.github.io/apple-touch-icon.png">
-<link rel="mask-icon" href="https://all-on.github.io/safari-pinned-tab.svg">
+<link rel="icon" href="https://All-on.github.io/images/site-icon.jpg">
+<link rel="icon" type="image/png" sizes="16x16" href="https://All-on.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://All-on.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://All-on.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://All-on.github.io/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="zh-cn" href="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC7%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F1/">
+<link rel="alternate" hreflang="zh-cn" href="https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC7%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F1/">
 <noscript>
     <style>
         #theme-toggle,
@@ -161,7 +161,7 @@
         ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
         ignoredClasses: ['entry-content']
     });"></script>
-<meta property="og:url" content="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC7%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F1/">
+<meta property="og:url" content="https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC7%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F1/">
   <meta property="og:site_name" content="All-on&#39;s Blog">
   <meta property="og:title" content="第7章 文件系统1">
   <meta property="og:description" content="一、文件系统基本概念 1. 什么是文件？ 定义：一组带标识（文件名）、在逻辑上有完整意义的信息项序列。 信息项：构成文件内容的基本单位（字节或记录），有顺序关系。 意义：由文件建立者和使用者解释。 本质：文件是对磁盘的抽象。 2. 文件系统的作用 统一管理信息资源（存储、检索、更新）。 提供共享、保护手段，方便用户使用。 管理磁盘空间（分配与回收）。 实现文件名到磁盘空间的映射。 提供与I/O系统的统一接口。 3. 文件分类（UNIX） 普通文件：用户信息，ASCII或二进制。 目录文件：管理系统文件。 特殊文件： 字符设备文件（终端、打印机等）。 块设备文件（磁盘）。 管道文件、套接字、符号链接文件等。 4. 文件的逻辑结构 流式文件：字节序列。 记录式文件：记录序列（可顺序或索引组织）。 树形结构：支持层次化数据。 5. 文件的存取方式 顺序存取：按字节依次读写。 随机存取：可直接跳转到任意位置（如UNIX的SEEK）。 二、文件系统的实现 1. 存储介质与磁盘块 扇区：物理存储单位，保证写入原子性。 磁盘块（簇）：逻辑存储单位，由若干扇区组成，是分配和传输的基本单位。 2. 文件属性与FCB 文件控制块（FCB）：操作系统管理文件的数据结构，存放文件所有属性（元数据）。 常见属性：文件名、大小、位置、权限、时间戳等。 3. 文件操作 基本操作：CREATE、DELETE、OPEN、CLOSE、READ、WRITE、SEEK等。 打开模式：进程需先“打开”文件才能访问。 4. 文件目录 目录文件：存放目录项的特殊文件。 目录项：可以是FCB或指向FCB的指针。 树形目录结构： 绝对路径 vs 相对路径。 当前目录（工作目录）。 目录操作：CREATE、DELETE、OPENDIR、READDIR等。 三、文件系统的磁盘布局 1. 基本术语 磁盘分区：物理磁盘划分为独立部分。 文件卷：逻辑分区，可跨磁盘。 格式化：在卷上建立文件系统的过程。 2. 磁盘上的布局 引导区：引导操作系统的信息。 卷信息：块数、大小、空闲块指针等。 目录结构：目录文件的存放位置。 用户文件：实际数据存储区。 3. 实现细节 1. 如何启动所存储的操作系统？ 磁盘的引导区（通常为第一个扇区）存储引导程序和分区表。计算机启动时，BIOS/UEFI 读取主引导记录（MBR）或GPT，找到活动分区，加载该分区的引导扇区，进而启动操作系统。">
@@ -185,13 +185,13 @@
       "@type": "ListItem",
       "position":  1 ,
       "name": "Posts",
-      "item": "https://all-on.github.io/posts/"
+      "item": "https://All-on.github.io/posts/"
     }, 
     {
       "@type": "ListItem",
       "position":  2 ,
       "name": "第7章 文件系统1",
-      "item": "https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC7%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F1/"
+      "item": "https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC7%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F1/"
     }
   ]
 }
@@ -217,14 +217,14 @@
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": "https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC7%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F1/"
+    "@id": "https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC7%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F1/"
   },
   "publisher": {
     "@type": "Organization",
     "name": "All-on's Blog",
     "logo": {
       "@type": "ImageObject",
-      "url": "https://all-on.github.io/images/site-icon.jpg"
+      "url": "https://All-on.github.io/images/site-icon.jpg"
     }
   }
 }
@@ -234,8 +234,8 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://all-on.github.io/" accesskey="h" title="All-on&#39;s Blog (Alt + H)">
-                <img src="https://all-on.github.io/images/site-icon.jpg" alt="" aria-label="logo"
+            <a href="https://All-on.github.io/" accesskey="h" title="All-on&#39;s Blog (Alt + H)">
+                <img src="https://All-on.github.io/images/site-icon.jpg" alt="" aria-label="logo"
                     height="35">All-on&#39;s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
@@ -262,27 +262,27 @@
         </div>
         <ul id="menu" class="menu">
             <li>
-                <a href="https://all-on.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                <a href="https://All-on.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
                     <span>搜索</span>
                 </a>
             </li>
             <li>
-                <a href="https://all-on.github.io/posts/" title="文章">
+                <a href="https://All-on.github.io/posts/" title="文章">
                     <span>文章</span>
                 </a>
             </li>
             <li>
-                <a href="https://all-on.github.io/categories/" title="类别">
+                <a href="https://All-on.github.io/categories/" title="类别">
                     <span>类别</span>
                 </a>
             </li>
             <li>
-                <a href="https://all-on.github.io/archives/" title="归档">
+                <a href="https://All-on.github.io/archives/" title="归档">
                     <span>归档</span>
                 </a>
             </li>
             <li>
-                <a href="https://all-on.github.io/about/" title="关于">
+                <a href="https://All-on.github.io/about/" title="关于">
                     <span>关于</span>
                 </a>
             </li>
@@ -745,11 +745,11 @@
     <ul class="post-tags">
     </ul>
 <nav class="paginav">
-  <a class="prev" href="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC6%E7%AB%A0-%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/">
+  <a class="prev" href="https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC6%E7%AB%A0-%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/">
     <span class="title">« </span>
     <span>第6章 虚拟存储管理</span>
   </a>
-  <a class="next" href="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC8%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F2/">
+  <a class="next" href="https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC8%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F2/">
     <span class="title"> »</span>
     <span>第8章 文件系统2</span>
   </a>
@@ -760,7 +760,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://all-on.github.io/">All-on&#39;s Blog</a></span> · 
+        <span>&copy; 2026 <a href="https://All-on.github.io/">All-on&#39;s Blog</a></span> · 
 
     
     

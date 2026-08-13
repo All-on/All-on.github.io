@@ -80,16 +80,16 @@ TLB未命中时需查主存页表。
 3. 页面锁定
 防止关键页面（如内核代码、I/O缓冲区）被换出。通过锁定位或系统调用（如VirtualLock）实现。">
 <meta name="author" content="All-on">
-<link rel="canonical" href="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC6%E7%AB%A0-%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/">
+<link rel="canonical" href="https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC6%E7%AB%A0-%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.4f7a70c28f67918d50819ad94370c535de5b6f0d6c6299d10477402264aea5fd.css" integrity="sha256-T3pwwo9nkY1QgZrZQ3DFNd5bbw1sYpnRBHdAImSupf0=" rel="preload stylesheet" as="style">
-<link rel="icon" href="https://all-on.github.io/images/site-icon.jpg">
-<link rel="icon" type="image/png" sizes="16x16" href="https://all-on.github.io/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://all-on.github.io/favicon-32x32.png">
-<link rel="apple-touch-icon" href="https://all-on.github.io/apple-touch-icon.png">
-<link rel="mask-icon" href="https://all-on.github.io/safari-pinned-tab.svg">
+<link rel="icon" href="https://All-on.github.io/images/site-icon.jpg">
+<link rel="icon" type="image/png" sizes="16x16" href="https://All-on.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://All-on.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://All-on.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://All-on.github.io/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="zh-cn" href="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC6%E7%AB%A0-%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/">
+<link rel="alternate" hreflang="zh-cn" href="https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC6%E7%AB%A0-%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/">
 <noscript>
     <style>
         #theme-toggle,
@@ -147,7 +147,7 @@ TLB未命中时需查主存页表。
         ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
         ignoredClasses: ['entry-content']
     });"></script>
-<meta property="og:url" content="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC6%E7%AB%A0-%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/">
+<meta property="og:url" content="https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC6%E7%AB%A0-%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/">
   <meta property="og:site_name" content="All-on&#39;s Blog">
   <meta property="og:title" content="第6章 虚拟存储管理">
   <meta property="og:description" content="一、虚拟存储基本概念 1. 虚拟内存（Virtual Memory） 结合物理内存与磁盘，形成一个大容量的“逻辑内存”。 程序使用虚拟地址，由操作系统与硬件（MMU）自动转换为物理地址。 大小受寻址机制与磁盘容量限制。 2. 虚拟地址空间（Virtual Address Space） 每个进程拥有独立的虚拟地址空间。 包括代码、数据、堆、栈、共享库等区域。 3. 虚拟页式存储管理 请求调页（Demand Paging）：仅在实际访问时调入页面。 预先调页（Pre-paging）：预测并提前调入可能需要的页面。 页面不在内存时触发缺页异常（Page Fault），由操作系统处理。 二、页表与地址转换 1. 页表项（Page Table Entry, PTE） 页框号（PFN）：物理页框号。 有效位（Present）：页面是否在内存。 访问位（Accessed）：是否被访问过。 修改位（Dirty）：是否被修改过。 保护位（Protection）：读写/执行权限。 2. 多级页表（Hierarchical Page Table） 解决页表过大的问题（如32位系统页表可达512页）。 例如：二级页表（页目录 &#43; 页表）、x86-64四级页表。 页表本身也可映射到虚存，按需调入。 3. 反转页表（Inverted Page Table） 系统只维护一张全局页表，记录物理页框 →（PID &#43; 虚页号）。 节省空间，但查找需哈希或链式辅助。 用于PowerPC、IA-64等架构。 4. 快表（TLB） 缓存最近使用的页表项，加速地址转换。 进程切换时需刷新或使用PCID/ASID标识。 TLB未命中时需查主存页表。 三、地址转换与缺页处理 1. 地址转换流程 1虚拟地址 → 查TLB → 命中则得物理地址 2 → 未命中则查页表 → 页面在内存则更新TLB 3 → 不在内存则触发缺页异常 2. 缺页异常处理 操作系统从磁盘调入缺失页面。 若无空闲页框，则执行页面置换。 若页面被修改过，需写回磁盘。 四、驻留集与置换策略 1. 驻留集管理 固定分配：进程创建时确定页框数。 可变分配：根据缺页率动态调整（缺页率高则增加页框）。 2. 置换范围 局部置换：仅从当前进程的驻留集中选择。 全局置换：从所有进程的未锁定页框中选择。 3. 页面锁定 防止关键页面（如内核代码、I/O缓冲区）被换出。通过锁定位或系统调用（如VirtualLock）实现。">
@@ -171,13 +171,13 @@ TLB未命中时需查主存页表。
       "@type": "ListItem",
       "position":  1 ,
       "name": "Posts",
-      "item": "https://all-on.github.io/posts/"
+      "item": "https://All-on.github.io/posts/"
     }, 
     {
       "@type": "ListItem",
       "position":  2 ,
       "name": "第6章 虚拟存储管理",
-      "item": "https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC6%E7%AB%A0-%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/"
+      "item": "https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC6%E7%AB%A0-%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/"
     }
   ]
 }
@@ -203,14 +203,14 @@ TLB未命中时需查主存页表。
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": "https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC6%E7%AB%A0-%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/"
+    "@id": "https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC6%E7%AB%A0-%E8%99%9A%E6%8B%9F%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86/"
   },
   "publisher": {
     "@type": "Organization",
     "name": "All-on's Blog",
     "logo": {
       "@type": "ImageObject",
-      "url": "https://all-on.github.io/images/site-icon.jpg"
+      "url": "https://All-on.github.io/images/site-icon.jpg"
     }
   }
 }
@@ -220,8 +220,8 @@ TLB未命中时需查主存页表。
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="https://all-on.github.io/" accesskey="h" title="All-on&#39;s Blog (Alt + H)">
-                <img src="https://all-on.github.io/images/site-icon.jpg" alt="" aria-label="logo"
+            <a href="https://All-on.github.io/" accesskey="h" title="All-on&#39;s Blog (Alt + H)">
+                <img src="https://All-on.github.io/images/site-icon.jpg" alt="" aria-label="logo"
                     height="35">All-on&#39;s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
@@ -248,27 +248,27 @@ TLB未命中时需查主存页表。
         </div>
         <ul id="menu" class="menu">
             <li>
-                <a href="https://all-on.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                <a href="https://All-on.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
                     <span>搜索</span>
                 </a>
             </li>
             <li>
-                <a href="https://all-on.github.io/posts/" title="文章">
+                <a href="https://All-on.github.io/posts/" title="文章">
                     <span>文章</span>
                 </a>
             </li>
             <li>
-                <a href="https://all-on.github.io/categories/" title="类别">
+                <a href="https://All-on.github.io/categories/" title="类别">
                     <span>类别</span>
                 </a>
             </li>
             <li>
-                <a href="https://all-on.github.io/archives/" title="归档">
+                <a href="https://All-on.github.io/archives/" title="归档">
                     <span>归档</span>
                 </a>
             </li>
             <li>
-                <a href="https://all-on.github.io/about/" title="关于">
+                <a href="https://All-on.github.io/about/" title="关于">
                     <span>关于</span>
                 </a>
             </li>
@@ -622,11 +622,11 @@ TLB未命中时需查主存页表。
     <ul class="post-tags">
     </ul>
 <nav class="paginav">
-  <a class="prev" href="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC5%E7%AB%A0-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">
+  <a class="prev" href="https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC5%E7%AB%A0-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">
     <span class="title">« </span>
     <span>第5章 内存管理</span>
   </a>
-  <a class="next" href="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC7%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F1/">
+  <a class="next" href="https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC7%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F1/">
     <span class="title"> »</span>
     <span>第7章 文件系统1</span>
   </a>
@@ -637,7 +637,7 @@ TLB未命中时需查主存页表。
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="https://all-on.github.io/">All-on&#39;s Blog</a></span> · 
+        <span>&copy; 2026 <a href="https://All-on.github.io/">All-on&#39;s Blog</a></span> · 
 
     
     
