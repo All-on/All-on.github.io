@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-cn" dir="auto" data-theme="auto">
 
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
@@ -157,16 +157,16 @@ RAID 0&#43;1 / 1&#43;0：嵌套组合，兼顾性能与安全。
 ext家族简介
 ext2、ext3 和 ext4 是 Linux 系统中广泛使用的文件系统，它们之间既有继承关系，也有显著的技术演进。只有 ext3 和 ext4 是日志型（journaling）文件系统，而 ext2 不是。">
 <meta name="author" content="All-on">
-<link rel="canonical" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC8%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F2/">
+<link rel="canonical" href="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC8%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F2/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.4f7a70c28f67918d50819ad94370c535de5b6f0d6c6299d10477402264aea5fd.css" integrity="sha256-T3pwwo9nkY1QgZrZQ3DFNd5bbw1sYpnRBHdAImSupf0=" rel="preload stylesheet" as="style">
-<link rel="icon" href="http://localhost:1313/images/site-icon.jpg">
-<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
-<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
-<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<link rel="icon" href="https://all-on.github.io/images/site-icon.jpg">
+<link rel="icon" type="image/png" sizes="16x16" href="https://all-on.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://all-on.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://all-on.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://all-on.github.io/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="zh-cn" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC8%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F2/">
+<link rel="alternate" hreflang="zh-cn" href="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC8%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F2/">
 <noscript>
     <style>
         #theme-toggle,
@@ -224,7 +224,7 @@ ext2、ext3 和 ext4 是 Linux 系统中广泛使用的文件系统，它们之�
         ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
         ignoredClasses: ['entry-content']
     });"></script>
-<meta property="og:url" content="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC8%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F2/">
+<meta property="og:url" content="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC8%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F2/">
   <meta property="og:site_name" content="All-on&#39;s Blog">
   <meta property="og:title" content="第8章 文件系统2">
   <meta property="og:description" content="一、文件系统的管理 1. 文件系统的可靠性 定义：抵御物理或人为破坏的能力。 坏块问题：磁盘物理损坏导致的存储失效。 备份策略： 全量转储：定期复制所有文件。 增量转储：仅备份修改过的文件。 转储方式： 物理转储：按磁盘块顺序输出。 逻辑转储：递归转储指定目录下更改的文件。 2. 文件系统一致性 问题来源：系统崩溃时未写回的内存数据导致磁盘与内存状态不一致。 解决方案：系统启动时运行检查程序，通过计数器表统计磁盘块使用情况。 写入方式： 通写：立即写盘，安全但性能差（如FAT）。 延迟写：写回缓存，性能好但恢复性差。 可恢复写：事务日志，兼顾安全与性能（如NTFS）。 3. 文件系统的安全性 目标：防止未授权访问。 数据丢失原因：灾难、故障、人为失误（可通过备份缓解）。 入侵者类型：偶然窥视、恶意入侵、商业/军事间谍。 保护机制： 身份验证：口令、物理鉴定、生物特征。 访问控制： 访问控制表：按文件记录用户权限。 能力表：按用户记录文件权限。 UNIX二级存取控制： 用户分类：owner、group、other。 权限分类：r、w、x、-。 示例：rwx rwx rwx，chmod 755 file2。 二、文件系统的性能优化 1. 磁盘高速缓存（块缓存） 作用：缓存常用磁盘块，减少I/O次数。 实现要点： 缓存组织与置换（如LRU）。 置换时需考虑缓存一致性与未来使用频率。 2. 提前读取 原理：利用空间局部性，一次读取多个相邻块。 优点：减少寻道时间，提升顺序访问效率。 3. 合理分配磁盘空间 目标：将顺序存取的块尽量放在同一柱面，减少磁臂移动。 4. 磁盘调度算法 目标：减少寻道时间与旋转延迟。 常见算法： FCFS：简单公平，效率低。 SSTF：寻道时间最短，可能饥饿。 SCAN：电梯算法，双向扫描。 C-SCAN：单向扫描，快速归零。 N-STEP-SCAN：分队列扫描，避免“磁臂粘性”。 FSCAN：动态分队列，新请求延迟处理。 旋转调度：优先服务磁头位置下方的扇区。 5. 信息的优化分布 调整记录在磁道上的排列顺序，减少I/O等待时间。 6. 记录的成组与分解 成组：多个逻辑记录合并存储，提高空间利用率与I/O效率。 分解：从成组记录中提取单个逻辑记录。 7. RAID技术 目标：提升速度、容量、容错与恢复能力。 常见级别： RAID 0：条带化，无冗余，性能最佳。 RAID 1：镜像，安全性高，利用率50%。 RAID 5：分布式奇偶校验，兼顾性能与可靠性。 RAID 6：双重分布式校验，容错更强。 RAID 0&#43;1 / 1&#43;0：嵌套组合，兼顾性能与安全。 三、文件系统的结构设计 1. 文件系统层次模型 五层结构： 文件系统接口：用户操作接口。 逻辑文件系统层：目录管理与安全控制。 文件组织模块层：逻辑块与物理块映射。 基本文件系统层：向驱动发读写命令。 基本I/O控制层：设备驱动与中断处理。 2. 虚拟文件系统（VFS） 作用：抽象不同文件系统，提供统一接口。 功能： 统一API（open、read、write）。 管理文件系统数据结构。 与具体文件系统模块交互。 3. 日志结构文件系统（LFS） 核心思想：将磁盘视为日志，顺序写入末尾，提升写效率。 特点：集中写入、节点与内容共存、清理线程回收空间。 4. 日志文件系统 原理：通过事务日志记录操作步骤，崩溃后依日志恢复。 代表系统：NTFS、EXT3、ReiserFS。 ext家族简介 ext2、ext3 和 ext4 是 Linux 系统中广泛使用的文件系统，它们之间既有继承关系，也有显著的技术演进。只有 ext3 和 ext4 是日志型（journaling）文件系统，而 ext2 不是。">
@@ -248,13 +248,13 @@ ext2、ext3 和 ext4 是 Linux 系统中广泛使用的文件系统，它们之�
       "@type": "ListItem",
       "position":  1 ,
       "name": "Posts",
-      "item": "http://localhost:1313/posts/"
+      "item": "https://all-on.github.io/posts/"
     }, 
     {
       "@type": "ListItem",
       "position":  2 ,
       "name": "第8章 文件系统2",
-      "item": "http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC8%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F2/"
+      "item": "https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC8%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F2/"
     }
   ]
 }
@@ -280,14 +280,14 @@ ext2、ext3 和 ext4 是 Linux 系统中广泛使用的文件系统，它们之�
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": "http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC8%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F2/"
+    "@id": "https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC8%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F2/"
   },
   "publisher": {
     "@type": "Organization",
     "name": "All-on's Blog",
     "logo": {
       "@type": "ImageObject",
-      "url": "http://localhost:1313/images/site-icon.jpg"
+      "url": "https://all-on.github.io/images/site-icon.jpg"
     }
   }
 }
@@ -297,8 +297,8 @@ ext2、ext3 和 ext4 是 Linux 系统中广泛使用的文件系统，它们之�
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="http://localhost:1313/" accesskey="h" title="All-on&#39;s Blog (Alt + H)">
-                <img src="http://localhost:1313/images/site-icon.jpg" alt="" aria-label="logo"
+            <a href="https://all-on.github.io/" accesskey="h" title="All-on&#39;s Blog (Alt + H)">
+                <img src="https://all-on.github.io/images/site-icon.jpg" alt="" aria-label="logo"
                     height="35">All-on&#39;s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
@@ -325,27 +325,27 @@ ext2、ext3 和 ext4 是 Linux 系统中广泛使用的文件系统，它们之�
         </div>
         <ul id="menu" class="menu">
             <li>
-                <a href="http://localhost:1313/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                <a href="https://all-on.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
                     <span>搜索</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/posts/" title="文章">
+                <a href="https://all-on.github.io/posts/" title="文章">
                     <span>文章</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/categories/" title="类别">
+                <a href="https://all-on.github.io/categories/" title="类别">
                     <span>类别</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/archives/" title="归档">
+                <a href="https://all-on.github.io/archives/" title="归档">
                     <span>归档</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/about/" title="关于">
+                <a href="https://all-on.github.io/about/" title="关于">
                     <span>关于</span>
                 </a>
             </li>
@@ -823,11 +823,11 @@ ext2、ext3 和 ext4 是 Linux 系统中广泛使用的文件系统，它们之�
     <ul class="post-tags">
     </ul>
 <nav class="paginav">
-  <a class="prev" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC7%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F1/">
+  <a class="prev" href="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC7%E7%AB%A0-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F1/">
     <span class="title">« </span>
     <span>第7章 文件系统1</span>
   </a>
-  <a class="next" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC9%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B6/">
+  <a class="next" href="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC9%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B6/">
     <span class="title"> »</span>
     <span>第9章 进程同步机制</span>
   </a>
@@ -838,7 +838,7 @@ ext2、ext3 和 ext4 是 Linux 系统中广泛使用的文件系统，它们之�
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="http://localhost:1313/">All-on&#39;s Blog</a></span> · 
+        <span>&copy; 2026 <a href="https://all-on.github.io/">All-on&#39;s Blog</a></span> · 
 
     
     

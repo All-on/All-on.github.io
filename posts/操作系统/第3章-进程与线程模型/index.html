@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-cn" dir="auto" data-theme="auto">
 
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
@@ -114,16 +114,16 @@ Windows：CreateProcess、ExitProcess
 1. 定义
 协程是一种用户态的轻量级线程，由程序员控制在用户空间进行调度，而不是由操作系统内核进行调度。">
 <meta name="author" content="All-on">
-<link rel="canonical" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC3%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/">
+<link rel="canonical" href="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC3%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.4f7a70c28f67918d50819ad94370c535de5b6f0d6c6299d10477402264aea5fd.css" integrity="sha256-T3pwwo9nkY1QgZrZQ3DFNd5bbw1sYpnRBHdAImSupf0=" rel="preload stylesheet" as="style">
-<link rel="icon" href="http://localhost:1313/images/site-icon.jpg">
-<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
-<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
-<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<link rel="icon" href="https://all-on.github.io/images/site-icon.jpg">
+<link rel="icon" type="image/png" sizes="16x16" href="https://all-on.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://all-on.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://all-on.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://all-on.github.io/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="zh-cn" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC3%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/">
+<link rel="alternate" hreflang="zh-cn" href="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC3%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/">
 <noscript>
     <style>
         #theme-toggle,
@@ -181,7 +181,7 @@ Windows：CreateProcess、ExitProcess
         ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
         ignoredClasses: ['entry-content']
     });"></script>
-<meta property="og:url" content="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC3%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/">
+<meta property="og:url" content="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC3%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/">
   <meta property="og:site_name" content="All-on&#39;s Blog">
   <meta property="og:title" content="第3章 进程与线程模型">
   <meta property="og:description" content="一、进程模型 1. 多道程序设计 定义：多个程序同时进入内存并运行，提高系统效率。 特点：并发执行、资源共享、执行顺序不确定。 2. 进程的定义与作用 进程：程序的一次执行过程，是正在运行程序的抽象。 作用： 将CPU抽象为多个虚拟CPU； 是系统资源分配的基本单位； 每个进程有独立的地址空间。 3. 进程的组成 进程映像 = 程序 &#43; 数据 &#43; 栈 &#43; PCB PCB（进程控制块）：描述进程的所有属性，是进程存在的唯一标志。 PCB内容： 进程ID、状态、优先级、地址空间、打开文件、寄存器等。 4. 进程状态与转换 基本状态： 运行（Running） 就绪（Ready） 阻塞/等待（Blocked/Waiting） 其他状态： 创建（New）、终止（Terminated）、挂起（Suspend） Linux状态：TASK_RUNNING、TASK_INTERRUPTIBLE、TASK_ZOMBIE等 5. 进程控制 原语：不可中断的操作，如创建、撤销、阻塞、唤醒等。 创建过程：分配PID、PCB、地址空间，初始化并加入就绪队列。 系统调用： UNIX：fork()、exec()、wait()、exit() Windows：CreateProcess、ExitProcess 6. 进程地址空间 虚拟地址空间：每个进程拥有独立的虚拟地址空间。 结构：代码段、数据段、堆、栈、共享库、内存映射文件。 查看方法：/proc/PID/maps 二、线程模型 1. 为什么引入线程？ 应用需求：如字处理器、Web服务器 开销小：创建、撤销、切换、通信开销远小于进程 性能提升：更好利用多核，支持并发I/O 2. 线程的定义与属性 线程：进程中执行的实体，是CPU调度的基本单位。 属性： 有状态、上下文、栈； 共享进程的地址空间和资源； 可创建、撤销其他线程。 3. 线程的实现方式 类型 特点 用户级线程 在用户空间管理，切换快，但会因系统调用阻塞整个进程 核心级线程 由内核管理，可多核并行，但切换开销大 混合模型 用户线程映射到内核线程，平衡灵活性与性能 三、协程（简要） 1. 定义 协程是一种用户态的轻量级线程，由程序员控制在用户空间进行调度，而不是由操作系统内核进行调度。">
@@ -205,13 +205,13 @@ Windows：CreateProcess、ExitProcess
       "@type": "ListItem",
       "position":  1 ,
       "name": "Posts",
-      "item": "http://localhost:1313/posts/"
+      "item": "https://all-on.github.io/posts/"
     }, 
     {
       "@type": "ListItem",
       "position":  2 ,
       "name": "第3章 进程与线程模型",
-      "item": "http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC3%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/"
+      "item": "https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC3%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/"
     }
   ]
 }
@@ -237,14 +237,14 @@ Windows：CreateProcess、ExitProcess
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": "http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC3%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/"
+    "@id": "https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC3%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/"
   },
   "publisher": {
     "@type": "Organization",
     "name": "All-on's Blog",
     "logo": {
       "@type": "ImageObject",
-      "url": "http://localhost:1313/images/site-icon.jpg"
+      "url": "https://all-on.github.io/images/site-icon.jpg"
     }
   }
 }
@@ -254,8 +254,8 @@ Windows：CreateProcess、ExitProcess
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="http://localhost:1313/" accesskey="h" title="All-on&#39;s Blog (Alt + H)">
-                <img src="http://localhost:1313/images/site-icon.jpg" alt="" aria-label="logo"
+            <a href="https://all-on.github.io/" accesskey="h" title="All-on&#39;s Blog (Alt + H)">
+                <img src="https://all-on.github.io/images/site-icon.jpg" alt="" aria-label="logo"
                     height="35">All-on&#39;s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
@@ -282,27 +282,27 @@ Windows：CreateProcess、ExitProcess
         </div>
         <ul id="menu" class="menu">
             <li>
-                <a href="http://localhost:1313/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                <a href="https://all-on.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
                     <span>搜索</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/posts/" title="文章">
+                <a href="https://all-on.github.io/posts/" title="文章">
                     <span>文章</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/categories/" title="类别">
+                <a href="https://all-on.github.io/categories/" title="类别">
                     <span>类别</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/archives/" title="归档">
+                <a href="https://all-on.github.io/archives/" title="归档">
                     <span>归档</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/about/" title="关于">
+                <a href="https://all-on.github.io/about/" title="关于">
                     <span>关于</span>
                 </a>
             </li>
@@ -718,11 +718,11 @@ Windows：CreateProcess、ExitProcess
     <ul class="post-tags">
     </ul>
 <nav class="paginav">
-  <a class="prev" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC2%E7%AB%A0-%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83%E4%B8%8E%E8%BF%90%E8%A1%8C%E6%9C%BA%E5%88%B6/">
+  <a class="prev" href="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC2%E7%AB%A0-%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83%E4%B8%8E%E8%BF%90%E8%A1%8C%E6%9C%BA%E5%88%B6/">
     <span class="title">« </span>
     <span>第2章 运行环境与运行机制</span>
   </a>
-  <a class="next" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC4%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E8%B0%83%E5%BA%A6/">
+  <a class="next" href="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC4%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E8%B0%83%E5%BA%A6/">
     <span class="title"> »</span>
     <span>第4章 进程与线程调度</span>
   </a>
@@ -733,7 +733,7 @@ Windows：CreateProcess、ExitProcess
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="http://localhost:1313/">All-on&#39;s Blog</a></span> · 
+        <span>&copy; 2026 <a href="https://all-on.github.io/">All-on&#39;s Blog</a></span> · 
 
     
     

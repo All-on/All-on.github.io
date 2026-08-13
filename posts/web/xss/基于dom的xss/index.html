@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>基于DOM的XSS | All-on&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="基于DOM的XSS漏洞通常出现在JavaScript从攻击者可控的来源（如URL）获取数据，并将其传递到支持动态代码执行的汇入处时，如eval()或innerHTML。这使得攻击者能够执行恶意JavaScript，通常可以劫持其他用户的账户。一些可能导致 DOM-XSS 漏洞的主要来源：">
+<meta name="author" content="All-on">
+<link rel="canonical" href="https://all-on.github.io/posts/web/xss/%E5%9F%BA%E4%BA%8Edom%E7%9A%84xss/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.4f7a70c28f67918d50819ad94370c535de5b6f0d6c6299d10477402264aea5fd.css" integrity="sha256-T3pwwo9nkY1QgZrZQ3DFNd5bbw1sYpnRBHdAImSupf0=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://all-on.github.io/images/site-icon.jpg">
+<link rel="icon" type="image/png" sizes="16x16" href="https://all-on.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://all-on.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://all-on.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://all-on.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh-cn" href="https://all-on.github.io/posts/web/xss/%E5%9F%BA%E4%BA%8Edom%E7%9A%84xss/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.6.0/lxgwwenkaiscreen.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body, {
+        delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '$', right: '$', display: false}
+        ],
+        throwOnError: false,
+        ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+        ignoredClasses: ['entry-content']
+    });"></script>
+<meta property="og:url" content="https://all-on.github.io/posts/web/xss/%E5%9F%BA%E4%BA%8Edom%E7%9A%84xss/">
+  <meta property="og:site_name" content="All-on&#39;s Blog">
+  <meta property="og:title" content="基于DOM的XSS">
+  <meta property="og:description" content="基于DOM的XSS漏洞通常出现在JavaScript从攻击者可控的来源（如URL）获取数据，并将其传递到支持动态代码执行的汇入处时，如eval()或innerHTML。这使得攻击者能够执行恶意JavaScript，通常可以劫持其他用户的账户。一些可能导致 DOM-XSS 漏洞的主要来源：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-03-19T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-03-19T00:00:00+00:00">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="基于DOM的XSS">
+  <meta name="twitter:description" content="基于DOM的XSS漏洞通常出现在JavaScript从攻击者可控的来源（如URL）获取数据，并将其传递到支持动态代码执行的汇入处时，如eval()或innerHTML。这使得攻击者能够执行恶意JavaScript，通常可以劫持其他用户的账户。一些可能导致 DOM-XSS 漏洞的主要来源：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://all-on.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "基于DOM的XSS",
+      "item": "https://all-on.github.io/posts/web/xss/%E5%9F%BA%E4%BA%8Edom%E7%9A%84xss/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "基于DOM的XSS",
+  "name": "基于DOM的XSS",
+  "description": "基于DOM的XSS漏洞通常出现在JavaScript从攻击者可控的来源（如URL）获取数据，并将其传递到支持动态代码执行的汇入处时，如eval()或innerHTML。这使得攻击者能够执行恶意JavaScript，通常可以劫持其他用户的账户。一些可能导致 DOM-XSS 漏洞的主要来源：\n",
+  "keywords": [
+    
+  ],
+  "articleBody": "基于DOM的XSS漏洞通常出现在JavaScript从攻击者可控的来源（如URL）获取数据，并将其传递到支持动态代码执行的汇入处时，如eval()或innerHTML。这使得攻击者能够执行恶意JavaScript，通常可以劫持其他用户的账户。一些可能导致 DOM-XSS 漏洞的主要来源：\n1document.write() 2document.writeln() 3document.domain 4element.innerHTML 5element.outerHTML 6element.insertAdjacentHTML 7element.onevent 以下 jQuery 函数也是可能导致 DOM-XSS 漏洞的入口点：\n1add() 2after() 3append() 4animate() 5insertAfter() 6insertBefore() 7before() 8html() 9prepend() 10replaceAll() 11replaceWith() 12wrap() 13wrapInner() 14wrapAll() 15has() 16constructor() 17init() 18index() 19jQuery.parseHTML() 20$.parseHTML() 在 document.write 接收器中使用 location.search源的 DOM XSS location.search是获取当前 URL 中问号后面的查询参数部分。document.write()是JavaScript 中用于动态向网页中写入内容的函数，它可以将文本或 HTML 直接插入到网页的文档中。再介绍2个img标签常用的函数：\n：当src=“xxx” 是不存在或无法加载的资源时，浏览器会触发 onerror 事件，可以利用图片加载失败触发 JavaScript 执行 ：当src=“xxx” 是有效且能正常加载的资源时，浏览器会触发 onload 事件，可以利用图片加载成功触发 JavaScript 执行 例如，搜索的参数xxx被这样嵌入： 那么，可以选择直接跳出标签：\n1\"\u003e 包含于select元素中注入的 DOM XSS 在某些情况下，所写内容包含一些需要在漏洞利用时考虑的相关上下文。例如，会使用StoreID向 URL 添加查询参数并输入随机字母数字字符串作为其值，该字符串现在被列为下拉列表中的选项之一。可以确认storeId参数值已放置在选择元素中：...aaa。因此，可以构造 URL 进行XSS：\n1\u0026storeId=\"\u003e 在 innerHTML 接收器中使用 location.search源的 DOM XSS innerHTML用于读取或设置元素的 HTML 内容。innerHTML sink不接受任何现代浏览器中的script元素，svg onload事件也不会触发。这意味着需要使用诸如img或iframe这样的替代元素。事件处理程序如onload和onerror可以与这些元素结合使用。例如：\nelement.innerHTML='... ...'\n于是可以这样构造一个简单的payload：\n1 jQuery 锚点的 href 属性 使用 URL 查询参数（location.search）作为输入，jQuery 把它设置到锚点（标签）的 href 属性上，导致 DOM 型 XSS 漏洞。 如果正在使用诸如 jQuery 这样的 JavaScript 库，需要注意可能改变页面上 DOM 元素的点。例如，jQuery 的 attr() 函数可以修改 DOM 元素的属性。如果数据是从用户可控的来源（例如 URL）读取的，然后传递给 attr() 函数，那么可能会操作传入的值以引发 XSS。例如，下面的 JavaScript 代码使用来自 URL 的数据来更改锚元素的 href 属性：\n1$(function() { 2\t$('#backLink').attr(\"href\",(new URLSearchParams(window.location.search)).get('returnUrl')); 3}); 可以通过修改 URL 来利用这一点，使 location.search 的来源包含一个恶意的 JavaScript URL。在页面的 JavaScript 将这个恶意 URL 应用于返回链接的 href 后，点击返回链接就会执行它：\n?returnUrl=javascript:alert(document.domain)\njQuery的选择器函数$() 另一个需要注意的潜在漏洞是 jQuery 的 $() 选择器函数，它可以被用来将恶意对象注入到 DOM 中。jQuery 曾经非常流行，而一个经典的 DOM XSS 漏洞是由于网站在执行动画或自动滚动到页面特定元素时，将该选择器与 location.hash 源（获取当前 URL 中 # 后面的片段标识符，即锚点）一起使用所引起的。这种行为通常通过易受攻击的 hashchange 事件（当网页 URL 的 #（hash）部分发生变化时，这个事件会被触发）处理程序实现，类似如下所示：\n1$(window).on('hashchange', function() { 2\tvar element = $(location.hash); 3\telement[0].scrollIntoView(); 4}); 由于哈希是用户可控的，攻击者可以利用这一点将 XSS 向量注入到 $() 选择器中。较新版本的jQuery通过防止输入以哈希字符（#）开头时向选择器注入HTML来修补这一漏洞。 要实际利用这个经典漏洞，需要找到一种方法在没有用户交互的情况下触发 hashchange 事件。实现这一点最简单的方法之一是通过 iframe 传递漏洞利用代码：\n1\u003ciframe src=\"https://vulnerable-website.com#\" onload=\"this.src+=''\"\u003e 在这个例子中，src 属性指向具有空哈希值的易受攻击页面。当 iframe 加载时，XSS 向量会被附加到哈希上，从而触发 hashchange 事件。\n例如，在钓鱼页面（服务器）上发送如下的payload，将结果转变为受害者的ID就行：\n1\u003ciframe src=\"https://YOUR-LAB-ID.web-security-academy.net/#\" onload=\"this.src+=''\"\u003e\u003c/iframe\u003e AngularJS 中的 DOM XSS 如果使用像 AngularJS 这样的框架，可能可以在没有尖括号或事件的情况下执行 JavaScript。当网站在 HTML 元素上使用 ng-app 属性时，它将由 AngularJS 处理。在这种情况下，AngularJS 会执行直接出现在 HTML 中或属性内的双大括号里的 JavaScript。 例如，输入：\n1{{$on.constructor('alert(1)')()}} 在 AngularJS 的模板中，{{ }} 内的表达式会在当前 $scope 上下文中求值。$on 是 $scope 对象上的一个方法（通常用于监听事件），所以这里访问的是 $scope.$on 函数。每个 JavaScript 函数（实际上是所有对象）都有一个 constructor 属性，指向创建该对象的构造函数。$on 是一个函数，它的构造函数是 Function。因此 $on.constructor 就是全局的 Function 构造函数。\n反射 DOM XSS 在反射 DOM XSS 漏洞中，服务器处理请求数据，并将数据回响到响应中。反射数据可以被放入 JavaScript 字符串文字，或 DOM 中的数据项，如表单字段。页面上的脚本随后以不安全的方式处理反射数据，最终将其写入危险的汇入。比如：\n1eval('var data = \"reflected string\"'); 例如，发现代码利用 innerText 将服务器返回的内容插入到页面，纯文本，所以无法执行。此外双引号还被转义(\\\")。假如输入aaa，那么响应的结果是： {\"searchTerm\":\"aaa\", \"results\":[]} 在这种情况下继续进行XSS，于是输入\\\"-alert(1)}//，结果就变成了下面的响应，成功弹出了弹窗： {\"searchTerm\":\"\\\\\"-alert(1)}//\", \"results\":[]} 其中 - 是减号运算符，左侧是刚解析出的字符串值（一个反斜杠），右侧是 alert(1) 的返回值。在执行减法时，会先计算右侧 alert(1)，于是弹窗出现。双反斜杠 // 作为注释符号，将后面的内容全部注释掉。\n存储 DOM XSS 网站也可能将数据存储在服务器上，并将其反映在其他地方。在存储的DOM XSS漏洞中，服务器接收一个请求的数据，将其存储，然后在后续响应中包含该数据。后期响应中的脚本包含一个汇入，然后以不安全的方式处理数据。\n1element.innerHTML = comment.author 例如，网站使用 JavaScript的replace()函数对尖括号进行编码。当第一个参数是字符串时，该函数仅替换第一次出现。于是，先让开头简单地包含一组额外的尖括号来利用此漏洞。这些尖括号将被编码，但任何后续尖括号将不受影响：\n1\u003c\u003e ",
+  "wordCount" : "2495",
+  "inLanguage": "zh-cn",
+  "datePublished": "2026-03-19T00:00:00Z",
+  "dateModified": "2026-03-19T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "All-on"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://all-on.github.io/posts/web/xss/%E5%9F%BA%E4%BA%8Edom%E7%9A%84xss/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "All-on's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://all-on.github.io/images/site-icon.jpg"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://all-on.github.io/" accesskey="h" title="All-on&#39;s Blog (Alt + H)">
+                <img src="https://all-on.github.io/images/site-icon.jpg" alt="" aria-label="logo"
+                    height="35">All-on&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://all-on.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/posts/" title="文章">
+                    <span>文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/categories/" title="类别">
+                    <span>类别</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      基于DOM的XSS
+      <span class="entry-hint" title="Draft">
+        <svg xmlns="http://www.w3.org/2000/svg" height="35" viewBox="0 -960 960 960" fill="currentColor">
+          <path
+            d="M160-410v-60h300v60H160Zm0-165v-60h470v60H160Zm0-165v-60h470v60H160Zm360 580v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22q0 11-4.5 22.5T862.09-380L643-160H520Zm300-263-37-37 37 37ZM580-220h38l121-122-18-19-19-18-122 121v38Zm141-141-19-18 37 37-18-19Z" />
+        </svg>
+      </span>
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-03-19 00:00:00 +0000 UTC'>2026-03-19</span>&nbsp;·&nbsp;<span>5 min</span>&nbsp;·&nbsp;<span>2495 words</span>&nbsp;·&nbsp;<span>All-on</span>
+
+</div>
+  </header> <aside id="toc-container" class="toc-container wide">
+<div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e5%9c%a8-documentwrite-%e6%8e%a5%e6%94%b6%e5%99%a8%e4%b8%ad%e4%bd%bf%e7%94%a8-locationsearch%e6%ba%90%e7%9a%84-dom-xss" aria-label="在 document.write 接收器中使用 location.search源的 DOM XSS">在 <code>document.write</code> 接收器中使用 <code>location.search</code>源的 DOM XSS</a></li>
+                <li>
+                    <a href="#%e5%8c%85%e5%90%ab%e4%ba%8eselect%e5%85%83%e7%b4%a0%e4%b8%ad%e6%b3%a8%e5%85%a5%e7%9a%84-dom-xss" aria-label="包含于select元素中注入的 DOM XSS">包含于<code>select</code>元素中注入的 DOM XSS</a><ul>
+                        
+                <li>
+                    <a href="#%e5%9c%a8-innerhtml-%e6%8e%a5%e6%94%b6%e5%99%a8%e4%b8%ad%e4%bd%bf%e7%94%a8-locationsearch%e6%ba%90%e7%9a%84-dom-xss" aria-label="在 innerHTML 接收器中使用 location.search源的 DOM XSS">在 <code>innerHTML</code> 接收器中使用 <code>location.search</code>源的 DOM XSS</a></li></ul>
+                </li>
+                <li>
+                    <a href="#jquery-%e9%94%9a%e7%82%b9%e7%9a%84-href-%e5%b1%9e%e6%80%a7" aria-label="jQuery 锚点的 href 属性">jQuery 锚点的 <code>href</code> 属性</a></li>
+                <li>
+                    <a href="#jquery%e7%9a%84%e9%80%89%e6%8b%a9%e5%99%a8%e5%87%bd%e6%95%b0" aria-label="jQuery的选择器函数$()">jQuery的选择器函数<code>$()</code></a></li>
+                <li>
+                    <a href="#angularjs-%e4%b8%ad%e7%9a%84-dom-xss" aria-label="AngularJS 中的 DOM XSS">AngularJS 中的 DOM XSS</a></li>
+                <li>
+                    <a href="#%e5%8f%8d%e5%b0%84-dom-xss" aria-label="反射 DOM XSS">反射 DOM XSS</a></li>
+                <li>
+                    <a href="#%e5%ad%98%e5%82%a8-dom-xss" aria-label="存储 DOM XSS">存储 DOM XSS</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+</aside>
+<script>
+    let activeElement;
+    let elements;
+    window.addEventListener('DOMContentLoaded', function (event) {
+        checkTocPosition();
+
+        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
+         
+         activeElement = elements[0];
+         const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
+         document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+     }, false);
+
+    window.addEventListener('resize', function(event) {
+        checkTocPosition();
+    }, false);
+
+    window.addEventListener('scroll', () => {
+        
+        activeElement = Array.from(elements).find((element) => {
+            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
+                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
+                return element;
+            }
+        }) || activeElement
+
+        elements.forEach(element => {
+             const id = encodeURI(element.getAttribute('id')).toLowerCase();
+             if (element === activeElement){
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+             } else {
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
+             }
+         })
+     }, false);
+
+    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
+    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
+    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
+
+    function checkTocPosition() {
+        const width = document.body.scrollWidth;
+
+        if (width - main - (toc * 2) - (gap * 4) > 0) {
+            document.getElementById("toc-container").classList.add("wide");
+        } else {
+            document.getElementById("toc-container").classList.remove("wide");
+        }
+    }
+
+    function getOffsetTop(element) {
+        if (!element.getClientRects().length) {
+            return 0;
+        }
+        let rect = element.getBoundingClientRect();
+        let win = element.ownerDocument.defaultView;
+        return rect.top + win.pageYOffset;
+    }
+</script>
+
+  <div class="post-content md-content"><p>基于DOM的XSS漏洞通常出现在JavaScript从攻击者可控的来源（如URL）获取数据，并将其传递到支持动态代码执行的汇入处时，如<code>eval()</code>或<code>innerHTML</code>。这使得攻击者能够执行恶意JavaScript，通常可以劫持其他用户的账户。一些可能导致 DOM-XSS 漏洞的主要来源：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">document.write()
+</span></span><span class="line"><span class="ln">2</span><span class="cl">document.writeln()
+</span></span><span class="line"><span class="ln">3</span><span class="cl">document.domain
+</span></span><span class="line"><span class="ln">4</span><span class="cl">element.innerHTML
+</span></span><span class="line"><span class="ln">5</span><span class="cl">element.outerHTML
+</span></span><span class="line"><span class="ln">6</span><span class="cl">element.insertAdjacentHTML
+</span></span><span class="line"><span class="ln">7</span><span class="cl">element.onevent
+</span></span></code></pre></div><p>以下 jQuery 函数也是可能导致 DOM-XSS 漏洞的入口点：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="n">add</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="n">after</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="n">append</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="n">animate</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="n">insertAfter</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="n">insertBefore</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="n">before</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="n">html</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl"><span class="n">prepend</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="n">replaceAll</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl"><span class="n">replaceWith</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="n">wrap</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="n">wrapInner</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl"><span class="n">wrapAll</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl"><span class="n">has</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl"><span class="n">constructor</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">17</span><span class="cl"><span class="n">init</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="n">index</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl"><span class="n">jQuery</span><span class="o">.</span><span class="n">parseHTML</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">20</span><span class="cl"><span class="o">$.</span><span class="n">parseHTML</span><span class="p">()</span>
+</span></span></code></pre></div><h2 id="在-documentwrite-接收器中使用-locationsearch源的-dom-xss">在 <code>document.write</code> 接收器中使用 <code>location.search</code>源的 DOM XSS<a hidden class="anchor" aria-hidden="true" href="#在-documentwrite-接收器中使用-locationsearch源的-dom-xss">#</a></h2>
+<p><code>location.search</code>是获取当前 URL 中问号后面的查询参数部分。<code>document.write()</code>是JavaScript 中用于动态向网页中写入内容的函数，它可以将文本或 HTML 直接插入到网页的文档中。再介绍2个<code>img</code>标签常用的函数：</p>
+<ul>
+<li><code>&lt;img src=xxx οnerrοr=&quot; &quot;&gt;</code>：当src=&ldquo;xxx&rdquo; 是不存在或无法加载的资源时，浏览器会触发 onerror 事件，可以利用图片加载失败触发 JavaScript 执行</li>
+<li><code>&lt;img src=xxx οnlοad=&quot; &quot;&gt;</code>：当src=&ldquo;xxx&rdquo; 是有效且能正常加载的资源时，浏览器会触发 onload 事件，可以利用图片加载成功触发 JavaScript 执行</li>
+</ul>
+<p>例如，搜索的参数<code>xxx</code>被这样嵌入：
+<code>&lt;img src=&quot;/resources?SearchTerms=xxx&quot;&gt;</code>
+那么，可以选择直接跳出标签：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="s2">&#34;&gt;&lt;svg onload=alert(1)&gt;</span>
+</span></span></code></pre></div><h2 id="包含于select元素中注入的-dom-xss">包含于<code>select</code>元素中注入的 DOM XSS<a hidden class="anchor" aria-hidden="true" href="#包含于select元素中注入的-dom-xss">#</a></h2>
+<p>在某些情况下，所写内容包含一些需要在漏洞利用时考虑的相关上下文。例如，会使用<code>StoreID</code>向 URL 添加查询参数并输入随机字母数字字符串作为其值，该字符串现在被列为下拉列表中的选项之一。可以确认<code>storeId</code>参数值已放置在选择元素中：<code>&lt;select&gt;...&lt;option selected=&gt;aaa&lt;/option&gt;</code>。因此，可以构造 URL 进行XSS：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&amp;storeId=&#34;&gt;&lt;/select&gt;&lt;img%20src=1%20onerror=alert(1)&gt;
+</span></span></code></pre></div><h3 id="在-innerhtml-接收器中使用-locationsearch源的-dom-xss">在 <code>innerHTML</code> 接收器中使用 <code>location.search</code>源的 DOM XSS<a hidden class="anchor" aria-hidden="true" href="#在-innerhtml-接收器中使用-locationsearch源的-dom-xss">#</a></h3>
+<p><code>innerHTML</code>用于读取或设置元素的 HTML 内容。<code>innerHTML sink</code>不接受任何现代浏览器中的<code>script</code>元素，<code>svg onload</code>事件也不会触发。这意味着需要使用诸如<code>img</code>或<code>iframe</code>这样的替代元素。事件处理程序如<code>onload</code>和<code>onerror</code>可以与这些元素结合使用。例如：</p>
+<p><code>element.innerHTML='... &lt;img src=1 onerror=alert(document.domain)&gt; ...'</code></p>
+<p>于是可以这样构造一个简单的payload：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;img src=1 onerror=alert(1)&gt;
+</span></span></code></pre></div><h2 id="jquery-锚点的-href-属性">jQuery 锚点的 <code>href</code> 属性<a hidden class="anchor" aria-hidden="true" href="#jquery-锚点的-href-属性">#</a></h2>
+<p>使用 URL 查询参数（location.search）作为输入，jQuery 把它设置到锚点（<code>&lt;a&gt;</code>标签）的 href 属性上，导致 DOM 型 XSS 漏洞。
+如果正在使用诸如 jQuery 这样的 JavaScript 库，需要注意可能改变页面上 DOM 元素的点。例如，jQuery 的 <code>attr()</code> 函数可以修改 DOM 元素的属性。如果数据是从用户可控的来源（例如 URL）读取的，然后传递给 <code>attr()</code> 函数，那么可能会操作传入的值以引发 XSS。例如，下面的 JavaScript 代码使用来自 URL 的数据来更改锚元素的 <code>href</code> 属性：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">$(function() {
+</span></span><span class="line"><span class="ln">2</span><span class="cl">	$(&#39;#backLink&#39;).attr(&#34;href&#34;,(new URLSearchParams(window.location.search)).get(&#39;returnUrl&#39;));
+</span></span><span class="line"><span class="ln">3</span><span class="cl">});
+</span></span></code></pre></div><p>可以通过修改 URL 来利用这一点，使 <code>location.search</code> 的来源包含一个恶意的 JavaScript URL。在页面的 JavaScript 将这个恶意 URL 应用于返回链接的 <code>href</code> 后，点击返回链接就会执行它：</p>
+<p><code>?returnUrl=javascript:alert(document.domain)</code></p>
+<h2 id="jquery的选择器函数">jQuery的选择器函数<code>$()</code><a hidden class="anchor" aria-hidden="true" href="#jquery的选择器函数">#</a></h2>
+<p>另一个需要注意的潜在漏洞是 jQuery 的 <code>$()</code> 选择器函数，它可以被用来将恶意对象注入到 DOM 中。jQuery 曾经非常流行，而一个经典的 DOM XSS 漏洞是由于网站在执行动画或自动滚动到页面特定元素时，将该选择器与 <code>location.hash</code> 源（获取当前 URL 中 <code>#</code> 后面的片段标识符，即锚点）一起使用所引起的。这种行为通常通过易受攻击的 <code>hashchange</code> 事件（当网页 URL 的 <code>#</code>（hash）部分发生变化时，这个事件会被触发）处理程序实现，类似如下所示：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="o">$</span><span class="p">(</span><span class="n">window</span><span class="p">)</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s1">&#39;hashchange&#39;</span><span class="p">,</span> <span class="n">function</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl">	<span class="k">var</span> <span class="n">element</span> <span class="o">=</span> <span class="o">$</span><span class="p">(</span><span class="n">location</span><span class="o">.</span><span class="n">hash</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl">	<span class="n">element</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">scrollIntoView</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="p">});</span>
+</span></span></code></pre></div><p>由于哈希是用户可控的，攻击者可以利用这一点将 XSS 向量注入到 <code>$()</code> 选择器中。较新版本的jQuery通过防止输入以哈希字符（<code>#</code>）开头时向选择器注入HTML来修补这一漏洞。
+要实际利用这个经典漏洞，需要找到一种方法在没有用户交互的情况下触发 <code>hashchange</code> 事件。实现这一点最简单的方法之一是通过 <code>iframe</code> 传递漏洞利用代码：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="o">&lt;</span><span class="n">iframe</span> <span class="n">src</span><span class="o">=</span><span class="s2">&#34;https://vulnerable-website.com#&#34;</span> <span class="n">onload</span><span class="o">=</span><span class="s2">&#34;this.src+=&#39;&lt;img src=1 onerror=alert(1)&gt;&#39;&#34;</span><span class="o">&gt;</span>
+</span></span></code></pre></div><p>在这个例子中，<code>src</code> 属性指向具有空哈希值的易受攻击页面。当 <code>iframe</code> 加载时，XSS 向量会被附加到哈希上，从而触发 <code>hashchange</code> 事件。</p>
+<p>例如，在钓鱼页面（服务器）上发送如下的payload，将结果转变为受害者的ID就行：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="o">&lt;</span><span class="n">iframe</span> <span class="n">src</span><span class="o">=</span><span class="s2">&#34;https://YOUR-LAB-ID.web-security-academy.net/#&#34;</span> <span class="n">onload</span><span class="o">=</span><span class="s2">&#34;this.src+=&#39;&lt;img src=x onerror=print()&gt;&#39;&#34;</span><span class="o">&gt;&lt;/</span><span class="n">iframe</span><span class="o">&gt;</span>
+</span></span></code></pre></div><h2 id="angularjs-中的-dom-xss">AngularJS 中的 DOM XSS<a hidden class="anchor" aria-hidden="true" href="#angularjs-中的-dom-xss">#</a></h2>
+<p>如果使用像 AngularJS 这样的框架，可能可以在没有尖括号或事件的情况下执行 JavaScript。当网站在 HTML 元素上使用 <code>ng-app</code> 属性时，它将由 AngularJS 处理。在这种情况下，AngularJS 会执行直接出现在 HTML 中或属性内的双大括号里的 JavaScript。
+例如，输入：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="p">{{</span><span class="o">$</span><span class="n">on</span><span class="o">.</span><span class="n">constructor</span><span class="p">(</span><span class="s1">&#39;alert(1)&#39;</span><span class="p">)()}}</span>
+</span></span></code></pre></div><p>在 AngularJS 的模板中，<code>{{ }}</code> 内的表达式会在当前 <code>$scope</code> 上下文中求值。<code>$on</code> 是 <code>$scope</code> 对象上的一个方法（通常用于监听事件），所以这里访问的是 <code>$scope.$on</code> 函数。每个 JavaScript 函数（实际上是所有对象）都有一个 <code>constructor</code> 属性，指向创建该对象的构造函数。<code>$on</code> 是一个函数，它的构造函数是 <strong><code>Function</code></strong>。因此 <code>$on.constructor</code> 就是全局的 <code>Function</code> 构造函数。</p>
+<h2 id="反射-dom-xss">反射 DOM XSS<a hidden class="anchor" aria-hidden="true" href="#反射-dom-xss">#</a></h2>
+<p>在反射 DOM XSS 漏洞中，服务器处理请求数据，并将数据回响到响应中。反射数据可以被放入 JavaScript 字符串文字，或 DOM 中的数据项，如表单字段。页面上的脚本随后以不安全的方式处理反射数据，最终将其写入危险的汇入。比如：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">eval</span><span class="p">(</span><span class="s1">&#39;var data = &#34;reflected string&#34;&#39;</span><span class="p">);</span>
+</span></span></code></pre></div><p>例如，发现代码利用 <code>innerText</code> 将服务器返回的内容插入到页面，纯文本，所以无法执行。此外双引号还被转义<code>(\&quot;)</code>。假如输入aaa，那么响应的结果是：
+<code>{&quot;searchTerm&quot;:&quot;aaa&quot;, &quot;results&quot;:[]}</code>
+在这种情况下继续进行XSS，于是输入<code>\&quot;-alert(1)}//</code>，结果就变成了下面的响应，成功弹出了弹窗：
+<code>{&quot;searchTerm&quot;:&quot;\\&quot;-alert(1)}//&quot;, &quot;results&quot;:[]}</code>
+其中 <code>-</code> 是减号运算符，左侧是刚解析出的字符串值（一个反斜杠），右侧是 <code>alert(1)</code> 的返回值。在执行减法时，会先计算右侧 <code>alert(1)</code>，于是弹窗出现。双反斜杠 <code>//</code> 作为注释符号，将后面的内容全部注释掉。</p>
+<h2 id="存储-dom-xss">存储 DOM XSS<a hidden class="anchor" aria-hidden="true" href="#存储-dom-xss">#</a></h2>
+<p>网站也可能将数据存储在服务器上，并将其反映在其他地方。在存储的DOM XSS漏洞中，服务器接收一个请求的数据，将其存储，然后在后续响应中包含该数据。后期响应中的脚本包含一个汇入，然后以不安全的方式处理数据。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">element.innerHTML = comment.author
+</span></span></code></pre></div><p>例如，网站使用 JavaScript的<code>replace()</code>函数对尖括号进行编码。当第一个参数是字符串时，该函数仅替换第一次出现。于是，先让开头简单地包含一组额外的尖括号来利用此漏洞。这些尖括号将被编码，但任何后续尖括号将不受影响：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;&gt;&lt;img src=1 onerror=alert(1)&gt;
+</span></span></code></pre></div>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://all-on.github.io/posts/web/xss/xss%E5%8F%8A%E5%85%B6%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8/">
+    <span class="title">« </span>
+    <span>XSS及其漏洞利用</span>
+  </a>
+  <a class="next" href="https://all-on.github.io/posts/web/xss/%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5angularjs%E6%B2%99%E7%9B%92/">
+    <span class="title"> »</span>
+    <span>客户端模板注入（AngularJS沙盒）</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://all-on.github.io/">All-on&#39;s Blog</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>业务逻辑漏洞 | All-on&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="对客户端控制的过度信任
+一个根本错误的假设是用户只会通过提供的网页界面与应用交互。这尤其危险，因为它进一步假设客户端验证能防止用户提供恶意输入。
+例如，在装入购物车的页面抓包，将货品价格从1337$ 改为0.01$，就能够支付成功。">
+<meta name="author" content="All-on">
+<link rel="canonical" href="https://all-on.github.io/posts/web/%E4%B8%9A%E5%8A%A1%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.4f7a70c28f67918d50819ad94370c535de5b6f0d6c6299d10477402264aea5fd.css" integrity="sha256-T3pwwo9nkY1QgZrZQ3DFNd5bbw1sYpnRBHdAImSupf0=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://all-on.github.io/images/site-icon.jpg">
+<link rel="icon" type="image/png" sizes="16x16" href="https://all-on.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://all-on.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://all-on.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://all-on.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh-cn" href="https://all-on.github.io/posts/web/%E4%B8%9A%E5%8A%A1%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.6.0/lxgwwenkaiscreen.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body, {
+        delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '$', right: '$', display: false}
+        ],
+        throwOnError: false,
+        ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+        ignoredClasses: ['entry-content']
+    });"></script>
+<meta property="og:url" content="https://all-on.github.io/posts/web/%E4%B8%9A%E5%8A%A1%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/">
+  <meta property="og:site_name" content="All-on&#39;s Blog">
+  <meta property="og:title" content="业务逻辑漏洞">
+  <meta property="og:description" content="对客户端控制的过度信任 一个根本错误的假设是用户只会通过提供的网页界面与应用交互。这尤其危险，因为它进一步假设客户端验证能防止用户提供恶意输入。
+例如，在装入购物车的页面抓包，将货品价格从1337$ 改为0.01$，就能够支付成功。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-03-28T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-03-28T00:00:00+00:00">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="业务逻辑漏洞">
+  <meta name="twitter:description" content="对客户端控制的过度信任 一个根本错误的假设是用户只会通过提供的网页界面与应用交互。这尤其危险，因为它进一步假设客户端验证能防止用户提供恶意输入。
+例如，在装入购物车的页面抓包，将货品价格从1337$ 改为0.01$，就能够支付成功。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://all-on.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "业务逻辑漏洞",
+      "item": "https://all-on.github.io/posts/web/%E4%B8%9A%E5%8A%A1%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "业务逻辑漏洞",
+  "name": "业务逻辑漏洞",
+  "description": "对客户端控制的过度信任 一个根本错误的假设是用户只会通过提供的网页界面与应用交互。这尤其危险，因为它进一步假设客户端验证能防止用户提供恶意输入。\n例如，在装入购物车的页面抓包，将货品价格从1337$ 改为0.01$，就能够支付成功。\n",
+  "keywords": [
+    
+  ],
+  "articleBody": "对客户端控制的过度信任 一个根本错误的假设是用户只会通过提供的网页界面与应用交互。这尤其危险，因为它进一步假设客户端验证能防止用户提供恶意输入。\n例如，在装入购物车的页面抓包，将货品价格从1337$ 改为0.01$，就能够支付成功。\n无法处理非常规输入 应用逻辑的一个目标是限制用户输入到符合业务规则的值。比如，数字数据类型可能接受负值。根据相关功能，业务逻辑可能不允许这样做。然而，如果应用程序未能进行足够的服务器端验证并拒绝该输入，攻击者可能能够传递负值，从而引发不想要的行为。\n高级逻辑漏洞 例如，在装入购物车的页面，发现没有 price 参数，只有 quantity 参数。把 quantity 参数改为负，结果金额不能为负。于是，再凑几件其他商品，控制金额就行。\n低级逻辑缺陷 例如，在装入购物车的页面，quantity 参数不能改为负数了。在 intruder 模块中爆破，发现一次最多放入的数量限制为99。再把quantity 参数设置为99$$，选择 Null payloads模式进行爆破。也就是不断添加99个数量。刷新页面，发现金额会在一定数量上变为负数。这是因为金额可能是用32位的 int ( -2,147,483,648 ~ 2,147,483,647)定义的。一旦金额值超过最大值，就会变为负数。于是，利用这一点，搭配其他商品，让总金额小于100而大于0即可。\n特殊输入不一致 例如，在一个绑定邮件地址的登录程序。先在主页面刷新，在Burp中找到 Target-\u003eEngagement Tools-\u003eDiscover Content，点击 Session is not running，然后转到 Site map 模块就能看到有 /admin 这个网址。这个步骤就相当于智能化的dirsearch工具。进入 /admin，发现需要以DontWannaCry用户的身份进行登录。于是，注册一个账户，邮件地址就是给出的 attacker@exploit-EMAILID.exploit-server.net，在其中会收到确认链接。然后发现这个账户是没有用的，因为在注册页面就提示，管理员账户是 @dontwannacry.com。可是，我们并没有这样的邮箱，也就是收不到链接。只能考虑截断。注册时的邮件地址限制为255个字符，我们就让 anything@dontwannacry.com 刚好是255个字符，后面拼接已有的邮件地址 .exploit-EMAILID.exploit-server.net。这样就能够注册并登录成功。\n对用户行为做出错误假设 可信用户并不总是值得信赖 应用程序看似安全，是因为它们实施了看似强有力的执行业务规则的措施。不幸的是，一些应用程序犯了一个错误，认为通过这些严格控制后，用户及其数据可以被无限期地信任。这可能导致从那时起对相同管控的执行相对宽松。\n例如，如上的绑定邮件地址的登录程序。在常规登录页面，会提示管理员的邮件地址是 @dontwannacry.com。于是，常规登录，把邮件地址修改即可。\n并不总是提供强制输入 一个误解是用户总是会为强制输入字段提供值。浏览器可能会阻止普通用户在没有必要输入的情况下提交表单，但正如我们所知，攻击者可以在传输过程中篡改参数。这甚至延伸到完全移除参数。这适用于URL和参数 POST，但别忘了检查Cookie。\n例如，以普通用户的身份登录之后，要更改密码以用管理员身份登录。但是，在程序中，更改密码需要原密码，而我们并不知道管理员的密码。在测试过程中，发现原密码这个参数可以直接删除。于是，更改管理员的密码成功。\n不遵循预期的顺序 许多事务依赖于由一系列步骤组成的预定义工作流程。网页界面通常会引导用户完成这一流程，每次完成当前流程时都会引导他们进入下一步。然而，攻击者不一定会遵循这个预定的顺序。忽视这种可能性可能导致危险的缺陷，而这些缺陷相对容易被利用。\n例如，在购物时，先下单一件小商品，发现有一个确认页面 /cart/order-confirmation?order-confirmed=true。这个页面中并没有对购物车中的商品进行确认，也没有考虑余额是否足够。于是，把目标商品放入购物车之后，重放这个页面即可。\n再例如，登录的时候，会有两个页面：一个是正常的 POST /login 页面，另一个是选择角色的 GET /role-selector 页面。将后者丢弃，直接改为 /admin 页面，默认为管理员角色。\n领域特定的缺陷 网店的折扣功能是寻找逻辑缺陷时的经典攻击面。这对攻击者来说可能是个宝藏，因为折扣的应用存在各种基本逻辑缺陷。比如，考虑一家网店对超过1000美元的订单提供10%折扣。如果业务逻辑未能检查折扣应用后订单是否被更改，这种机制可能容易被滥用。在这种情况下，攻击者可以将商品加入购物车，直到达到1000美元门槛，然后在下单前移除不想要的物品。即使订单不再符合预期标准，他们也会获得折扣。\n例如，在折扣页面，发现新登录的用户可以获得优惠券，主页下面还有对注册新闻订阅的优惠券。两种优惠券不断交替使用，足够把金额压缩。\n再例如，还是折扣的场景。如果用优惠券购买10美元的卡，只需花费7美元，而且兑换的礼物积分让整体余额增加到了103美元。也就是说，这套流程就是让余额增加的。那重复这套流程就行了。涉及到多个页面，可以选择用Burp intruder自动执行。首先确认需要的页面，有购物车页面（含有需要购买的卡） POST /card，提交优惠券页面 POST /cart/coupon，审查中转 POST /cart/checkout，提交订单并显示积分码 GET /cart/order-confirmation?order-confirmed=true，兑换积分 POST /gift-card，最后跳转到的账户页面 GET /my-account。然后添加一个宏进行自动执行。Project options-\u003eSessions-\u003eadd。Scope选项卡下，URL Scope-\u003eInclude all URLs。Details 选项卡下，Run actions-\u003eadd-\u003eRun a macro-\u003eSelect macro-\u003eadd，然后将上面的需要页面（除掉最后一个）都添加进去并确定。在已选的列表中，点击 GET /cart/order-confirmation?order-confirmed=true，Configure item-\u003eadd，命名好参数（比如命名为 gift-card）并选中响应的积分码，确定；点击 POST /gift-card，Configure item-\u003eParameter handling，把 gift-card 参数改为从先前的响应派生。接着可以测试一下宏是否成功。最后，把 GET /my-account 发送给 intruder，空转，注意需要自动执行的次数，并将资源池设置为1。解决。\n",
+  "wordCount" : "2549",
+  "inLanguage": "zh-cn",
+  "datePublished": "2026-03-28T00:00:00Z",
+  "dateModified": "2026-03-28T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "All-on"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://all-on.github.io/posts/web/%E4%B8%9A%E5%8A%A1%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "All-on's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://all-on.github.io/images/site-icon.jpg"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://all-on.github.io/" accesskey="h" title="All-on&#39;s Blog (Alt + H)">
+                <img src="https://all-on.github.io/images/site-icon.jpg" alt="" aria-label="logo"
+                    height="35">All-on&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://all-on.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/posts/" title="文章">
+                    <span>文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/categories/" title="类别">
+                    <span>类别</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      业务逻辑漏洞
+      <span class="entry-hint" title="Draft">
+        <svg xmlns="http://www.w3.org/2000/svg" height="35" viewBox="0 -960 960 960" fill="currentColor">
+          <path
+            d="M160-410v-60h300v60H160Zm0-165v-60h470v60H160Zm0-165v-60h470v60H160Zm360 580v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22q0 11-4.5 22.5T862.09-380L643-160H520Zm300-263-37-37 37 37ZM580-220h38l121-122-18-19-19-18-122 121v38Zm141-141-19-18 37 37-18-19Z" />
+        </svg>
+      </span>
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-03-28 00:00:00 +0000 UTC'>2026-03-28</span>&nbsp;·&nbsp;<span>6 min</span>&nbsp;·&nbsp;<span>2549 words</span>&nbsp;·&nbsp;<span>All-on</span>
+
+</div>
+  </header> <aside id="toc-container" class="toc-container wide">
+<div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e5%af%b9%e5%ae%a2%e6%88%b7%e7%ab%af%e6%8e%a7%e5%88%b6%e7%9a%84%e8%bf%87%e5%ba%a6%e4%bf%a1%e4%bb%bb" aria-label="对客户端控制的过度信任">对客户端控制的过度信任</a></li>
+                <li>
+                    <a href="#%e6%97%a0%e6%b3%95%e5%a4%84%e7%90%86%e9%9d%9e%e5%b8%b8%e8%a7%84%e8%be%93%e5%85%a5" aria-label="无法处理非常规输入">无法处理非常规输入</a><ul>
+                        
+                <li>
+                    <a href="#%e9%ab%98%e7%ba%a7%e9%80%bb%e8%be%91%e6%bc%8f%e6%b4%9e" aria-label="高级逻辑漏洞">高级逻辑漏洞</a></li>
+                <li>
+                    <a href="#%e4%bd%8e%e7%ba%a7%e9%80%bb%e8%be%91%e7%bc%ba%e9%99%b7" aria-label="低级逻辑缺陷">低级逻辑缺陷</a></li>
+                <li>
+                    <a href="#%e7%89%b9%e6%ae%8a%e8%be%93%e5%85%a5%e4%b8%8d%e4%b8%80%e8%87%b4" aria-label="特殊输入不一致">特殊输入不一致</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%af%b9%e7%94%a8%e6%88%b7%e8%a1%8c%e4%b8%ba%e5%81%9a%e5%87%ba%e9%94%99%e8%af%af%e5%81%87%e8%ae%be" aria-label="对用户行为做出错误假设">对用户行为做出错误假设</a><ul>
+                        
+                <li>
+                    <a href="#%e5%8f%af%e4%bf%a1%e7%94%a8%e6%88%b7%e5%b9%b6%e4%b8%8d%e6%80%bb%e6%98%af%e5%80%bc%e5%be%97%e4%bf%a1%e8%b5%96" aria-label="可信用户并不总是值得信赖">可信用户并不总是值得信赖</a></li>
+                <li>
+                    <a href="#%e5%b9%b6%e4%b8%8d%e6%80%bb%e6%98%af%e6%8f%90%e4%be%9b%e5%bc%ba%e5%88%b6%e8%be%93%e5%85%a5" aria-label="并不总是提供强制输入">并不总是提供强制输入</a></li>
+                <li>
+                    <a href="#%e4%b8%8d%e9%81%b5%e5%be%aa%e9%a2%84%e6%9c%9f%e7%9a%84%e9%a1%ba%e5%ba%8f" aria-label="不遵循预期的顺序">不遵循预期的顺序</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e9%a2%86%e5%9f%9f%e7%89%b9%e5%ae%9a%e7%9a%84%e7%bc%ba%e9%99%b7" aria-label="领域特定的缺陷">领域特定的缺陷</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+</aside>
+<script>
+    let activeElement;
+    let elements;
+    window.addEventListener('DOMContentLoaded', function (event) {
+        checkTocPosition();
+
+        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
+         
+         activeElement = elements[0];
+         const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
+         document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+     }, false);
+
+    window.addEventListener('resize', function(event) {
+        checkTocPosition();
+    }, false);
+
+    window.addEventListener('scroll', () => {
+        
+        activeElement = Array.from(elements).find((element) => {
+            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
+                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
+                return element;
+            }
+        }) || activeElement
+
+        elements.forEach(element => {
+             const id = encodeURI(element.getAttribute('id')).toLowerCase();
+             if (element === activeElement){
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+             } else {
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
+             }
+         })
+     }, false);
+
+    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
+    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
+    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
+
+    function checkTocPosition() {
+        const width = document.body.scrollWidth;
+
+        if (width - main - (toc * 2) - (gap * 4) > 0) {
+            document.getElementById("toc-container").classList.add("wide");
+        } else {
+            document.getElementById("toc-container").classList.remove("wide");
+        }
+    }
+
+    function getOffsetTop(element) {
+        if (!element.getClientRects().length) {
+            return 0;
+        }
+        let rect = element.getBoundingClientRect();
+        let win = element.ownerDocument.defaultView;
+        return rect.top + win.pageYOffset;
+    }
+</script>
+
+  <div class="post-content md-content"><h2 id="对客户端控制的过度信任">对客户端控制的过度信任<a hidden class="anchor" aria-hidden="true" href="#对客户端控制的过度信任">#</a></h2>
+<p>一个根本错误的假设是用户只会通过提供的网页界面与应用交互。这尤其危险，因为它进一步假设客户端验证能防止用户提供恶意输入。</p>
+<p>例如，在装入购物车的页面抓包，将货品价格从1337$ 改为0.01$，就能够支付成功。</p>
+<h2 id="无法处理非常规输入">无法处理非常规输入<a hidden class="anchor" aria-hidden="true" href="#无法处理非常规输入">#</a></h2>
+<p>应用逻辑的一个目标是限制用户输入到符合业务规则的值。比如，数字数据类型可能接受负值。根据相关功能，业务逻辑可能不允许这样做。然而，如果应用程序未能进行足够的服务器端验证并拒绝该输入，攻击者可能能够传递负值，从而引发不想要的行为。</p>
+<h3 id="高级逻辑漏洞">高级逻辑漏洞<a hidden class="anchor" aria-hidden="true" href="#高级逻辑漏洞">#</a></h3>
+<p>例如，在装入购物车的页面，发现没有 <code>price</code> 参数，只有 <code>quantity</code> 参数。把 <code>quantity</code> 参数改为负，结果金额不能为负。于是，再凑几件其他商品，控制金额就行。</p>
+<h3 id="低级逻辑缺陷">低级逻辑缺陷<a hidden class="anchor" aria-hidden="true" href="#低级逻辑缺陷">#</a></h3>
+<p>例如，在装入购物车的页面，<code>quantity</code> 参数不能改为负数了。在 <code>intruder</code> 模块中爆破，发现一次最多放入的数量限制为99。再把<code>quantity</code> 参数设置为<code>99$$</code>，选择 <code>Null payloads</code>模式进行爆破。也就是不断添加99个数量。刷新页面，发现金额会在一定数量上变为负数。这是因为金额可能是用32位的 <code>int</code> ( <code>-2,147,483,648 ~ 2,147,483,647</code>)定义的。一旦金额值超过最大值，就会变为负数。于是，利用这一点，搭配其他商品，让总金额小于100而大于0即可。</p>
+<h3 id="特殊输入不一致">特殊输入不一致<a hidden class="anchor" aria-hidden="true" href="#特殊输入不一致">#</a></h3>
+<p>例如，在一个绑定邮件地址的登录程序。先在主页面刷新，在Burp中找到 <code>Target-&gt;Engagement Tools-&gt;Discover Content</code>，点击 <code>Session is not running</code>，然后转到 <code>Site map</code> 模块就能看到有 <code>/admin</code> 这个网址。这个步骤就相当于智能化的dirsearch工具。进入 <code>/admin</code>，发现需要以DontWannaCry用户的身份进行登录。于是，注册一个账户，邮件地址就是给出的 <code>attacker@exploit-EMAILID.exploit-server.net</code>，在其中会收到确认链接。然后发现这个账户是没有用的，因为在注册页面就提示，管理员账户是 <code>@dontwannacry.com</code>。可是，我们并没有这样的邮箱，也就是收不到链接。只能考虑截断。注册时的邮件地址限制为255个字符，我们就让 <code>anything@dontwannacry.com</code> 刚好是255个字符，后面拼接已有的邮件地址 <code>.exploit-EMAILID.exploit-server.net</code>。这样就能够注册并登录成功。</p>
+<h2 id="对用户行为做出错误假设">对用户行为做出错误假设<a hidden class="anchor" aria-hidden="true" href="#对用户行为做出错误假设">#</a></h2>
+<h3 id="可信用户并不总是值得信赖">可信用户并不总是值得信赖<a hidden class="anchor" aria-hidden="true" href="#可信用户并不总是值得信赖">#</a></h3>
+<p>应用程序看似安全，是因为它们实施了看似强有力的执行业务规则的措施。不幸的是，一些应用程序犯了一个错误，认为通过这些严格控制后，用户及其数据可以被无限期地信任。这可能导致从那时起对相同管控的执行相对宽松。</p>
+<p>例如，如上的绑定邮件地址的登录程序。在常规登录页面，会提示管理员的邮件地址是 <code>@dontwannacry.com</code>。于是，常规登录，把邮件地址修改即可。</p>
+<h3 id="并不总是提供强制输入">并不总是提供强制输入<a hidden class="anchor" aria-hidden="true" href="#并不总是提供强制输入">#</a></h3>
+<p>一个误解是用户总是会为强制输入字段提供值。浏览器可能会阻止普通用户在没有必要输入的情况下提交表单，但正如我们所知，攻击者可以在传输过程中篡改参数。这甚至延伸到完全移除参数。这适用于URL和参数 <code>POST</code>，但别忘了检查Cookie。</p>
+<p>例如，以普通用户的身份登录之后，要更改密码以用管理员身份登录。但是，在程序中，更改密码需要原密码，而我们并不知道管理员的密码。在测试过程中，发现原密码这个参数可以直接删除。于是，更改管理员的密码成功。</p>
+<h3 id="不遵循预期的顺序">不遵循预期的顺序<a hidden class="anchor" aria-hidden="true" href="#不遵循预期的顺序">#</a></h3>
+<p>许多事务依赖于由一系列步骤组成的预定义工作流程。网页界面通常会引导用户完成这一流程，每次完成当前流程时都会引导他们进入下一步。然而，攻击者不一定会遵循这个预定的顺序。忽视这种可能性可能导致危险的缺陷，而这些缺陷相对容易被利用。</p>
+<p>例如，在购物时，先下单一件小商品，发现有一个确认页面 <code>/cart/order-confirmation?order-confirmed=true</code>。这个页面中并没有对购物车中的商品进行确认，也没有考虑余额是否足够。于是，把目标商品放入购物车之后，重放这个页面即可。</p>
+<p>再例如，登录的时候，会有两个页面：一个是正常的 <code>POST /login</code> 页面，另一个是选择角色的 <code>GET /role-selector</code> 页面。将后者丢弃，直接改为 <code>/admin</code> 页面，默认为管理员角色。</p>
+<h2 id="领域特定的缺陷">领域特定的缺陷<a hidden class="anchor" aria-hidden="true" href="#领域特定的缺陷">#</a></h2>
+<p>网店的折扣功能是寻找逻辑缺陷时的经典攻击面。这对攻击者来说可能是个宝藏，因为折扣的应用存在各种基本逻辑缺陷。比如，考虑一家网店对超过1000美元的订单提供10%折扣。如果业务逻辑未能检查折扣应用后订单是否被更改，这种机制可能容易被滥用。在这种情况下，攻击者可以将商品加入购物车，直到达到1000美元门槛，然后在下单前移除不想要的物品。即使订单不再符合预期标准，他们也会获得折扣。</p>
+<p>例如，在折扣页面，发现新登录的用户可以获得优惠券，主页下面还有对注册新闻订阅的优惠券。两种优惠券不断交替使用，足够把金额压缩。</p>
+<p>再例如，还是折扣的场景。如果用优惠券购买10美元的卡，只需花费7美元，而且兑换的礼物积分让整体余额增加到了103美元。也就是说，这套流程就是让余额增加的。那重复这套流程就行了。涉及到多个页面，可以选择用Burp intruder自动执行。首先确认需要的页面，有购物车页面（含有需要购买的卡） <code>POST /card</code>，提交优惠券页面 <code>POST /cart/coupon</code>，审查中转 <code>POST /cart/checkout</code>，提交订单并显示积分码 <code>GET /cart/order-confirmation?order-confirmed=true</code>，兑换积分 <code>POST /gift-card</code>，最后跳转到的账户页面 <code>GET /my-account</code>。然后添加一个宏进行自动执行。<code>Project options-&gt;Sessions-&gt;add</code>。<code>Scope</code>选项卡下，<code>URL Scope-&gt;Include all URLs</code>。<code>Details</code> 选项卡下，<code>Run actions-&gt;add-&gt;Run a macro-&gt;Select macro-&gt;add</code>，然后将上面的需要页面（除掉最后一个）都添加进去并确定。在已选的列表中，点击 <code>GET /cart/order-confirmation?order-confirmed=true</code>，<code>Configure item-&gt;add</code>，命名好参数（比如命名为 <code>gift-card</code>）并选中响应的积分码，确定；点击 <code>POST /gift-card</code>，<code>Configure item-&gt;Parameter handling</code>，把 <code>gift-card</code> 参数改为从先前的响应派生。接着可以测试一下宏是否成功。最后，把 <code>GET /my-account</code> 发送给 <code>intruder</code>，空转，注意需要自动执行的次数，并将资源池设置为1。解决。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://all-on.github.io/posts/web/%E8%B7%AF%E5%BE%84%E7%A9%BF%E8%B6%8A/">
+    <span class="title">« </span>
+    <span>路径穿越</span>
+  </a>
+  <a class="next" href="https://all-on.github.io/posts/web/%E8%AE%A4%E8%AF%81/">
+    <span class="title"> »</span>
+    <span>认证</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://all-on.github.io/">All-on&#39;s Blog</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

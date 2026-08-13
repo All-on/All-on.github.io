@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-cn" dir="auto" data-theme="auto">
 
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
@@ -92,16 +92,16 @@
 
 ">
 <meta name="author" content="All-on">
-<link rel="canonical" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC10%E7%AB%A0-%E6%AD%BB%E9%94%81/">
+<link rel="canonical" href="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC10%E7%AB%A0-%E6%AD%BB%E9%94%81/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.4f7a70c28f67918d50819ad94370c535de5b6f0d6c6299d10477402264aea5fd.css" integrity="sha256-T3pwwo9nkY1QgZrZQ3DFNd5bbw1sYpnRBHdAImSupf0=" rel="preload stylesheet" as="style">
-<link rel="icon" href="http://localhost:1313/images/site-icon.jpg">
-<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
-<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
-<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<link rel="icon" href="https://all-on.github.io/images/site-icon.jpg">
+<link rel="icon" type="image/png" sizes="16x16" href="https://all-on.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://all-on.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://all-on.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://all-on.github.io/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="zh-cn" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC10%E7%AB%A0-%E6%AD%BB%E9%94%81/">
+<link rel="alternate" hreflang="zh-cn" href="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC10%E7%AB%A0-%E6%AD%BB%E9%94%81/">
 <noscript>
     <style>
         #theme-toggle,
@@ -159,7 +159,7 @@
         ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
         ignoredClasses: ['entry-content']
     });"></script>
-<meta property="og:url" content="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC10%E7%AB%A0-%E6%AD%BB%E9%94%81/">
+<meta property="og:url" content="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC10%E7%AB%A0-%E6%AD%BB%E9%94%81/">
   <meta property="og:site_name" content="All-on&#39;s Blog">
   <meta property="og:title" content="第10章 死锁">
   <meta property="og:description" content="1. 基本概念 死锁：一组进程互相等待对方占有的资源，导致所有进程无法推进。 活锁：进程不断改变状态但无法取得进展（如反复重试）。 饥饿：某个进程长期得不到资源，由于调度策略不公平导致。 2. 产生死锁的四个必要条件 互斥使用（资源独占） 占有且等待（部分分配） 不可抢占（资源只能自愿释放） 循环等待（存在进程等待环路） 3. 资源分配图（RAG） 用于描述系统资源分配与请求关系。 结点：进程（○）、资源（□，实例为●）。 边：分配边（资源→进程）、请求边（进程→资源）。 死锁判定： 有环不一定死锁（资源有多个实例时）。 若每个资源类只有一个实例，环路 ⇔ 死锁。 化简方法：逐步移除可满足的进程及其边，若可完全化简则无死锁。 4. 死锁解决方案 （1）死锁预防（静态策略，破坏必要条件） 破坏互斥：SPOOLING 技术（如打印机守护进程）。 破坏占有且等待： 一次性申请所有资源。 申请新资源前释放已占有资源。 破坏不可抢占：允许操作系统抢占资源（适用于CPU、内存）。 破坏循环等待：资源有序分配法（按编号递增顺序申请）。 （2）死锁避免（动态检查，银行家算法） 安全状态：存在一个安全序列，使所有进程能完成。 银行家算法步骤： 检查请求是否 ≤ Need 且 ≤ Available。 试探分配，检查安全性： 寻找可完成的进程（Need ≤ Work）。 回收资源，标记完成。 若所有进程可完成，则安全。 若安全则分配，否则恢复并等待。 （3）死锁检测与解除 检测时机：定时检测、资源利用率下降时检测。 解除方法： 撤销所有死锁进程。 进程回退（Rollback）再启动。 逐一撤销或抢占资源直至死锁解除。 5. 哲学家就餐问题（经典死锁模型） 问题描述： 5个哲学家，5根筷子，需同时拿到左右筷子才能进食。 解决方案： 信号量方案（易死锁）：每人先拿左再拿右 → 可能循环等待。 资源有序分配：奇数号先左后右，偶数号先右后左。 限制并发数：最多允许4人同时拿筷子。 管程（Monitor）或状态机方案： 仅当左右筷子可用时才分配。 通过状态（思考、饥饿、进食）协调。">
@@ -183,13 +183,13 @@
       "@type": "ListItem",
       "position":  1 ,
       "name": "Posts",
-      "item": "http://localhost:1313/posts/"
+      "item": "https://all-on.github.io/posts/"
     }, 
     {
       "@type": "ListItem",
       "position":  2 ,
       "name": "第10章 死锁",
-      "item": "http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC10%E7%AB%A0-%E6%AD%BB%E9%94%81/"
+      "item": "https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC10%E7%AB%A0-%E6%AD%BB%E9%94%81/"
     }
   ]
 }
@@ -215,14 +215,14 @@
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": "http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC10%E7%AB%A0-%E6%AD%BB%E9%94%81/"
+    "@id": "https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC10%E7%AB%A0-%E6%AD%BB%E9%94%81/"
   },
   "publisher": {
     "@type": "Organization",
     "name": "All-on's Blog",
     "logo": {
       "@type": "ImageObject",
-      "url": "http://localhost:1313/images/site-icon.jpg"
+      "url": "https://all-on.github.io/images/site-icon.jpg"
     }
   }
 }
@@ -232,8 +232,8 @@
     <header class="header">
     <nav class="header-nav">
         <div class="logo">
-            <a href="http://localhost:1313/" accesskey="h" title="All-on&#39;s Blog (Alt + H)">
-                <img src="http://localhost:1313/images/site-icon.jpg" alt="" aria-label="logo"
+            <a href="https://all-on.github.io/" accesskey="h" title="All-on&#39;s Blog (Alt + H)">
+                <img src="https://all-on.github.io/images/site-icon.jpg" alt="" aria-label="logo"
                     height="35">All-on&#39;s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
@@ -260,27 +260,27 @@
         </div>
         <ul id="menu" class="menu">
             <li>
-                <a href="http://localhost:1313/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                <a href="https://all-on.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
                     <span>搜索</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/posts/" title="文章">
+                <a href="https://all-on.github.io/posts/" title="文章">
                     <span>文章</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/categories/" title="类别">
+                <a href="https://all-on.github.io/categories/" title="类别">
                     <span>类别</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/archives/" title="归档">
+                <a href="https://all-on.github.io/archives/" title="归档">
                     <span>归档</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/about/" title="关于">
+                <a href="https://all-on.github.io/about/" title="关于">
                     <span>关于</span>
                 </a>
             </li>
@@ -502,7 +502,7 @@
     <ul class="post-tags">
     </ul>
 <nav class="paginav">
-  <a class="prev" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E9%99%84-%E7%BB%8F%E5%85%B8ipc%E9%97%AE%E9%A2%98/">
+  <a class="prev" href="https://all-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E9%99%84-%E7%BB%8F%E5%85%B8ipc%E9%97%AE%E9%A2%98/">
     <span class="title">« </span>
     <span>附 经典IPC问题</span>
   </a>
@@ -513,7 +513,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2026 <a href="http://localhost:1313/">All-on&#39;s Blog</a></span> · 
+        <span>&copy; 2026 <a href="https://all-on.github.io/">All-on&#39;s Blog</a></span> · 
 
     
     

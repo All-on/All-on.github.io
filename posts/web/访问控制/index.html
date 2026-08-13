@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>访问控制 | All-on&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="基本概念
+垂直访问控制
+垂直访问控制是一种限制特定类型用户访问敏感功能的机制。通过垂直访问控制，不同类型的用户可以访问不同的应用功能。例如，管理员可能能够修改或删除任何用户的账户，而普通用户则无法访问这些操作。">
+<meta name="author" content="All-on">
+<link rel="canonical" href="https://all-on.github.io/posts/web/%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.4f7a70c28f67918d50819ad94370c535de5b6f0d6c6299d10477402264aea5fd.css" integrity="sha256-T3pwwo9nkY1QgZrZQ3DFNd5bbw1sYpnRBHdAImSupf0=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://all-on.github.io/images/site-icon.jpg">
+<link rel="icon" type="image/png" sizes="16x16" href="https://all-on.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://all-on.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://all-on.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://all-on.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh-cn" href="https://all-on.github.io/posts/web/%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.6.0/lxgwwenkaiscreen.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body, {
+        delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '$', right: '$', display: false}
+        ],
+        throwOnError: false,
+        ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+        ignoredClasses: ['entry-content']
+    });"></script>
+<meta property="og:url" content="https://all-on.github.io/posts/web/%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6/">
+  <meta property="og:site_name" content="All-on&#39;s Blog">
+  <meta property="og:title" content="访问控制">
+  <meta property="og:description" content="基本概念 垂直访问控制 垂直访问控制是一种限制特定类型用户访问敏感功能的机制。通过垂直访问控制，不同类型的用户可以访问不同的应用功能。例如，管理员可能能够修改或删除任何用户的账户，而普通用户则无法访问这些操作。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-03-23T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-03-23T00:00:00+00:00">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="访问控制">
+  <meta name="twitter:description" content="基本概念 垂直访问控制 垂直访问控制是一种限制特定类型用户访问敏感功能的机制。通过垂直访问控制，不同类型的用户可以访问不同的应用功能。例如，管理员可能能够修改或删除任何用户的账户，而普通用户则无法访问这些操作。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://all-on.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "访问控制",
+      "item": "https://all-on.github.io/posts/web/%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "访问控制",
+  "name": "访问控制",
+  "description": "基本概念 垂直访问控制 垂直访问控制是一种限制特定类型用户访问敏感功能的机制。通过垂直访问控制，不同类型的用户可以访问不同的应用功能。例如，管理员可能能够修改或删除任何用户的账户，而普通用户则无法访问这些操作。\n",
+  "keywords": [
+    
+  ],
+  "articleBody": "基本概念 垂直访问控制 垂直访问控制是一种限制特定类型用户访问敏感功能的机制。通过垂直访问控制，不同类型的用户可以访问不同的应用功能。例如，管理员可能能够修改或删除任何用户的账户，而普通用户则无法访问这些操作。\n水平访问控制 水平访问控制是一种限制特定用户访问资源的机制。通过水平访问控制，不同用户可以访问同类型资源的子集。例如，银行应用允许用户查看自己的账户交易和付款，但不能查看其他用户的账户。\n上下文相关访问控制 上下文依赖访问控制根据应用状态或用户与其交互来限制对功能和资源的访问。上下文相关的访问控制防止用户按错误顺序执行操作。例如，零售网站可能阻止用户在付款后修改购物车内容。\n垂直权限升级 如果用户能够访问他们不被允许访问的功能，这就是垂直特权升级。例如，如果非管理员用户能够访问管理员页面并删除用户账户，这就是垂直权益升级。\n未受保护的管理功能 最基本的垂直权限升级是指应用程序不强制保护敏感功能时。例如，管理功能可能从管理员的欢迎页面链接，但不链接用户的欢迎页面。不过，用户可能可以通过浏览到相关的管理员 URL 访问管理功能。例如，一个网站可能托管在以下URL的敏感功能：\nhttps://insecure-website.com/admin\n这可能对任何用户开放，而不仅仅是管理员用户，他们在用户界面中链接到了该功能。在某些情况下，管理网址可能会在其他地方被披露，例如文件 robots.txt ：\nhttps://insecure-website.com/robots.txt\n但在某些情况下，敏感功能会通过赋予更难预测的网址来隐藏。这就是所谓“隐蔽性安全”的一个例子。然而，隐藏敏感功能并不能提供有效的访问控制，因为用户可能会通过多种方式发现被混淆的URL。假如一个托管管理功能的应用程序，URL如下：\nhttps://insecure-website.com/administrator-panel-yb556\n这个很难猜到。但URL可能在JavaScript中披露。查看源代码即可。\n基于参数的访问控制方法 一些应用程序在登录时确定用户的访问权限或角色，并将这些信息存储在用户可控制的位置。这可能是：\n一个隐藏的领域。 一个cookie。 一个预设的查询字符串参数。 例如，在cookie中发现有 admin 参数，只有当为 true 的时候才能以管理员身份操作账户。于是，接下来的每一步都通过抓包修改。\n再例如，题目提示到需要参数 roleid 等于2时，才能获得admin权限。终于，在更改电子邮件的页面，看到了响应的 json 中有 roleid=1 。那怎么改呢？在请求的页面的 json 格式中，添加 roleid=2 即可。\n平台配置错误导致的访问控制失效 一些应用程序在平台层执行访问控制。他们通过根据用户角色限制对特定 URL 和 HTTP 方法的访问来实现这一点。例如，应用程序可能配置规则如下：\nDENY: POST, /admin/deleteUser, managers\n此规则拒绝管理组用户对 URL /admin/deleteUser 上的 POST 方法的访问。在这种情况下，各种问题可能会导致访问控制绕过。一些应用程序框架支持各种非标准的 HTTP 头，可以用来覆盖原始请求中的 URL，例如 X-Original-URL 和 X-Rewrite-URL。如果一个网站使用严格的前端控制来根据 URL 限制访问，但应用程序允许通过请求头覆盖 URL，那么可能可以通过如下请求绕过访问控制：\n1POST / HTTP/1.1 2X-Original-URL: /admin/deleteUser 3... 另一种攻击与请求中使用的 HTTP 方法有关。前面描述的前端控制是基于 URL 和 HTTP 方法来限制访问的。一些网站在执行操作时会容忍不同的 HTTP 请求方法。如果攻击者可以使用 GET（或其他）方法对受限 URL 执行动作，他们就可以绕过在平台层实现的访问控制。\n例如，如果能够抓住管理员对一个用户升级的页面，并把账户名改为自己。然后将自己的cookie复制上去，将 POST 方法改为 GET ，就能够通过。\nURL匹配不一致导致的访问控制失效 这里有3种情况。一个是，网站在匹配输入请求路径到特定端点的严格程度上各不相同。比如，大小写绕过。\n第二个是，如果使用 Spring 框架的开发人员启用了 useSuffixPatternMatch 选项，也可能出现类似的差异。该选项允许将具有任意文件扩展名的路径映射到没有文件扩展名的等效端点。换句话说，对 /admin/deleteUser.anything 的请求仍然会匹配 /admin/deleteUser 模式。在 Spring 5.3 之前，该选项默认是启用的。\n第三个是，在后端添加一个反斜杠 / 绕过。比如，可能会遇到 /admin/deleteUser 和 /admin/deleteUser/ 是否被视为不同端点的差异。\n水平权限升级 水平权限升级攻击可能使用与垂直权限升级类似的利用方法。\n更改id 用户可能使用以下URL访问自己的账户页面：\nhttps://insecure-website.com/myaccount?id=123\n如果攻击者将参数值修改为另一用户的id，他们可能会访问另一用户的账户页面，以及相关的数据和函数。\n某些情况下，应用程序会检测用户未被允许访问资源，并返回登录页面重定向。然而，包含重定向的响应可能仍包含目标用户的一些敏感数据，因此攻击仍然成功。\nid不可预测 在某些应用中，可利用参数没有可预测的值。例如，应用程序可能使用全局唯一标识符（GUID）来识别用户，而不是递增数字。这可能防止攻击者猜测或预测其他用户的标识符。然而，属于其他用户的 GUID 可能会在应用中被引用用户的其他地方披露，如用户消息或评论。\n例如，找到受害者曾经发表过的一篇博客。点击进入主页。在网页中就能够找到难以预测的 UserId 。然后像上面那样更改即可。\n水平到垂直权限升级 通常，水平权限升级攻击可以通过破坏更高权限用户而转变为垂直权限升级。例如，水平升级可能允许攻击者重置或捕获属于其他用户的密码。如果攻击者针对管理员用户并攻破其账户，则可以获得管理员访问权限，从而进行垂直权力提升。\n例如，在自己的页面发现密码是直接泄露的。于是，尝试将账户名改为管理员 administrator 的，这样就能够得到管理员的密码。然后以管理员的身份进行登录。\n不安全的直接对象引用 不安全的直接对象引用（IDOR）是访问控制漏洞的一个子类别。IDOR发生在应用程序使用用户输入直接访问对象，攻击者可能修改输入以获得未授权访问时。常见的有两种。一种是直接引用数据库对象的IDOR漏洞。一个网站，通过从后端数据库获取信息，使用以下URL访问客户账户页面：\nhttps://insecure-website.com/customer_account?customer_number=132355\n在这里，客户编号直接作为后端数据库查询中的记录索引使用。如果没有其他控制措施，攻击者可以简单地修改 customer_number 的数值，绕过访问控制查看其他客户的记录。这是一个导致横向权限升级的IDOR漏洞示例。\n另一种是直接引用静态文件的IDOR漏洞。IDOR 漏洞通常发生在敏感资源位于服务器端文件系统的静态文件中。例如，一个网站可能会用递增的文件名将聊天消息文字稿保存到磁盘，允许用户通过访问如下URL来获取这些内容：\nhttps://insecure-website.com/static/12144.txt\n在这种情况下，攻击者可以简单修改文件名，获取其他用户创建的文字稿，从而可能获取用户凭证和其他敏感数据。\n例如，在发送信息时，发现聊天记录位于 2.txt 中。于是，稍加改动，改为 1.txt ，显示出了了密码。\n多步流程中的访问控制漏洞 许多网站通过一系列步骤实现重要功能。这种情况很常见：\n需要捕捉各种输入或选项。 用户需要在执行操作前审核并确认细节。 比如，更新用户信息的管理功能可能包括以下步骤：加载包含特定用户详细信息的表单、提交修改、请查看更改并确认。有时，网站会对部分步骤实施严格的访问控制，但忽略其他步骤。想象一个网站，访问控制正确应用于第一步和第二步，但对第三步却没有。网站假设用户只有在完成第一步且受控的第一步时，才能达到第三步。攻击者可以通过跳过前两步，直接提交带有所需参数的第三步请求，从而获得对该函数的未授权访问。\n例如，管理员在升级一个账户的时候，分为两步：提权和确定。先抓住这两个页面。然后会发现第一个页面没用。无论是覆盖账户名，还是覆盖cookie，都会提示“未授权”。那么，操作第二个页面，即“确认”页面，成功。\n基于 Referer 的访问控制 一些网站根据 HTTP 请求中提交的 Referer 头来控制访问。浏览器可以在请求中添加 Referer 头，以指示哪个页面发起了请求。\n比如，一个应用程序在 /admin 的主管理页面上强制执行了访问控制，但对于诸如 /admin/deleteUser 的子页面，仅检查 Referer 头。如果 Referer 头包含主 /admin URL，则允许该请求。在这种情况下，Referer 头可以被攻击者完全控制。这意味着他们可以通过提供所需的 Referer 头伪造对敏感子页面的直接请求，并获得未经授权的访问。\n基于位置的访问控制 有些网站会根据用户的地理位置来实施访问控制。这可能适用于银行应用或媒体服务，这些地方适用州法律或商业限制。这些访问控制通常可以通过使用网络代理、VPN或操作客户端地理定位机制来绕过。\n预防 通过采取防御深度方法并应用以下原则，可以预防访问控制漏洞：\n绝不要仅依赖混淆来控制访问。 除非资源是打算公开访问的，否则默认拒绝访问。 尽可能使用统一的应用范围机制来执行访问控制。 在代码层面，强制开发者声明每个资源允许的访问权限，并默认拒绝访问。 彻底审计和测试访问控制，确保其按设计正常工作。 ",
+  "wordCount" : "3326",
+  "inLanguage": "zh-cn",
+  "datePublished": "2026-03-23T00:00:00Z",
+  "dateModified": "2026-03-23T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "All-on"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://all-on.github.io/posts/web/%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "All-on's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://all-on.github.io/images/site-icon.jpg"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://all-on.github.io/" accesskey="h" title="All-on&#39;s Blog (Alt + H)">
+                <img src="https://all-on.github.io/images/site-icon.jpg" alt="" aria-label="logo"
+                    height="35">All-on&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://all-on.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/posts/" title="文章">
+                    <span>文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/categories/" title="类别">
+                    <span>类别</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://all-on.github.io/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      访问控制
+      <span class="entry-hint" title="Draft">
+        <svg xmlns="http://www.w3.org/2000/svg" height="35" viewBox="0 -960 960 960" fill="currentColor">
+          <path
+            d="M160-410v-60h300v60H160Zm0-165v-60h470v60H160Zm0-165v-60h470v60H160Zm360 580v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22q0 11-4.5 22.5T862.09-380L643-160H520Zm300-263-37-37 37 37ZM580-220h38l121-122-18-19-19-18-122 121v38Zm141-141-19-18 37 37-18-19Z" />
+        </svg>
+      </span>
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-03-23 00:00:00 +0000 UTC'>2026-03-23</span>&nbsp;·&nbsp;<span>7 min</span>&nbsp;·&nbsp;<span>3326 words</span>&nbsp;·&nbsp;<span>All-on</span>
+
+</div>
+  </header> <aside id="toc-container" class="toc-container wide">
+<div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e5%9f%ba%e6%9c%ac%e6%a6%82%e5%bf%b5" aria-label="基本概念">基本概念</a><ul>
+                        
+                <li>
+                    <a href="#%e5%9e%82%e7%9b%b4%e8%ae%bf%e9%97%ae%e6%8e%a7%e5%88%b6" aria-label="垂直访问控制">垂直访问控制</a></li>
+                <li>
+                    <a href="#%e6%b0%b4%e5%b9%b3%e8%ae%bf%e9%97%ae%e6%8e%a7%e5%88%b6" aria-label="水平访问控制">水平访问控制</a></li>
+                <li>
+                    <a href="#%e4%b8%8a%e4%b8%8b%e6%96%87%e7%9b%b8%e5%85%b3%e8%ae%bf%e9%97%ae%e6%8e%a7%e5%88%b6" aria-label="上下文相关访问控制">上下文相关访问控制</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%9e%82%e7%9b%b4%e6%9d%83%e9%99%90%e5%8d%87%e7%ba%a7" aria-label="垂直权限升级">垂直权限升级</a><ul>
+                        
+                <li>
+                    <a href="#%e6%9c%aa%e5%8f%97%e4%bf%9d%e6%8a%a4%e7%9a%84%e7%ae%a1%e7%90%86%e5%8a%9f%e8%83%bd" aria-label="未受保护的管理功能">未受保护的管理功能</a></li>
+                <li>
+                    <a href="#%e5%9f%ba%e4%ba%8e%e5%8f%82%e6%95%b0%e7%9a%84%e8%ae%bf%e9%97%ae%e6%8e%a7%e5%88%b6%e6%96%b9%e6%b3%95" aria-label="基于参数的访问控制方法">基于参数的访问控制方法</a></li>
+                <li>
+                    <a href="#%e5%b9%b3%e5%8f%b0%e9%85%8d%e7%bd%ae%e9%94%99%e8%af%af%e5%af%bc%e8%87%b4%e7%9a%84%e8%ae%bf%e9%97%ae%e6%8e%a7%e5%88%b6%e5%a4%b1%e6%95%88" aria-label="平台配置错误导致的访问控制失效">平台配置错误导致的访问控制失效</a></li>
+                <li>
+                    <a href="#url%e5%8c%b9%e9%85%8d%e4%b8%8d%e4%b8%80%e8%87%b4%e5%af%bc%e8%87%b4%e7%9a%84%e8%ae%bf%e9%97%ae%e6%8e%a7%e5%88%b6%e5%a4%b1%e6%95%88" aria-label="URL匹配不一致导致的访问控制失效">URL匹配不一致导致的访问控制失效</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e6%b0%b4%e5%b9%b3%e6%9d%83%e9%99%90%e5%8d%87%e7%ba%a7" aria-label="水平权限升级">水平权限升级</a><ul>
+                        
+                <li>
+                    <a href="#%e6%9b%b4%e6%94%b9id" aria-label="更改id">更改id</a></li>
+                <li>
+                    <a href="#id%e4%b8%8d%e5%8f%af%e9%a2%84%e6%b5%8b" aria-label="id不可预测">id不可预测</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e6%b0%b4%e5%b9%b3%e5%88%b0%e5%9e%82%e7%9b%b4%e6%9d%83%e9%99%90%e5%8d%87%e7%ba%a7" aria-label="水平到垂直权限升级">水平到垂直权限升级</a></li>
+                <li>
+                    <a href="#%e4%b8%8d%e5%ae%89%e5%85%a8%e7%9a%84%e7%9b%b4%e6%8e%a5%e5%af%b9%e8%b1%a1%e5%bc%95%e7%94%a8" aria-label="不安全的直接对象引用">不安全的直接对象引用</a></li>
+                <li>
+                    <a href="#%e5%a4%9a%e6%ad%a5%e6%b5%81%e7%a8%8b%e4%b8%ad%e7%9a%84%e8%ae%bf%e9%97%ae%e6%8e%a7%e5%88%b6%e6%bc%8f%e6%b4%9e" aria-label="多步流程中的访问控制漏洞">多步流程中的访问控制漏洞</a></li>
+                <li>
+                    <a href="#%e5%9f%ba%e4%ba%8e-referer-%e7%9a%84%e8%ae%bf%e9%97%ae%e6%8e%a7%e5%88%b6" aria-label="基于 Referer 的访问控制">基于 <code>Referer</code> 的访问控制</a></li>
+                <li>
+                    <a href="#%e5%9f%ba%e4%ba%8e%e4%bd%8d%e7%bd%ae%e7%9a%84%e8%ae%bf%e9%97%ae%e6%8e%a7%e5%88%b6" aria-label="基于位置的访问控制">基于位置的访问控制</a></li>
+                <li>
+                    <a href="#%e9%a2%84%e9%98%b2" aria-label="预防">预防</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+</aside>
+<script>
+    let activeElement;
+    let elements;
+    window.addEventListener('DOMContentLoaded', function (event) {
+        checkTocPosition();
+
+        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
+         
+         activeElement = elements[0];
+         const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
+         document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+     }, false);
+
+    window.addEventListener('resize', function(event) {
+        checkTocPosition();
+    }, false);
+
+    window.addEventListener('scroll', () => {
+        
+        activeElement = Array.from(elements).find((element) => {
+            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
+                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
+                return element;
+            }
+        }) || activeElement
+
+        elements.forEach(element => {
+             const id = encodeURI(element.getAttribute('id')).toLowerCase();
+             if (element === activeElement){
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+             } else {
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
+             }
+         })
+     }, false);
+
+    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
+    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
+    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
+
+    function checkTocPosition() {
+        const width = document.body.scrollWidth;
+
+        if (width - main - (toc * 2) - (gap * 4) > 0) {
+            document.getElementById("toc-container").classList.add("wide");
+        } else {
+            document.getElementById("toc-container").classList.remove("wide");
+        }
+    }
+
+    function getOffsetTop(element) {
+        if (!element.getClientRects().length) {
+            return 0;
+        }
+        let rect = element.getBoundingClientRect();
+        let win = element.ownerDocument.defaultView;
+        return rect.top + win.pageYOffset;
+    }
+</script>
+
+  <div class="post-content md-content"><h2 id="基本概念">基本概念<a hidden class="anchor" aria-hidden="true" href="#基本概念">#</a></h2>
+<h3 id="垂直访问控制">垂直访问控制<a hidden class="anchor" aria-hidden="true" href="#垂直访问控制">#</a></h3>
+<p>垂直访问控制是一种限制特定类型用户访问敏感功能的机制。通过垂直访问控制，不同类型的用户可以访问不同的应用功能。例如，管理员可能能够修改或删除任何用户的账户，而普通用户则无法访问这些操作。</p>
+<h3 id="水平访问控制">水平访问控制<a hidden class="anchor" aria-hidden="true" href="#水平访问控制">#</a></h3>
+<p>水平访问控制是一种限制特定用户访问资源的机制。通过水平访问控制，不同用户可以访问同类型资源的子集。例如，银行应用允许用户查看自己的账户交易和付款，但不能查看其他用户的账户。</p>
+<h3 id="上下文相关访问控制">上下文相关访问控制<a hidden class="anchor" aria-hidden="true" href="#上下文相关访问控制">#</a></h3>
+<p>上下文依赖访问控制根据应用状态或用户与其交互来限制对功能和资源的访问。上下文相关的访问控制防止用户按错误顺序执行操作。例如，零售网站可能阻止用户在付款后修改购物车内容。</p>
+<h2 id="垂直权限升级">垂直权限升级<a hidden class="anchor" aria-hidden="true" href="#垂直权限升级">#</a></h2>
+<p>如果用户能够访问他们不被允许访问的功能，这就是垂直特权升级。例如，如果非管理员用户能够访问管理员页面并删除用户账户，这就是垂直权益升级。</p>
+<h3 id="未受保护的管理功能">未受保护的管理功能<a hidden class="anchor" aria-hidden="true" href="#未受保护的管理功能">#</a></h3>
+<p>最基本的垂直权限升级是指应用程序不强制保护敏感功能时。例如，管理功能可能从管理员的欢迎页面链接，但不链接用户的欢迎页面。不过，用户可能可以通过浏览到相关的管理员 URL 访问管理功能。例如，一个网站可能托管在以下URL的敏感功能：</p>
+<p><code>https://insecure-website.com/admin</code></p>
+<p>这可能对任何用户开放，而不仅仅是管理员用户，他们在用户界面中链接到了该功能。在某些情况下，管理网址可能会在其他地方被披露，例如文件 <code>robots.txt</code> ：</p>
+<p><code>https://insecure-website.com/robots.txt</code></p>
+<p>但在某些情况下，敏感功能会通过赋予更难预测的网址来隐藏。这就是所谓“隐蔽性安全”的一个例子。然而，隐藏敏感功能并不能提供有效的访问控制，因为用户可能会通过多种方式发现被混淆的URL。假如一个托管管理功能的应用程序，URL如下：</p>
+<p><code>https://insecure-website.com/administrator-panel-yb556</code></p>
+<p>这个很难猜到。但URL可能在JavaScript中披露。查看源代码即可。</p>
+<h3 id="基于参数的访问控制方法">基于参数的访问控制方法<a hidden class="anchor" aria-hidden="true" href="#基于参数的访问控制方法">#</a></h3>
+<p>一些应用程序在登录时确定用户的访问权限或角色，并将这些信息存储在用户可控制的位置。这可能是：</p>
+<ul>
+<li>一个隐藏的领域。</li>
+<li>一个cookie。</li>
+<li>一个预设的查询字符串参数。</li>
+</ul>
+<p>例如，在cookie中发现有 <code>admin</code> 参数，只有当为 <code>true</code> 的时候才能以管理员身份操作账户。于是，接下来的每一步都通过抓包修改。</p>
+<p>再例如，题目提示到需要参数 <code>roleid</code> 等于2时，才能获得admin权限。终于，在更改电子邮件的页面，看到了响应的 <code>json</code> 中有 <code>roleid=1</code> 。那怎么改呢？在请求的页面的 <code>json</code> 格式中，添加 <code>roleid=2</code> 即可。</p>
+<h3 id="平台配置错误导致的访问控制失效">平台配置错误导致的访问控制失效<a hidden class="anchor" aria-hidden="true" href="#平台配置错误导致的访问控制失效">#</a></h3>
+<p>一些应用程序在平台层执行访问控制。他们通过根据用户角色限制对特定 URL 和 HTTP 方法的访问来实现这一点。例如，应用程序可能配置规则如下：</p>
+<p><code>DENY: POST, /admin/deleteUser, managers</code></p>
+<p>此规则拒绝管理组用户对 URL <code>/admin/deleteUser</code> 上的 <code>POST</code> 方法的访问。在这种情况下，各种问题可能会导致访问控制绕过。一些应用程序框架支持各种非标准的 HTTP 头，可以用来覆盖原始请求中的 URL，例如 <code>X-Original-URL</code> 和 <code>X-Rewrite-URL</code>。如果一个网站使用严格的前端控制来根据 URL 限制访问，但应用程序允许通过请求头覆盖 URL，那么可能可以通过如下请求绕过访问控制：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">POST / HTTP/1.1
+</span></span><span class="line"><span class="ln">2</span><span class="cl">X-Original-URL: /admin/deleteUser
+</span></span><span class="line"><span class="ln">3</span><span class="cl">...
+</span></span></code></pre></div><p>另一种攻击与请求中使用的 HTTP 方法有关。前面描述的前端控制是基于 URL 和 HTTP 方法来限制访问的。一些网站在执行操作时会容忍不同的 HTTP 请求方法。如果攻击者可以使用 <code>GET</code>（或其他）方法对受限 URL 执行动作，他们就可以绕过在平台层实现的访问控制。</p>
+<p>例如，如果能够抓住管理员对一个用户升级的页面，并把账户名改为自己。然后将自己的cookie复制上去，将 <code>POST</code> 方法改为 <code>GET</code> ，就能够通过。</p>
+<h3 id="url匹配不一致导致的访问控制失效">URL匹配不一致导致的访问控制失效<a hidden class="anchor" aria-hidden="true" href="#url匹配不一致导致的访问控制失效">#</a></h3>
+<p>这里有3种情况。一个是，网站在匹配输入请求路径到特定端点的严格程度上各不相同。比如，大小写绕过。</p>
+<p>第二个是，如果使用 Spring 框架的开发人员启用了 <code>useSuffixPatternMatch</code> 选项，也可能出现类似的差异。该选项允许将具有任意文件扩展名的路径映射到没有文件扩展名的等效端点。换句话说，对 <code>/admin/deleteUser.anything</code> 的请求仍然会匹配 <code>/admin/deleteUser</code> 模式。在 Spring 5.3 之前，该选项默认是启用的。</p>
+<p>第三个是，在后端添加一个反斜杠 <code>/</code> 绕过。比如，可能会遇到 <code>/admin/deleteUser</code> 和 <code>/admin/deleteUser/</code> 是否被视为不同端点的差异。</p>
+<h2 id="水平权限升级">水平权限升级<a hidden class="anchor" aria-hidden="true" href="#水平权限升级">#</a></h2>
+<p>水平权限升级攻击可能使用与垂直权限升级类似的利用方法。</p>
+<h3 id="更改id">更改id<a hidden class="anchor" aria-hidden="true" href="#更改id">#</a></h3>
+<p>用户可能使用以下URL访问自己的账户页面：</p>
+<p><code>https://insecure-website.com/myaccount?id=123</code></p>
+<p>如果攻击者将参数值修改为另一用户的<code>id</code>，他们可能会访问另一用户的账户页面，以及相关的数据和函数。</p>
+<p>某些情况下，应用程序会检测用户未被允许访问资源，并返回登录页面重定向。然而，包含重定向的响应可能仍包含目标用户的一些敏感数据，因此攻击仍然成功。</p>
+<h3 id="id不可预测">id不可预测<a hidden class="anchor" aria-hidden="true" href="#id不可预测">#</a></h3>
+<p>在某些应用中，可利用参数没有可预测的值。例如，应用程序可能使用全局唯一标识符（GUID）来识别用户，而不是递增数字。这可能防止攻击者猜测或预测其他用户的标识符。然而，属于其他用户的 GUID 可能会在应用中被引用用户的其他地方披露，如用户消息或评论。</p>
+<p>例如，找到受害者曾经发表过的一篇博客。点击进入主页。在网页中就能够找到难以预测的 <code>UserId</code> 。然后像上面那样更改即可。</p>
+<h2 id="水平到垂直权限升级">水平到垂直权限升级<a hidden class="anchor" aria-hidden="true" href="#水平到垂直权限升级">#</a></h2>
+<p>通常，水平权限升级攻击可以通过破坏更高权限用户而转变为垂直权限升级。例如，水平升级可能允许攻击者重置或捕获属于其他用户的密码。如果攻击者针对管理员用户并攻破其账户，则可以获得管理员访问权限，从而进行垂直权力提升。</p>
+<p>例如，在自己的页面发现密码是直接泄露的。于是，尝试将账户名改为管理员 <code>administrator</code> 的，这样就能够得到管理员的密码。然后以管理员的身份进行登录。</p>
+<h2 id="不安全的直接对象引用">不安全的直接对象引用<a hidden class="anchor" aria-hidden="true" href="#不安全的直接对象引用">#</a></h2>
+<p>不安全的直接对象引用（IDOR）是访问控制漏洞的一个子类别。IDOR发生在应用程序使用用户输入直接访问对象，攻击者可能修改输入以获得未授权访问时。常见的有两种。一种是直接引用数据库对象的IDOR漏洞。一个网站，通过从后端数据库获取信息，使用以下URL访问客户账户页面：</p>
+<p><code>https://insecure-website.com/customer_account?customer_number=132355</code></p>
+<p>在这里，客户编号直接作为后端数据库查询中的记录索引使用。如果没有其他控制措施，攻击者可以简单地修改 <code>customer_number</code> 的数值，绕过访问控制查看其他客户的记录。这是一个导致横向权限升级的IDOR漏洞示例。</p>
+<p>另一种是直接引用静态文件的IDOR漏洞。IDOR 漏洞通常发生在敏感资源位于服务器端文件系统的静态文件中。例如，一个网站可能会用递增的文件名将聊天消息文字稿保存到磁盘，允许用户通过访问如下URL来获取这些内容：</p>
+<p><code>https://insecure-website.com/static/12144.txt</code></p>
+<p>在这种情况下，攻击者可以简单修改文件名，获取其他用户创建的文字稿，从而可能获取用户凭证和其他敏感数据。</p>
+<p>例如，在发送信息时，发现聊天记录位于 <code>2.txt</code> 中。于是，稍加改动，改为 <code>1.txt</code> ，显示出了了密码。</p>
+<h2 id="多步流程中的访问控制漏洞">多步流程中的访问控制漏洞<a hidden class="anchor" aria-hidden="true" href="#多步流程中的访问控制漏洞">#</a></h2>
+<p>许多网站通过一系列步骤实现重要功能。这种情况很常见：</p>
+<ul>
+<li>需要捕捉各种输入或选项。</li>
+<li>用户需要在执行操作前审核并确认细节。</li>
+</ul>
+<p>比如，更新用户信息的管理功能可能包括以下步骤：加载包含特定用户详细信息的表单、提交修改、请查看更改并确认。有时，网站会对部分步骤实施严格的访问控制，但忽略其他步骤。想象一个网站，访问控制正确应用于第一步和第二步，但对第三步却没有。网站假设用户只有在完成第一步且受控的第一步时，才能达到第三步。攻击者可以通过跳过前两步，直接提交带有所需参数的第三步请求，从而获得对该函数的未授权访问。</p>
+<p>例如，管理员在升级一个账户的时候，分为两步：提权和确定。先抓住这两个页面。然后会发现第一个页面没用。无论是覆盖账户名，还是覆盖cookie，都会提示“未授权”。那么，操作第二个页面，即“确认”页面，成功。</p>
+<h2 id="基于-referer-的访问控制">基于 <code>Referer</code> 的访问控制<a hidden class="anchor" aria-hidden="true" href="#基于-referer-的访问控制">#</a></h2>
+<p>一些网站根据 HTTP 请求中提交的 <code>Referer</code> 头来控制访问。浏览器可以在请求中添加 <code>Referer</code> 头，以指示哪个页面发起了请求。</p>
+<p>比如，一个应用程序在 <code>/admin</code> 的主管理页面上强制执行了访问控制，但对于诸如 <code>/admin/deleteUser</code> 的子页面，仅检查 <code>Referer</code> 头。如果 <code>Referer</code> 头包含主 <code>/admin</code> URL，则允许该请求。在这种情况下，<code>Referer</code> 头可以被攻击者完全控制。这意味着他们可以通过提供所需的 <code>Referer</code> 头伪造对敏感子页面的直接请求，并获得未经授权的访问。</p>
+<h2 id="基于位置的访问控制">基于位置的访问控制<a hidden class="anchor" aria-hidden="true" href="#基于位置的访问控制">#</a></h2>
+<p>有些网站会根据用户的地理位置来实施访问控制。这可能适用于银行应用或媒体服务，这些地方适用州法律或商业限制。这些访问控制通常可以通过使用网络代理、VPN或操作客户端地理定位机制来绕过。</p>
+<h2 id="预防">预防<a hidden class="anchor" aria-hidden="true" href="#预防">#</a></h2>
+<p>通过采取防御深度方法并应用以下原则，可以预防访问控制漏洞：</p>
+<ul>
+<li>绝不要仅依赖混淆来控制访问。</li>
+<li>除非资源是打算公开访问的，否则默认拒绝访问。</li>
+<li>尽可能使用统一的应用范围机制来执行访问控制。</li>
+<li>在代码层面，强制开发者声明每个资源允许的访问权限，并默认拒绝访问。</li>
+<li>彻底审计和测试访问控制，确保其按设计正常工作。</li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="https://all-on.github.io/posts/web/%E8%AE%A4%E8%AF%81/">
+    <span class="title">« </span>
+    <span>认证</span>
+  </a>
+  <a class="next" href="https://all-on.github.io/posts/web/xss/xss-%E4%B8%8A%E4%B8%8B%E6%96%87/">
+    <span class="title"> »</span>
+    <span>XSS 上下文</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://all-on.github.io/">All-on&#39;s Blog</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
