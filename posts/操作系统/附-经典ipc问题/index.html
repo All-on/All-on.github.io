@@ -1,13 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-cn" dir="auto" data-theme="auto">
-
-<head><meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="index, follow">
-<title>附 经典IPC问题 | All-on&#39;s Blog</title>
-<meta name="keywords" content="">
-<meta name="description" content="生产者-消费者问题
+<!doctype html><html lang=zh-cn dir=auto data-theme=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>附 经典IPC问题 | All-on's Blog</title><meta name=keywords content><meta name=description content="生产者-消费者问题
  1#define N 100  /* 缓冲区个数 */
  2semaphore mutex =1;  /* 互斥信号量：控制对临界区的访问 */
  3semaphore empty =N;  /* 空缓冲区个数 */
@@ -41,919 +32,429 @@
 31	}
 32}
 读者写者问题
-读者和写者两组并发进程共享一个文件，要求：多个读者可以同时读文件；只允许一个写者写文件；任一写者在完成写操作之前不允许其他人工作；写者写之前，应该让已有的读写者都退出。">
-<meta name="author" content="All-on">
-<link rel="canonical" href="https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E9%99%84-%E7%BB%8F%E5%85%B8ipc%E9%97%AE%E9%A2%98/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.4f7a70c28f67918d50819ad94370c535de5b6f0d6c6299d10477402264aea5fd.css" integrity="sha256-T3pwwo9nkY1QgZrZQ3DFNd5bbw1sYpnRBHdAImSupf0=" rel="preload stylesheet" as="style">
-<link rel="icon" href="https://All-on.github.io/images/site-icon.jpg">
-<link rel="icon" type="image/png" sizes="16x16" href="https://All-on.github.io/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://All-on.github.io/favicon-32x32.png">
-<link rel="apple-touch-icon" href="https://All-on.github.io/apple-touch-icon.png">
-<link rel="mask-icon" href="https://All-on.github.io/safari-pinned-tab.svg">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="zh-cn" href="https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E9%99%84-%E7%BB%8F%E5%85%B8ipc%E9%97%AE%E9%A2%98/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
-
-    </style>
-    <style>
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --theme: rgb(29, 30, 32);
-                --entry: rgb(46, 46, 51);
-                --primary: rgb(218, 218, 219);
-                --secondary: rgb(155, 156, 157);
-                --tertiary: rgb(65, 66, 68);
-                --content: rgb(196, 196, 197);
-                --code-block-bg: rgb(46, 46, 51);
-                --code-bg: rgb(55, 56, 62);
-                --border: rgb(51, 51, 51);
-                color-scheme: dark;
-            }
-
-            .list {
-                background: var(--theme);
-            }
-
-            .toc {
-                background: var(--entry);
-            }
-        }
-
-    </style>
-</noscript>
-<script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else {
-        document.querySelector("html").dataset.theme = 'light';
-    }
-
-</script><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.6.0/lxgwwenkaiscreen.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
-    onload="renderMathInElement(document.body, {
-        delimiters: [
-            {left: '$$', right: '$$', display: true},
-            {left: '\\[', right: '\\]', display: true},
-            {left: '\\(', right: '\\)', display: false},
-            {left: '$', right: '$', display: false}
-        ],
-        throwOnError: false,
-        ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
-        ignoredClasses: ['entry-content']
-    });"></script>
-<meta property="og:url" content="https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E9%99%84-%E7%BB%8F%E5%85%B8ipc%E9%97%AE%E9%A2%98/">
-  <meta property="og:site_name" content="All-on&#39;s Blog">
-  <meta property="og:title" content="附 经典IPC问题">
-  <meta property="og:description" content="生产者-消费者问题 1#define N 100 /* 缓冲区个数 */ 2semaphore mutex =1; /* 互斥信号量：控制对临界区的访问 */ 3semaphore empty =N; /* 空缓冲区个数 */ 4semaphore full = 0; /* 满缓冲区个数 */ 5 6void producer(void){ 7	int item; 8	while(TRUE) { 9	item=produce_item(); 10	P(&amp;empty); 11	P(&amp;mutex); 12	13	insert_item(item); 14	15	V(&amp;mutex); 16	V(&amp;full); 17	} 18} 19 20void consumer(void){ 21	int item; 22	while(TRUE) { 23	P(&amp;full); 24	P(&amp;mutex); 25	26	item=remove_item(); 27	28	V(&amp;mutex); 29	V(&amp;empty); 30	consume_item(item); 31	} 32} 读者写者问题 读者和写者两组并发进程共享一个文件，要求：多个读者可以同时读文件；只允许一个写者写文件；任一写者在完成写操作之前不允许其他人工作；写者写之前，应该让已有的读写者都退出。">
-  <meta property="og:locale" content="zh_cn">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2026-01-30T00:00:00+00:00">
-    <meta property="article:modified_time" content="2026-01-30T00:00:00+00:00">
-
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="附 经典IPC问题">
-  <meta name="twitter:description" content="生产者-消费者问题 1#define N 100 /* 缓冲区个数 */ 2semaphore mutex =1; /* 互斥信号量：控制对临界区的访问 */ 3semaphore empty =N; /* 空缓冲区个数 */ 4semaphore full = 0; /* 满缓冲区个数 */ 5 6void producer(void){ 7	int item; 8	while(TRUE) { 9	item=produce_item(); 10	P(&amp;empty); 11	P(&amp;mutex); 12	13	insert_item(item); 14	15	V(&amp;mutex); 16	V(&amp;full); 17	} 18} 19 20void consumer(void){ 21	int item; 22	while(TRUE) { 23	P(&amp;full); 24	P(&amp;mutex); 25	26	item=remove_item(); 27	28	V(&amp;mutex); 29	V(&amp;empty); 30	consume_item(item); 31	} 32} 读者写者问题 读者和写者两组并发进程共享一个文件，要求：多个读者可以同时读文件；只允许一个写者写文件；任一写者在完成写操作之前不允许其他人工作；写者写之前，应该让已有的读写者都退出。">
-
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "Posts",
-      "item": "https://All-on.github.io/posts/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  2 ,
-      "name": "附 经典IPC问题",
-      "item": "https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E9%99%84-%E7%BB%8F%E5%85%B8ipc%E9%97%AE%E9%A2%98/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "附 经典IPC问题",
-  "name": "附 经典IPC问题",
-  "description": "生产者-消费者问题 1#define N 100 /* 缓冲区个数 */ 2semaphore mutex =1; /* 互斥信号量：控制对临界区的访问 */ 3semaphore empty =N; /* 空缓冲区个数 */ 4semaphore full = 0; /* 满缓冲区个数 */ 5 6void producer(void){ 7\tint item; 8\twhile(TRUE) { 9\titem=produce_item(); 10\tP(\u0026amp;empty); 11\tP(\u0026amp;mutex); 12\t13\tinsert_item(item); 14\t15\tV(\u0026amp;mutex); 16\tV(\u0026amp;full); 17\t} 18} 19 20void consumer(void){ 21\tint item; 22\twhile(TRUE) { 23\tP(\u0026amp;full); 24\tP(\u0026amp;mutex); 25\t26\titem=remove_item(); 27\t28\tV(\u0026amp;mutex); 29\tV(\u0026amp;empty); 30\tconsume_item(item); 31\t} 32} 读者写者问题 读者和写者两组并发进程共享一个文件，要求：多个读者可以同时读文件；只允许一个写者写文件；任一写者在完成写操作之前不允许其他人工作；写者写之前，应该让已有的读写者都退出。\n",
-  "keywords": [
-    
-  ],
-  "articleBody": "生产者-消费者问题 1#define N 100 /* 缓冲区个数 */ 2semaphore mutex =1; /* 互斥信号量：控制对临界区的访问 */ 3semaphore empty =N; /* 空缓冲区个数 */ 4semaphore full = 0; /* 满缓冲区个数 */ 5 6void producer(void){ 7\tint item; 8\twhile(TRUE) { 9\titem=produce_item(); 10\tP(\u0026empty); 11\tP(\u0026mutex); 12\t13\tinsert_item(item); 14\t15\tV(\u0026mutex); 16\tV(\u0026full); 17\t} 18} 19 20void consumer(void){ 21\tint item; 22\twhile(TRUE) { 23\tP(\u0026full); 24\tP(\u0026mutex); 25\t26\titem=remove_item(); 27\t28\tV(\u0026mutex); 29\tV(\u0026empty); 30\tconsume_item(item); 31\t} 32} 读者写者问题 读者和写者两组并发进程共享一个文件，要求：多个读者可以同时读文件；只允许一个写者写文件；任一写者在完成写操作之前不允许其他人工作；写者写之前，应该让已有的读写者都退出。\n分析：本质就是连续多个同类进程访问同一个临界资源的问题 2类进程：读者和写者。 其中有互斥关系的是：写者之间、写者与读者之间。 参考：408OS_PV操作大题总结\n读优先 1 2int count = 0; // 读者数量 3 4semaphore busy = 1; // \"读文件\"和\"写文件\"的互斥锁 5 6semaphore mutex = 1; // 变量 count 的互斥锁 7 8Reader(){ // 读者进程 9 while(1){ 10 P(mutex); // 给count上锁 11 count++; 12 if (count == 1){ // 有人读时加锁，后面人继续读不用再加锁了 13 P(busy); // 有读者时因互斥关系不能写 14 } 15 V(mutex); 16 17 // 读文件; 18 19 P(mutex); 20 count--; 21 if (count == 0){ // 没有读者时去锁 22 V(busy); 23 } 24 V(mutex); 25 } 26} 27 28 29 30Writer(){ // 写者进程 31 while(1){ 32 P(busy); 33 // 写文件; 34 V(busy); 35 } 36} 读优先缺点是读进程会抢占资源导致写者饥饿。\n读写公平 1 2int count = 0; 3semaphore queue = 1; // 实现\"读写公平\"的互斥锁，可以视为一个队列 4semaphore busy = 1; // \"读文件\"和\"写文件\"的互斥锁 5semaphore mutex = 1; // 变量 count 的互斥锁 6 7Reader(){ // 读者进程 8 while(1){ 9 P(queue); // 在无写进程请求时不需要进入队列 10 P(mutex); // 该互斥量实际上是多余的，上面语句已经兼有互斥功能 11 count++; 12 if (count == 1){ 13 P(busy); 14 } 15 V(mutex); // 该互斥量实际上是多余的，下面语句已经兼有此功能，可以去掉 16 V(queue); // 恢复对共享文件的访问，不然其他读者没法读了 17 18 // 读文件; 19 20 P(mutex); 21 count--; 22 if (count == 0){ 23 V(busy); 24 } 25 V(mutex); 26 } 27} 28 29 30 31Writer(){ // 写者进程 32 while(1){ 33 P(queue); // 在无其他写进程请求时不需要进入队列 34 P(busy); 35 36 // 写文件; 37 38 V(busy); 39 V(queue); // 恢复对共享文件的访问 40 } 41} 这样子有一个写者排入队列就会把后面的读者堵住，后面的读者形成不了抢占。\n顺序为：之前的读者-写者-后来的读者\n写优先 1 2int ReaderCount = 0; // 读者数量 3int WriterCount = 0; // 写者数量 4 5semaphore Read = 1; // \"读文件\"的互斥锁 6semaphore Write = 1; // \"写文件\"的互斥锁 7semaphore ReaderMutex = 1; // 变量 ReaderCount 的互斥锁 8semaphore WriterMutex = 1; // 变量 WriterCount 的互斥锁 9 10Reader(){ // 读者进程 11 while(1){ 12 P(Read); // 每个读进程都需要对 Read 加锁 13 P(ReaderMutex); // 对 ReadCount 的互斥，实际上，上条语句已经兼有此功能，可以去掉 14 15 ReaderCount++; 16 17 if (ReaderCount == 1){ // 如果是第一个读进程 18 P(Write); // 则对写者上锁 19 } 20 21 V(ReaderMutex); // 对 ReadCount 的互斥，实际上，下条语句已经兼有此功能，可以去掉 22 V(Read); // Read 解锁 23 24 读文件; 25 26 P(ReaderMutex); // 对 ReadCount 的互斥 27 ReaderCount--; 28 if (ReaderCount == 0){ // 如果是最后一个读进程 29 V(Write); // 则对写者解锁 30 } 31 32 V(ReaderMutex); // 对 ReadCount 的互斥 33 } 34} 35 36 37 38Writer(){ // 写者进程 39 while(1){ 40 P(WriterMutex); // 对 WriterCount 的互斥 41 42 WriterCount++; 43 44 if (WriterCount == 1){ // 如果是第一个写进程 45 P(Read); // 则对读者上锁 46 } 47 48 V(WriterMutex); // 对 WriterCount 的互斥 49 50 P(Write); // Write 加锁 51 写文件; 52 V(Write); // Write 解锁 53 54 P(WriterMutex); // 对 WriterCount 的互斥 55 56 WriterCount--; 57 58 if (WriterCount == 0){ // 如果是最后一个写进程 59 V(Read); // 则对读者解锁 60 } 61 62 V(WriterMutex); // 对 WriterCount 的互斥 63 } 64} 食品供货问题 某商店有两种食品A和B， 最大数量各为M个。该商店将A、B两种食品搭配出售，每次各取一个。为避免食品变质，遵循先到食品先出售的原则。有两个食品公司分别不断地供应A、B两种食品(每次一个)。为保证正常销售，当某种食品的数量比另一种的数量超过K(K",
-  "wordCount" : "3467",
-  "inLanguage": "zh-cn",
-  "datePublished": "2026-01-30T00:00:00Z",
-  "dateModified": "2026-01-30T00:00:00Z",
-  "author":{
-    "@type": "Person",
-    "name": "All-on"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E9%99%84-%E7%BB%8F%E5%85%B8ipc%E9%97%AE%E9%A2%98/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "All-on's Blog",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://All-on.github.io/images/site-icon.jpg"
-    }
-  }
-}
-</script>
-</head>
-<body id="top">
-    <header class="header">
-    <nav class="header-nav">
-        <div class="logo">
-            <a href="https://All-on.github.io/" accesskey="h" title="All-on&#39;s Blog (Alt + H)">
-                <img src="https://All-on.github.io/images/site-icon.jpg" alt="" aria-label="logo"
-                    height="35">All-on&#39;s Blog</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <ul id="menu" class="menu">
-            <li>
-                <a href="https://All-on.github.io/search/" title="搜索 (Alt &#43; /)" accesskey=/>
-                    <span>搜索</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://All-on.github.io/posts/" title="文章">
-                    <span>文章</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://All-on.github.io/categories/" title="类别">
-                    <span>类别</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://All-on.github.io/archives/" title="归档">
-                    <span>归档</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://All-on.github.io/about/" title="关于">
-                    <span>关于</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</header>
-<main class="main">
-
-<article class="post-single">
-  <header class="post-header">
-    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-            <a href="/">Home</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/">Posts</a>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-        <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-</nav>
-    <h1 class="post-title entry-hint-parent">
-      附 经典IPC问题
-    </h1>
-    <div class="post-meta">
-
-<span title='2026-01-30 00:00:00 +0000 UTC'>2026-01-30</span>&nbsp;·&nbsp;<span>7 min</span>&nbsp;·&nbsp;<span>3467 words</span>&nbsp;·&nbsp;<span>All-on</span>
-
-</div>
-  </header> <aside id="toc-container" class="toc-container wide">
-<div class="toc">
-    <details >
-        <summary accesskey="c" title="(Alt + C)">
-            <span class="details">Table of Contents</span>
-        </summary>
-
-        <div class="inner"><ul>
-                <li>
-                    <a href="#%e7%94%9f%e4%ba%a7%e8%80%85-%e6%b6%88%e8%b4%b9%e8%80%85%e9%97%ae%e9%a2%98" aria-label="生产者-消费者问题">生产者-消费者问题</a></li>
-                <li>
-                    <a href="#%e8%af%bb%e8%80%85%e5%86%99%e8%80%85%e9%97%ae%e9%a2%98" aria-label="读者写者问题">读者写者问题</a><ul>
-                        
-                <li>
-                    <a href="#%e8%af%bb%e4%bc%98%e5%85%88" aria-label="读优先">读优先</a></li>
-                <li>
-                    <a href="#%e8%af%bb%e5%86%99%e5%85%ac%e5%b9%b3" aria-label="读写公平">读写公平</a></li>
-                <li>
-                    <a href="#%e5%86%99%e4%bc%98%e5%85%88" aria-label="写优先">写优先</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e9%a3%9f%e5%93%81%e4%be%9b%e8%b4%a7%e9%97%ae%e9%a2%98" aria-label="食品供货问题">食品供货问题</a></li>
-                <li>
-                    <a href="#%e4%b8%89%e5%b3%a1%e5%a4%a7%e5%9d%9d%e8%88%b9%e9%97%b8%e8%b0%83%e5%ba%a6%e9%97%ae%e9%a2%98" aria-label="三峡大坝船闸调度问题">三峡大坝船闸调度问题</a></li>
-                <li>
-                    <a href="#%e7%8b%92%e7%8b%92%e8%bf%87%e5%b3%a1%e8%b0%b7%e9%97%ae%e9%a2%98" aria-label="狒狒过峡谷问题">狒狒过峡谷问题</a><ul>
-                        
-                <li>
-                    <a href="#%e4%b8%8d%e8%80%83%e8%99%91%e9%a5%a5%e9%a5%bf" aria-label="不考虑饥饿">不考虑饥饿</a></li>
-                <li>
-                    <a href="#%e8%80%83%e8%99%91%e9%a5%a5%e9%a5%bf" aria-label="考虑饥饿">考虑饥饿</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e7%9d%a1%e7%9c%a0%e7%90%86%e5%8f%91%e5%b8%88%e9%97%ae%e9%a2%98" aria-label="睡眠理发师问题">睡眠理发师问题</a>
-                </li>
-            </ul>
-        </div>
-    </details>
-</div>
-</aside>
-<script>
-    let activeElement;
-    let elements;
-    window.addEventListener('DOMContentLoaded', function (event) {
-        checkTocPosition();
-
-        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
-         
-         activeElement = elements[0];
-         const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
-         document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-     }, false);
-
-    window.addEventListener('resize', function(event) {
-        checkTocPosition();
-    }, false);
-
-    window.addEventListener('scroll', () => {
-        
-        activeElement = Array.from(elements).find((element) => {
-            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
-                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
-                return element;
-            }
-        }) || activeElement
-
-        elements.forEach(element => {
-             const id = encodeURI(element.getAttribute('id')).toLowerCase();
-             if (element === activeElement){
-                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-             } else {
-                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
-             }
-         })
-     }, false);
-
-    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
-    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
-    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
-
-    function checkTocPosition() {
-        const width = document.body.scrollWidth;
-
-        if (width - main - (toc * 2) - (gap * 4) > 0) {
-            document.getElementById("toc-container").classList.add("wide");
-        } else {
-            document.getElementById("toc-container").classList.remove("wide");
-        }
-    }
-
-    function getOffsetTop(element) {
-        if (!element.getClientRects().length) {
-            return 0;
-        }
-        let rect = element.getBoundingClientRect();
-        let win = element.ownerDocument.defaultView;
-        return rect.top + win.pageYOffset;
-    }
-</script>
-
-  <div class="post-content md-content"><h1 id="生产者-消费者问题">生产者-消费者问题<a hidden class="anchor" aria-hidden="true" href="#生产者-消费者问题">#</a></h1>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="cp">#define N 100  </span><span class="cm">/* 缓冲区个数 */</span><span class="cp">
-</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="n">semaphore</span> <span class="n">mutex</span> <span class="o">=</span><span class="mi">1</span><span class="p">;</span>  <span class="cm">/* 互斥信号量：控制对临界区的访问 */</span>
-</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="n">semaphore</span> <span class="n">empty</span> <span class="o">=</span><span class="n">N</span><span class="p">;</span>  <span class="cm">/* 空缓冲区个数 */</span>
-</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="n">semaphore</span> <span class="n">full</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>  <span class="cm">/* 满缓冲区个数 */</span>
-</span></span><span class="line"><span class="ln"> 5</span><span class="cl">
-</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="kt">void</span> <span class="nf">producer</span><span class="p">(</span><span class="kt">void</span><span class="p">){</span> 
-</span></span><span class="line"><span class="ln"> 7</span><span class="cl">	<span class="kt">int</span> <span class="n">item</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln"> 8</span><span class="cl">	<span class="k">while</span><span class="p">(</span><span class="n">TRUE</span><span class="p">)</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln"> 9</span><span class="cl">		<span class="n">item</span><span class="o">=</span><span class="nf">produce_item</span><span class="p">();</span>
-</span></span><span class="line"><span class="ln">10</span><span class="cl">		<span class="nf">P</span><span class="p">(</span><span class="o">&amp;</span><span class="n">empty</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">11</span><span class="cl">		<span class="nf">P</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">12</span><span class="cl">		
-</span></span><span class="line"><span class="ln">13</span><span class="cl">		<span class="nf">insert_item</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">14</span><span class="cl">		
-</span></span><span class="line"><span class="ln">15</span><span class="cl">		<span class="nf">V</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">16</span><span class="cl">		<span class="nf">V</span><span class="p">(</span><span class="o">&amp;</span><span class="n">full</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">17</span><span class="cl">	<span class="p">}</span>
-</span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="p">}</span>
-</span></span><span class="line"><span class="ln">19</span><span class="cl">
-</span></span><span class="line"><span class="ln">20</span><span class="cl"><span class="kt">void</span> <span class="nf">consumer</span><span class="p">(</span><span class="kt">void</span><span class="p">){</span> 
-</span></span><span class="line"><span class="ln">21</span><span class="cl">	<span class="kt">int</span> <span class="n">item</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">22</span><span class="cl">	<span class="k">while</span><span class="p">(</span><span class="n">TRUE</span><span class="p">)</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln">23</span><span class="cl">		<span class="nf">P</span><span class="p">(</span><span class="o">&amp;</span><span class="n">full</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">24</span><span class="cl">		<span class="nf">P</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">25</span><span class="cl">		
-</span></span><span class="line"><span class="ln">26</span><span class="cl">		<span class="n">item</span><span class="o">=</span><span class="nf">remove_item</span><span class="p">();</span>
-</span></span><span class="line"><span class="ln">27</span><span class="cl">		
-</span></span><span class="line"><span class="ln">28</span><span class="cl">		<span class="nf">V</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">29</span><span class="cl">		<span class="nf">V</span><span class="p">(</span><span class="o">&amp;</span><span class="n">empty</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">30</span><span class="cl">		<span class="nf">consume_item</span><span class="p">(</span><span class="n">item</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">31</span><span class="cl">	<span class="p">}</span>
-</span></span><span class="line"><span class="ln">32</span><span class="cl"><span class="p">}</span>
-</span></span></code></pre></div><h1 id="读者写者问题">读者写者问题<a hidden class="anchor" aria-hidden="true" href="#读者写者问题">#</a></h1>
-<p>读者和写者两组并发进程共享一个文件，要求：多个读者可以同时读文件；只允许一个写者写文件；任一写者在完成写操作之前不允许其他人工作；写者写之前，应该让已有的读写者都退出。</p>
-<ul>
-<li>分析：本质就是连续多个同类进程访问同一个临界资源的问题</li>
-<li>2类进程：读者和写者。</li>
-<li>其中有互斥关系的是：写者之间、写者与读者之间。</li>
-</ul>
-<p>参考：<a href="https://www.cnblogs.com/CauchyPt/p/18429835">408OS_PV操作大题总结</a></p>
-<h2 id="读优先">读优先<a hidden class="anchor" aria-hidden="true" href="#读优先">#</a></h2>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl">
-</span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// 读者数量
-</span></span></span><span class="line"><span class="ln"> 3</span><span class="cl">
-</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="n">semaphore</span> <span class="n">busy</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// &#34;读文件&#34;和&#34;写文件&#34;的互斥锁
-</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl">
-</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="n">semaphore</span> <span class="n">mutex</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// 变量 count 的互斥锁
-</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl">
-</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="nf">Reader</span><span class="p">(){</span> <span class="c1">// 读者进程
-</span></span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="k">while</span><span class="p">(</span><span class="mi">1</span><span class="p">){</span>
-</span></span><span class="line"><span class="ln">10</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span> <span class="c1">// 给count上锁
-</span></span></span><span class="line"><span class="ln">11</span><span class="cl">        <span class="n">count</span><span class="o">++</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">12</span><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">){</span> <span class="c1">// 有人读时加锁，后面人继续读不用再加锁了
-</span></span></span><span class="line"><span class="ln">13</span><span class="cl">            <span class="nf">P</span><span class="p">(</span><span class="n">busy</span><span class="p">);</span> <span class="c1">// 有读者时因互斥关系不能写
-</span></span></span><span class="line"><span class="ln">14</span><span class="cl">        <span class="p">}</span>
-</span></span><span class="line"><span class="ln">15</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">16</span><span class="cl">
-</span></span><span class="line"><span class="ln">17</span><span class="cl">        <span class="c1">// 读文件;
-</span></span></span><span class="line"><span class="ln">18</span><span class="cl">
-</span></span><span class="line"><span class="ln">19</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">20</span><span class="cl">        <span class="n">count</span><span class="o">--</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">21</span><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">){</span> <span class="c1">// 没有读者时去锁
-</span></span></span><span class="line"><span class="ln">22</span><span class="cl">            <span class="nf">V</span><span class="p">(</span><span class="n">busy</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">23</span><span class="cl">        <span class="p">}</span>
-</span></span><span class="line"><span class="ln">24</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">25</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">26</span><span class="cl"><span class="p">}</span>
-</span></span><span class="line"><span class="ln">27</span><span class="cl">
-</span></span><span class="line"><span class="ln">28</span><span class="cl">  
-</span></span><span class="line"><span class="ln">29</span><span class="cl">
-</span></span><span class="line"><span class="ln">30</span><span class="cl"><span class="nf">Writer</span><span class="p">(){</span> <span class="c1">// 写者进程
-</span></span></span><span class="line"><span class="ln">31</span><span class="cl">    <span class="k">while</span><span class="p">(</span><span class="mi">1</span><span class="p">){</span>
-</span></span><span class="line"><span class="ln">32</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">busy</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">33</span><span class="cl">        <span class="c1">// 写文件;
-</span></span></span><span class="line"><span class="ln">34</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">busy</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">35</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">36</span><span class="cl"><span class="p">}</span>
-</span></span></code></pre></div><p>读优先缺点是读进程会抢占资源导致写者饥饿。</p>
-<h2 id="读写公平">读写公平<a hidden class="anchor" aria-hidden="true" href="#读写公平">#</a></h2>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl">
-</span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="n">semaphore</span> <span class="n">queue</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>  <span class="c1">// 实现&#34;读写公平&#34;的互斥锁，可以视为一个队列
-</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="n">semaphore</span> <span class="n">busy</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>   <span class="c1">// &#34;读文件&#34;和&#34;写文件&#34;的互斥锁
-</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="n">semaphore</span> <span class="n">mutex</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>  <span class="c1">// 变量 count 的互斥锁
-</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl">
-</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="nf">Reader</span><span class="p">(){</span> <span class="c1">// 读者进程
-</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="k">while</span><span class="p">(</span><span class="mi">1</span><span class="p">){</span>
-</span></span><span class="line"><span class="ln"> 9</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">queue</span><span class="p">);</span> <span class="c1">// 在无写进程请求时不需要进入队列
-</span></span></span><span class="line"><span class="ln">10</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span> <span class="c1">// 该互斥量实际上是多余的，上面语句已经兼有互斥功能
-</span></span></span><span class="line"><span class="ln">11</span><span class="cl">        <span class="n">count</span><span class="o">++</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">12</span><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">){</span>
-</span></span><span class="line"><span class="ln">13</span><span class="cl">            <span class="nf">P</span><span class="p">(</span><span class="n">busy</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">14</span><span class="cl">        <span class="p">}</span>
-</span></span><span class="line"><span class="ln">15</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span> <span class="c1">// 该互斥量实际上是多余的，下面语句已经兼有此功能，可以去掉
-</span></span></span><span class="line"><span class="ln">16</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">queue</span><span class="p">);</span> <span class="c1">// 恢复对共享文件的访问，不然其他读者没法读了
-</span></span></span><span class="line"><span class="ln">17</span><span class="cl">
-</span></span><span class="line"><span class="ln">18</span><span class="cl">        <span class="c1">// 读文件;
-</span></span></span><span class="line"><span class="ln">19</span><span class="cl">
-</span></span><span class="line"><span class="ln">20</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">21</span><span class="cl">        <span class="n">count</span><span class="o">--</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">22</span><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">){</span>
-</span></span><span class="line"><span class="ln">23</span><span class="cl">            <span class="nf">V</span><span class="p">(</span><span class="n">busy</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">24</span><span class="cl">        <span class="p">}</span>
-</span></span><span class="line"><span class="ln">25</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">26</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">27</span><span class="cl"><span class="p">}</span>
-</span></span><span class="line"><span class="ln">28</span><span class="cl">
-</span></span><span class="line"><span class="ln">29</span><span class="cl">  
-</span></span><span class="line"><span class="ln">30</span><span class="cl">
-</span></span><span class="line"><span class="ln">31</span><span class="cl"><span class="nf">Writer</span><span class="p">(){</span> <span class="c1">// 写者进程
-</span></span></span><span class="line"><span class="ln">32</span><span class="cl">    <span class="k">while</span><span class="p">(</span><span class="mi">1</span><span class="p">){</span>
-</span></span><span class="line"><span class="ln">33</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">queue</span><span class="p">);</span> <span class="c1">// 在无其他写进程请求时不需要进入队列
-</span></span></span><span class="line"><span class="ln">34</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">busy</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">35</span><span class="cl">
-</span></span><span class="line"><span class="ln">36</span><span class="cl">        <span class="c1">// 写文件;
-</span></span></span><span class="line"><span class="ln">37</span><span class="cl">
-</span></span><span class="line"><span class="ln">38</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">busy</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">39</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">queue</span><span class="p">);</span> <span class="c1">// 恢复对共享文件的访问
-</span></span></span><span class="line"><span class="ln">40</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">41</span><span class="cl"><span class="p">}</span>
-</span></span></code></pre></div><p>这样子有一个写者排入队列就会把后面的读者堵住，后面的读者形成不了抢占。</p>
-<p>顺序为：之前的读者-写者-后来的读者</p>
-<h2 id="写优先">写优先<a hidden class="anchor" aria-hidden="true" href="#写优先">#</a></h2>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl">
-</span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="kt">int</span> <span class="n">ReaderCount</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// 读者数量
-</span></span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="kt">int</span> <span class="n">WriterCount</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// 写者数量
-</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl">
-</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="n">semaphore</span> <span class="n">Read</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// &#34;读文件&#34;的互斥锁
-</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="n">semaphore</span> <span class="n">Write</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// &#34;写文件&#34;的互斥锁
-</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="n">semaphore</span> <span class="n">ReaderMutex</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// 变量 ReaderCount 的互斥锁
-</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="n">semaphore</span> <span class="n">WriterMutex</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// 变量 WriterCount 的互斥锁  
-</span></span></span><span class="line"><span class="ln"> 9</span><span class="cl">
-</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="nf">Reader</span><span class="p">(){</span> <span class="c1">// 读者进程
-</span></span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="k">while</span><span class="p">(</span><span class="mi">1</span><span class="p">){</span>
-</span></span><span class="line"><span class="ln">12</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">Read</span><span class="p">);</span> <span class="c1">// 每个读进程都需要对 Read 加锁
-</span></span></span><span class="line"><span class="ln">13</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">ReaderMutex</span><span class="p">);</span> <span class="c1">// 对 ReadCount 的互斥，实际上，上条语句已经兼有此功能，可以去掉
-</span></span></span><span class="line"><span class="ln">14</span><span class="cl">
-</span></span><span class="line"><span class="ln">15</span><span class="cl">        <span class="n">ReaderCount</span><span class="o">++</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">16</span><span class="cl">
-</span></span><span class="line"><span class="ln">17</span><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">ReaderCount</span> <span class="o">==</span> <span class="mi">1</span><span class="p">){</span> <span class="c1">// 如果是第一个读进程
-</span></span></span><span class="line"><span class="ln">18</span><span class="cl">            <span class="nf">P</span><span class="p">(</span><span class="n">Write</span><span class="p">);</span> <span class="c1">// 则对写者上锁
-</span></span></span><span class="line"><span class="ln">19</span><span class="cl">        <span class="p">}</span>
-</span></span><span class="line"><span class="ln">20</span><span class="cl">
-</span></span><span class="line"><span class="ln">21</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">ReaderMutex</span><span class="p">);</span> <span class="c1">// 对 ReadCount 的互斥，实际上，下条语句已经兼有此功能，可以去掉
-</span></span></span><span class="line"><span class="ln">22</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">Read</span><span class="p">);</span> <span class="c1">// Read 解锁
-</span></span></span><span class="line"><span class="ln">23</span><span class="cl">
-</span></span><span class="line"><span class="ln">24</span><span class="cl">        <span class="err">读文件</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">25</span><span class="cl">
-</span></span><span class="line"><span class="ln">26</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">ReaderMutex</span><span class="p">);</span> <span class="c1">// 对 ReadCount 的互斥
-</span></span></span><span class="line"><span class="ln">27</span><span class="cl">        <span class="n">ReaderCount</span><span class="o">--</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">28</span><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">ReaderCount</span> <span class="o">==</span> <span class="mi">0</span><span class="p">){</span> <span class="c1">// 如果是最后一个读进程
-</span></span></span><span class="line"><span class="ln">29</span><span class="cl">            <span class="nf">V</span><span class="p">(</span><span class="n">Write</span><span class="p">);</span> <span class="c1">// 则对写者解锁
-</span></span></span><span class="line"><span class="ln">30</span><span class="cl">        <span class="p">}</span>
-</span></span><span class="line"><span class="ln">31</span><span class="cl">
-</span></span><span class="line"><span class="ln">32</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">ReaderMutex</span><span class="p">);</span> <span class="c1">// 对 ReadCount 的互斥
-</span></span></span><span class="line"><span class="ln">33</span><span class="cl">        <span class="p">}</span>
-</span></span><span class="line"><span class="ln">34</span><span class="cl"><span class="p">}</span>
-</span></span><span class="line"><span class="ln">35</span><span class="cl">
-</span></span><span class="line"><span class="ln">36</span><span class="cl">  
-</span></span><span class="line"><span class="ln">37</span><span class="cl">
-</span></span><span class="line"><span class="ln">38</span><span class="cl"><span class="nf">Writer</span><span class="p">(){</span> <span class="c1">// 写者进程
-</span></span></span><span class="line"><span class="ln">39</span><span class="cl">    <span class="k">while</span><span class="p">(</span><span class="mi">1</span><span class="p">){</span>
-</span></span><span class="line"><span class="ln">40</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">WriterMutex</span><span class="p">);</span> <span class="c1">// 对 WriterCount 的互斥
-</span></span></span><span class="line"><span class="ln">41</span><span class="cl">        
-</span></span><span class="line"><span class="ln">42</span><span class="cl">        <span class="n">WriterCount</span><span class="o">++</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">43</span><span class="cl">        
-</span></span><span class="line"><span class="ln">44</span><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">WriterCount</span> <span class="o">==</span> <span class="mi">1</span><span class="p">){</span> <span class="c1">// 如果是第一个写进程
-</span></span></span><span class="line"><span class="ln">45</span><span class="cl">            <span class="nf">P</span><span class="p">(</span><span class="n">Read</span><span class="p">);</span> <span class="c1">// 则对读者上锁
-</span></span></span><span class="line"><span class="ln">46</span><span class="cl">        <span class="p">}</span>
-</span></span><span class="line"><span class="ln">47</span><span class="cl">
-</span></span><span class="line"><span class="ln">48</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">WriterMutex</span><span class="p">);</span> <span class="c1">// 对 WriterCount 的互斥
-</span></span></span><span class="line"><span class="ln">49</span><span class="cl">
-</span></span><span class="line"><span class="ln">50</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">Write</span><span class="p">);</span> <span class="c1">// Write 加锁
-</span></span></span><span class="line"><span class="ln">51</span><span class="cl">        <span class="err">写文件</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">52</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">Write</span><span class="p">);</span> <span class="c1">// Write 解锁
-</span></span></span><span class="line"><span class="ln">53</span><span class="cl">
-</span></span><span class="line"><span class="ln">54</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">WriterMutex</span><span class="p">);</span> <span class="c1">// 对 WriterCount 的互斥
-</span></span></span><span class="line"><span class="ln">55</span><span class="cl">
-</span></span><span class="line"><span class="ln">56</span><span class="cl">        <span class="n">WriterCount</span><span class="o">--</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">57</span><span class="cl">
-</span></span><span class="line"><span class="ln">58</span><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">WriterCount</span> <span class="o">==</span> <span class="mi">0</span><span class="p">){</span> <span class="c1">// 如果是最后一个写进程
-</span></span></span><span class="line"><span class="ln">59</span><span class="cl">            <span class="nf">V</span><span class="p">(</span><span class="n">Read</span><span class="p">);</span> <span class="c1">// 则对读者解锁
-</span></span></span><span class="line"><span class="ln">60</span><span class="cl">        <span class="p">}</span>
-</span></span><span class="line"><span class="ln">61</span><span class="cl">
-</span></span><span class="line"><span class="ln">62</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">WriterMutex</span><span class="p">);</span> <span class="c1">// 对 WriterCount 的互斥
-</span></span></span><span class="line"><span class="ln">63</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">64</span><span class="cl"><span class="p">}</span>
-</span></span></code></pre></div><hr>
-<h1 id="食品供货问题">食品供货问题<a hidden class="anchor" aria-hidden="true" href="#食品供货问题">#</a></h1>
-<p>某商店有两种食品A和B， 最大数量各为M个。该商店将A、B两种食品搭配出售，每次各取一个。为避免食品变质，遵循先到食品先出售的原则。有两个食品公司分别不断地供应A、B两种食品(每次一个)。为保证正常销售，当某种食品的数量比另一种的数量超过K(K&lt;M)个时，暂停对数量大的食品进货。</p>
-<p>这就是两个生产者-消费者关系。</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="kt">int</span> <span class="n">countA</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">countB</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// 食品数量
-</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl">
-</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="c1">// 信号量
-</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="n">semaphore</span> <span class="n">mutex</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="n">semaphore</span> <span class="n">emptyA</span> <span class="o">=</span> <span class="n">m</span><span class="p">,</span> <span class="n">emptyB</span> <span class="o">=</span> <span class="n">m</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="n">semaphore</span> <span class="n">foodA</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">foodB</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="n">semaphore</span> <span class="n">limitA</span> <span class="o">=</span> <span class="n">k</span><span class="p">,</span> <span class="n">limitB</span> <span class="o">=</span> <span class="n">k</span><span class="p">;</span> <span class="c1">// A比B, B比A的富余量
-</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl">
-</span></span><span class="line"><span class="ln"> 9</span><span class="cl"><span class="c1">// 供应A进程
-</span></span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="nf">ProviderA</span><span class="p">()</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="k">while</span><span class="p">(</span><span class="nb">true</span><span class="p">)</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln">12</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">emptyA</span><span class="p">);</span>       <span class="c1">// 是否还有空货架放A?
-</span></span></span><span class="line"><span class="ln">13</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">limitB</span><span class="p">);</span>       <span class="c1">// 消耗一个B对A的富余名额
-</span></span></span><span class="line"><span class="ln">14</span><span class="cl">        
-</span></span><span class="line"><span class="ln">15</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">16</span><span class="cl">        <span class="n">countA</span><span class="o">++</span><span class="p">;</span>        <span class="c1">// 生产一个A并放入
-</span></span></span><span class="line"><span class="ln">17</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">18</span><span class="cl">
-</span></span><span class="line"><span class="ln">19</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">limitA</span><span class="p">);</span>       <span class="c1">// 增加一个A对B的富余名额
-</span></span></span><span class="line"><span class="ln">20</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">foodA</span><span class="p">);</span>        <span class="c1">// 增加一个食品A
-</span></span></span><span class="line"><span class="ln">21</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">22</span><span class="cl"><span class="p">}</span>
-</span></span><span class="line"><span class="ln">23</span><span class="cl">
-</span></span><span class="line"><span class="ln">24</span><span class="cl"><span class="c1">// 供应B进程
-</span></span></span><span class="line"><span class="ln">25</span><span class="cl"><span class="nf">ProviderB</span><span class="p">()</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln">26</span><span class="cl">    <span class="k">while</span><span class="p">(</span><span class="nb">true</span><span class="p">)</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln">27</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">emptyB</span><span class="p">);</span>       <span class="c1">// 是否还有空货架放B?
-</span></span></span><span class="line"><span class="ln">28</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">limitA</span><span class="p">);</span>       <span class="c1">// 消耗一个A对B的富余名额
-</span></span></span><span class="line"><span class="ln">29</span><span class="cl">        
-</span></span><span class="line"><span class="ln">30</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">31</span><span class="cl">        <span class="c1">// 生产一个B并放入
-</span></span></span><span class="line"><span class="ln">32</span><span class="cl">        <span class="n">countB</span><span class="o">++</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">33</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">34</span><span class="cl">
-</span></span><span class="line"><span class="ln">35</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">limitB</span><span class="p">);</span>       <span class="c1">// 增加一个B对A的富余名额
-</span></span></span><span class="line"><span class="ln">36</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">foodB</span><span class="p">);</span>        <span class="c1">// 增加一个食品B
-</span></span></span><span class="line"><span class="ln">37</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">38</span><span class="cl"><span class="p">}</span>
-</span></span><span class="line"><span class="ln">39</span><span class="cl">
-</span></span><span class="line"><span class="ln">40</span><span class="cl"><span class="c1">// 销售员进程
-</span></span></span><span class="line"><span class="ln">41</span><span class="cl"><span class="nf">Seller</span><span class="p">()</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln">42</span><span class="cl">    <span class="k">while</span><span class="p">(</span><span class="nb">true</span><span class="p">)</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln">43</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">foodA</span><span class="p">);</span> <span class="c1">// 是否有食品A?
-</span></span></span><span class="line"><span class="ln">44</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">foodB</span><span class="p">);</span> <span class="c1">// 是否有食品B?
-</span></span></span><span class="line"><span class="ln">45</span><span class="cl">
-</span></span><span class="line"><span class="ln">46</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">47</span><span class="cl">        <span class="c1">// 取走A和B
-</span></span></span><span class="line"><span class="ln">48</span><span class="cl">        <span class="n">countA</span><span class="o">--</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">49</span><span class="cl">        <span class="n">countB</span><span class="o">--</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">50</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">51</span><span class="cl">
-</span></span><span class="line"><span class="ln">52</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">emptyA</span><span class="p">);</span> <span class="c1">// 货架空出
-</span></span></span><span class="line"><span class="ln">53</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">emptyB</span><span class="p">);</span> <span class="c1">// 货架空出
-</span></span></span><span class="line"><span class="ln">54</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">55</span><span class="cl"><span class="p">}</span>
-</span></span></code></pre></div><h1 id="三峡大坝船闸调度问题">三峡大坝船闸调度问题<a hidden class="anchor" aria-hidden="true" href="#三峡大坝船闸调度问题">#</a></h1>
-<p>由于水面高度不同，有160<del>175米的落差，所以三峡大坝有五级船闸，T1</del>T5。由上游驶来的船需经由各级船闸到下游；由下游驶来的船需经由各级船闸到上游。假设只能允许单方向通行（此假设与实际情况不符，实际为双向各五级船闸）。</p>
-<p>这是两个读者。出于简化，我们不考虑5个闸门。</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// 信号量和计数器
-</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="n">semaphore</span> <span class="n">up_mutex</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">down_mutex</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="n">semaphore</span> <span class="n">direction_mutex</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="kt">int</span> <span class="n">up_count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">down_count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln"> 5</span><span class="cl">
-</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="c1">// 上行船只进程 
-</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="nf">Upward_Ship</span><span class="p">()</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="nf">P</span><span class="p">(</span><span class="n">up_mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">up_count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// 如果是第一艘上行船
-</span></span></span><span class="line"><span class="ln">10</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">direction_mutex</span><span class="p">);</span> <span class="c1">// 尝试获取航行方向控制权
-</span></span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">12</span><span class="cl">    <span class="n">up_count</span><span class="o">++</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="nf">V</span><span class="p">(</span><span class="n">up_mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">14</span><span class="cl">	
-</span></span><span class="line"><span class="ln">15</span><span class="cl">	<span class="nf">cross</span><span class="p">();</span>  <span class="c1">// 通过闸门
-</span></span></span><span class="line"><span class="ln">16</span><span class="cl">    
-</span></span><span class="line"><span class="ln">17</span><span class="cl">    <span class="nf">P</span><span class="p">(</span><span class="n">up_mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">18</span><span class="cl">    <span class="n">up_count</span><span class="o">--</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">19</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">up_count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// 如果是最后一艘上行船
-</span></span></span><span class="line"><span class="ln">20</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">direction_mutex</span><span class="p">);</span> <span class="c1">// 释放航行方向控制权
-</span></span></span><span class="line"><span class="ln">21</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">22</span><span class="cl">    <span class="nf">V</span><span class="p">(</span><span class="n">up_mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">23</span><span class="cl"><span class="p">}</span>
-</span></span><span class="line"><span class="ln">24</span><span class="cl">
-</span></span><span class="line"><span class="ln">25</span><span class="cl"><span class="c1">// 下行船只进程 (上游 -&gt; 下游: T1 -&gt; T5)
-</span></span></span><span class="line"><span class="ln">26</span><span class="cl"><span class="nf">Downward_Ship</span><span class="p">()</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln">27</span><span class="cl">    <span class="nf">P</span><span class="p">(</span><span class="n">down_mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">28</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">down_count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// 如果是第一艘下行船
-</span></span></span><span class="line"><span class="ln">29</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">direction_mutex</span><span class="p">);</span> <span class="c1">// 尝试获取航行方向控制权
-</span></span></span><span class="line"><span class="ln">30</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">31</span><span class="cl">    <span class="n">down_count</span><span class="o">++</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">32</span><span class="cl">    <span class="nf">V</span><span class="p">(</span><span class="n">down_mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">33</span><span class="cl">
-</span></span><span class="line"><span class="ln">34</span><span class="cl">    <span class="nf">cross</span><span class="p">();</span>  <span class="c1">// 通过闸门
-</span></span></span><span class="line"><span class="ln">35</span><span class="cl">    
-</span></span><span class="line"><span class="ln">36</span><span class="cl">    <span class="nf">P</span><span class="p">(</span><span class="n">down_mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">37</span><span class="cl">    <span class="n">down_count</span><span class="o">--</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">38</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">down_count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// 如果是最后一艘下行船
-</span></span></span><span class="line"><span class="ln">39</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">direction_mutex</span><span class="p">);</span> <span class="c1">// 释放航行方向控制权
-</span></span></span><span class="line"><span class="ln">40</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">41</span><span class="cl">    <span class="nf">V</span><span class="p">(</span><span class="n">down_mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">42</span><span class="cl"><span class="p">}</span>
-</span></span></code></pre></div><h1 id="狒狒过峡谷问题">狒狒过峡谷问题<a hidden class="anchor" aria-hidden="true" href="#狒狒过峡谷问题">#</a></h1>
-<p>一个主修人类学、辅修计算机科学的学生参加了一个研究课题，调查是否可以教会非洲狒狒理解死锁。他找到一处很深的峡谷，在上边固定了一根横跨峡谷的绳索，这样狒狒就可以攀住绳索越过峡谷。同一时刻，只要朝着相同的方向就可以有几只狒狒通过。但如果向东和向西的狒狒同时攀在绳索上那么会产生死锁（狒狒会被卡在中间），由于它们无法在绳索上从另一只的背上翻过去。如果一只狒狒想越过峡谷，它必须看当前是否有别的狒狒正在逆向通行。利用信号量编写一个避免死锁的程序来解决该问题。不考虑连续东行的狒狒会使得西行的狒狒无限制地等待的情况。</p>
-<p>参考：<a href="https://www.lyt0112.com/blog/operating_systems_note_10-zh">Operating Systems Notes 10: Classic Synchronization Problems</a></p>
-<h2 id="不考虑饥饿">不考虑饥饿<a hidden class="anchor" aria-hidden="true" href="#不考虑饥饿">#</a></h2>
-<p>在不考虑饥饿的情况下，这就是和上面的狒狒过峡谷一样了。</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// 信号量和计数器
-</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="n">semaphore</span> <span class="n">mutex</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="n">semaphore</span> <span class="n">rope</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="kt">int</span> <span class="n">east_count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">west_count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// 可以合并为一个方向计数器和一个方向变量
-</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl">
-</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="c1">// 向东走的狒狒
-</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="nf">Eastward_Baboon</span><span class="p">()</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="nf">P</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">east_count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// 如果是第一只向东的狒狒
-</span></span></span><span class="line"><span class="ln">10</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">rope</span><span class="p">);</span>           <span class="c1">// 尝试获取绳索
-</span></span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">12</span><span class="cl">    <span class="n">east_count</span><span class="o">++</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="nf">V</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">14</span><span class="cl">
-</span></span><span class="line"><span class="ln">15</span><span class="cl">    <span class="c1">// --- 过峡谷 ---
-</span></span></span><span class="line"><span class="ln">16</span><span class="cl">     <span class="nf">crossing</span><span class="p">();</span>
-</span></span><span class="line"><span class="ln">17</span><span class="cl">    <span class="c1">// --- 过完峡谷 ---
-</span></span></span><span class="line"><span class="ln">18</span><span class="cl">
-</span></span><span class="line"><span class="ln">19</span><span class="cl">    <span class="nf">P</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">20</span><span class="cl">    <span class="n">east_count</span><span class="o">--</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">21</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">east_count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// 如果是最后一只向东的狒狒
-</span></span></span><span class="line"><span class="ln">22</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">rope</span><span class="p">);</span>           <span class="c1">// 释放绳索
-</span></span></span><span class="line"><span class="ln">23</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">24</span><span class="cl">    <span class="nf">V</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">25</span><span class="cl"><span class="p">}</span>
-</span></span><span class="line"><span class="ln">26</span><span class="cl">
-</span></span><span class="line"><span class="ln">27</span><span class="cl"><span class="c1">// 向西走的狒狒
-</span></span></span><span class="line"><span class="ln">28</span><span class="cl"><span class="nf">Westward_Baboon</span><span class="p">()</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln">29</span><span class="cl">    <span class="nf">P</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">30</span><span class="cl">    <span class="c1">// 这里我们用 west_count 来实现, 逻辑完全对称
-</span></span></span><span class="line"><span class="ln">31</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">west_count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// 如果是第一只向西的狒狒
-</span></span></span><span class="line"><span class="ln">32</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">rope</span><span class="p">);</span>           <span class="c1">// 尝试获取绳索
-</span></span></span><span class="line"><span class="ln">33</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">34</span><span class="cl">    <span class="n">west_count</span><span class="o">++</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">35</span><span class="cl">    <span class="nf">V</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">36</span><span class="cl">
-</span></span><span class="line"><span class="ln">37</span><span class="cl">    <span class="c1">// --- 过峡谷 ---
-</span></span></span><span class="line"><span class="ln">38</span><span class="cl">    <span class="nf">crossing</span><span class="p">();</span>
-</span></span><span class="line"><span class="ln">39</span><span class="cl">    <span class="c1">// --- 过完峡谷 ---
-</span></span></span><span class="line"><span class="ln">40</span><span class="cl">
-</span></span><span class="line"><span class="ln">41</span><span class="cl">    <span class="nf">P</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">42</span><span class="cl">    <span class="n">west_count</span><span class="o">--</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">43</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">west_count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// 如果是最后一只向西的狒狒
-</span></span></span><span class="line"><span class="ln">44</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">rope</span><span class="p">);</span>           <span class="c1">// 释放绳索
-</span></span></span><span class="line"><span class="ln">45</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">46</span><span class="cl">    <span class="nf">V</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">47</span><span class="cl"><span class="p">}</span>
-</span></span></code></pre></div><h2 id="考虑饥饿">考虑饥饿<a hidden class="anchor" aria-hidden="true" href="#考虑饥饿">#</a></h2>
-<p>考虑饥饿的话，可以让两边等待的狒狒都去争turn。谁争到谁上。</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// 信号量和计数器
-</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="n">semaphore</span> <span class="n">mutex_e</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">mutex_w</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="n">semaphore</span> <span class="n">rope</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="n">semaphore</span> <span class="n">turn</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> 
-</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="kt">int</span> <span class="n">east_count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">west_count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln"> 6</span><span class="cl">
-</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="c1">// 向东走的狒狒
-</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="nf">Eastward_Baboon</span><span class="p">()</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="nf">P</span><span class="p">(</span><span class="n">turn</span><span class="p">);</span> <span class="c1">// 在旋转门前排队
-</span></span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="nf">P</span><span class="p">(</span><span class="n">mutex_e</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="n">east_count</span><span class="o">++</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">12</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">east_count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// 如果是第一只东行狒狒
-</span></span></span><span class="line"><span class="ln">13</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">rope</span><span class="p">);</span>           <span class="c1">// 尝试为东行方向获取绳索
-</span></span></span><span class="line"><span class="ln">14</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">15</span><span class="cl">    <span class="nf">V</span><span class="p">(</span><span class="n">mutex_e</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">16</span><span class="cl">    <span class="nf">V</span><span class="p">(</span><span class="n">turn</span><span class="p">);</span> <span class="c1">// 通过旋转门, 让下一个人/狒狒可以排队
-</span></span></span><span class="line"><span class="ln">17</span><span class="cl">
-</span></span><span class="line"><span class="ln">18</span><span class="cl">    <span class="c1">// --- 过峡谷 ---
-</span></span></span><span class="line"><span class="ln">19</span><span class="cl">
-</span></span><span class="line"><span class="ln">20</span><span class="cl">    <span class="nf">P</span><span class="p">(</span><span class="n">mutex_e</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">21</span><span class="cl">    <span class="n">east_count</span><span class="o">--</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">22</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">east_count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// 如果是最后一只东行狒狒
-</span></span></span><span class="line"><span class="ln">23</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">rope</span><span class="p">);</span>           <span class="c1">// 释放绳索
-</span></span></span><span class="line"><span class="ln">24</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">25</span><span class="cl">    <span class="nf">V</span><span class="p">(</span><span class="n">mutex_e</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">26</span><span class="cl"><span class="p">}</span>
-</span></span><span class="line"><span class="ln">27</span><span class="cl">
-</span></span><span class="line"><span class="ln">28</span><span class="cl"><span class="c1">// 向西走的狒狒
-</span></span></span><span class="line"><span class="ln">29</span><span class="cl"><span class="nf">Westward_Baboon</span><span class="p">()</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln">30</span><span class="cl">    <span class="nf">P</span><span class="p">(</span><span class="n">turn</span><span class="p">);</span> <span class="c1">// 在旋转门前排队
-</span></span></span><span class="line"><span class="ln">31</span><span class="cl">    <span class="nf">P</span><span class="p">(</span><span class="n">mutex_w</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">32</span><span class="cl">    <span class="n">west_count</span><span class="o">++</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">33</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">west_count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// 如果是第一只西行狒狒
-</span></span></span><span class="line"><span class="ln">34</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">rope</span><span class="p">);</span>           <span class="c1">// 尝试为西行方向获取绳索
-</span></span></span><span class="line"><span class="ln">35</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">36</span><span class="cl">    <span class="nf">V</span><span class="p">(</span><span class="n">mutex_w</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">37</span><span class="cl">    <span class="nf">V</span><span class="p">(</span><span class="n">turn</span><span class="p">);</span> <span class="c1">// 通过旋转门
-</span></span></span><span class="line"><span class="ln">38</span><span class="cl">
-</span></span><span class="line"><span class="ln">39</span><span class="cl">    <span class="c1">// --- 过峡谷 ---
-</span></span></span><span class="line"><span class="ln">40</span><span class="cl">
-</span></span><span class="line"><span class="ln">41</span><span class="cl">    <span class="nf">P</span><span class="p">(</span><span class="n">mutex_w</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">42</span><span class="cl">    <span class="n">west_count</span><span class="o">--</span><span class="p">;</span>
-</span></span><span class="line"><span class="ln">43</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">west_count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// 如果是最后一只西行狒狒
-</span></span></span><span class="line"><span class="ln">44</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">rope</span><span class="p">);</span>           <span class="c1">// 释放绳索
-</span></span></span><span class="line"><span class="ln">45</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">46</span><span class="cl">    <span class="nf">V</span><span class="p">(</span><span class="n">mutex_w</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">47</span><span class="cl"><span class="p">}</span>
-</span></span></code></pre></div><h1 id="睡眠理发师问题">睡眠理发师问题<a hidden class="anchor" aria-hidden="true" href="#睡眠理发师问题">#</a></h1>
-<p>也是生产者-消费者模型</p>
-<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// 常量和变量
-</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="cp">#define N 5 </span><span class="c1">// 假设有5把椅子
-</span></span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="kt">int</span> <span class="n">waiting_chairs</span> <span class="o">=</span> <span class="n">N</span><span class="p">;</span> <span class="c1">// 可用的等候椅数量, 就是生产者-消费者模型中的 empty 信号量
-</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl">
-</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="c1">// 信号量
-</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="n">semaphore</span> <span class="n">customers</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// 等待的顾客数, 就是生产者-消费者模型中的 full 信号量
-</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="n">semaphore</span> <span class="n">barbers</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>   <span class="c1">// 空闲的理发师数, 加入的新信号量, 因为必须理完发才能走, 所以必须找到一个空闲的理发师
-</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="n">semaphore</span> <span class="n">mutex</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>     <span class="c1">// 保护 waiting_chairs, 就是生产者-消费者模型中的 mutex 信号量
-</span></span></span><span class="line"><span class="ln"> 9</span><span class="cl">
-</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="c1">// 顾客进程-生产者
-</span></span></span><span class="line"><span class="ln">11</span><span class="cl"><span class="nf">Customer</span><span class="p">()</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln">12</span><span class="cl">    <span class="nf">P</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">waiting_chairs</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln">14</span><span class="cl">        <span class="n">waiting_chairs</span><span class="o">--</span><span class="p">;</span> <span class="c1">// 坐下一把椅子
-</span></span></span><span class="line"><span class="ln">15</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>         <span class="c1">// 释放锁
-</span></span></span><span class="line"><span class="ln">16</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">customers</span><span class="p">);</span>     <span class="c1">// 通知理发师, 我来了
-</span></span></span><span class="line"><span class="ln">17</span><span class="cl">
-</span></span><span class="line"><span class="ln">18</span><span class="cl">        <span class="c1">// 如果是生产者-消费者模型, 这里就可以结束了, 因为进入就可以结束了, 但是理发坐下之后还得等
-</span></span></span><span class="line"><span class="ln">19</span><span class="cl">
-</span></span><span class="line"><span class="ln">20</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">barbers</span><span class="p">);</span>       <span class="c1">// 等待理发师准备好 (即理发师被叫醒给自己理发)
-</span></span></span><span class="line"><span class="ln">21</span><span class="cl">        
-</span></span><span class="line"><span class="ln">22</span><span class="cl">        <span class="c1">// --- 正在理发 ---
-</span></span></span><span class="line"><span class="ln">23</span><span class="cl">        <span class="c1">// get_haircut();
-</span></span></span><span class="line"><span class="ln">24</span><span class="cl">    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>      <span class="c1">// 没有空椅子了
-</span></span></span><span class="line"><span class="ln">25</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span> <span class="c1">// 必须释放锁再离开
-</span></span></span><span class="line"><span class="ln">26</span><span class="cl">        
-</span></span><span class="line"><span class="ln">27</span><span class="cl">        <span class="c1">// --- 顾客离开 ---
-</span></span></span><span class="line"><span class="ln">28</span><span class="cl">        <span class="nf">leave</span><span class="p">();</span>
-</span></span><span class="line"><span class="ln">29</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">30</span><span class="cl"><span class="p">}</span>
-</span></span><span class="line"><span class="ln">31</span><span class="cl">
-</span></span><span class="line"><span class="ln">32</span><span class="cl"><span class="c1">// 理发师进程-消费者
-</span></span></span><span class="line"><span class="ln">33</span><span class="cl"><span class="nf">Barber</span><span class="p">()</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln">34</span><span class="cl">    <span class="k">while</span><span class="p">(</span><span class="nb">true</span><span class="p">)</span> <span class="p">{</span>
-</span></span><span class="line"><span class="ln">35</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">customers</span><span class="p">);</span> <span class="c1">// 等待顾客到来. 如果没有顾客, 则在椅子上睡眠. 
-</span></span></span><span class="line"><span class="ln">36</span><span class="cl">
-</span></span><span class="line"><span class="ln">37</span><span class="cl">        <span class="c1">// 下述三行其实就是生产者-消费者模型中的 V(empty) 操作, 因为顾客坐下之后, 等待用的椅子就多了一把, 所以 empty 信号量加一
-</span></span></span><span class="line"><span class="ln">38</span><span class="cl">        <span class="nf">P</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">39</span><span class="cl">        <span class="n">waiting_chairs</span><span class="o">++</span><span class="p">;</span> <span class="c1">// 一个顾客从等待区坐到理发椅上, 空出一把椅子
-</span></span></span><span class="line"><span class="ln">40</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
-</span></span><span class="line"><span class="ln">41</span><span class="cl">
-</span></span><span class="line"><span class="ln">42</span><span class="cl">        <span class="c1">// 如果是生产者-消费者模型, 这里就可以结束了, 因为使用完物品就可以结束了
-</span></span></span><span class="line"><span class="ln">43</span><span class="cl">
-</span></span><span class="line"><span class="ln">44</span><span class="cl">        <span class="nf">V</span><span class="p">(</span><span class="n">barbers</span><span class="p">);</span> <span class="c1">// 我这个理发师被叫醒了, 可以开始理发了
-</span></span></span><span class="line"><span class="ln">45</span><span class="cl">
-</span></span><span class="line"><span class="ln">46</span><span class="cl">        <span class="c1">// --- 理发进行中 ---
-</span></span></span><span class="line"><span class="ln">47</span><span class="cl">        <span class="nf">cut_hair</span><span class="p">();</span>
-</span></span><span class="line"><span class="ln">48</span><span class="cl">        <span class="c1">// --- 理发结束 ---
-</span></span></span><span class="line"><span class="ln">49</span><span class="cl">    <span class="p">}</span>
-</span></span><span class="line"><span class="ln">50</span><span class="cl"><span class="p">}</span>
-</span></span></code></pre></div>
-
-  </div>
-
-  <footer class="post-footer">
-    <ul class="post-tags">
-    </ul>
-<nav class="paginav">
-  <a class="prev" href="https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC9%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B6/">
-    <span class="title">« </span>
-    <span>第9章 进程同步机制</span>
-  </a>
-  <a class="next" href="https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC10%E7%AB%A0-%E6%AD%BB%E9%94%81/">
-    <span class="title"> »</span>
-    <span>第10章 死锁</span>
-  </a>
-</nav>
-
-  </footer>
-</article>
-    </main>
-    
-<footer class="footer">
-        <span>&copy; 2026 <a href="https://All-on.github.io/">All-on&#39;s Blog</a></span> · 
-
-    
-    
-    <span>
-        Powered by
-        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
-    </span>
-</footer>
-<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
-        <polyline points="17 11 12 6 7 11"></polyline>
-        <polyline points="17 18 12 13 7 18"></polyline>
-    </svg>
-</a>
-
-<script>
-    let menu = document.getElementById('menu');
-    if (menu) {
-        
-        const scrollPosition = localStorage.getItem("menu-scroll-position");
-        if (scrollPosition) {
-            menu.scrollLeft = parseInt(scrollPosition, 10);
-        }
-        
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
-        });
-    });
-
-</script>
-<script>
-    var toplink = document.getElementById("top-link");
-    window.onscroll = function () {
-        const scrollThreshold = window.innerHeight;
-        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
-            toplink.classList.remove("hidden");
-        } else {
-            toplink.classList.add("hidden");
-        }
-    };
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
-
-</script>
-<script>
-    document.querySelectorAll('pre > code').forEach((codeblock) => {
-        const container = codeblock.parentNode.parentNode;
-
-        const copybutton = document.createElement('button');
-        copybutton.classList.add('copy-code');
-        copybutton.innerHTML = 'copy';
-
-        function copyingDone() {
-            copybutton.innerHTML = 'copied!';
-            setTimeout(() => {
-                copybutton.innerHTML = 'copy';
-            }, 2000);
-        }
-
-        copybutton.addEventListener('click', (cb) => {
-            if ('clipboard' in navigator) {
-                navigator.clipboard.writeText(codeblock.textContent);
-                copyingDone();
-                return;
-            }
-
-            const range = document.createRange();
-            range.selectNodeContents(codeblock);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            try {
-                document.execCommand('copy');
-                copyingDone();
-            } catch (e) { };
-            selection.removeRange(range);
-        });
-
-        if (container.classList.contains("highlight")) {
-            container.appendChild(copybutton);
-        } else if (container.parentNode.firstChild == container) {
-            
-        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
-            
-            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
-        } else {
-            
-            codeblock.parentNode.appendChild(copybutton);
-        }
-    });
-</script>
-</body>
-
-</html>
+读者和写者两组并发进程共享一个文件，要求：多个读者可以同时读文件；只允许一个写者写文件；任一写者在完成写操作之前不允许其他人工作；写者写之前，应该让已有的读写者都退出。"><meta name=author content="All-on"><link rel=canonical href=https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E9%99%84-%E7%BB%8F%E5%85%B8ipc%E9%97%AE%E9%A2%98/><link crossorigin=anonymous href=/assets/css/stylesheet.d0c4dab115a484efe3d6cd8bd0b11d04e5250e3a378cc186fbfc27ca2fab20c9.css integrity="sha256-0MTasRWkhO/j1s2L0LEdBOUlDjo3jMGG+/wnyi+rIMk=" rel="preload stylesheet" as=style><link rel=icon href=https://All-on.github.io/images/site-icon.jpg><link rel=icon type=image/png sizes=16x16 href=https://All-on.github.io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://All-on.github.io/favicon-32x32.png><link rel=apple-touch-icon href=https://All-on.github.io/apple-touch-icon.png><link rel=mask-icon href=https://All-on.github.io/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=zh-cn href=https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E9%99%84-%E7%BB%8F%E5%85%B8ipc%E9%97%AE%E9%A2%98/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51);color-scheme:dark}.list{background:var(--theme)}.toc{background:var(--entry)}}</style></noscript><script>localStorage.getItem("pref-theme")==="dark"?document.querySelector("html").dataset.theme="dark":localStorage.getItem("pref-theme")==="light"?document.querySelector("html").dataset.theme="light":window.matchMedia("(prefers-color-scheme: dark)").matches?document.querySelector("html").dataset.theme="dark":document.querySelector("html").dataset.theme="light"</script><link rel=stylesheet href=https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.6.0/lxgwwenkaiscreen.css media=print onload='this.media="all"'><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js crossorigin=anonymous onload='renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"\\[",right:"\\]",display:!0},{left:"\\(",right:"\\)",display:!1},{left:"$",right:"$",display:!1}],throwOnError:!1,ignoredTags:["script","noscript","style","textarea","pre","code"],ignoredClasses:["entry-content"]})'></script><meta property="og:url" content="https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E9%99%84-%E7%BB%8F%E5%85%B8ipc%E9%97%AE%E9%A2%98/"><meta property="og:site_name" content="All-on's Blog"><meta property="og:title" content="附 经典IPC问题"><meta property="og:description" content="生产者-消费者问题 1#define N 100 /* 缓冲区个数 */ 2semaphore mutex =1; /* 互斥信号量：控制对临界区的访问 */ 3semaphore empty =N; /* 空缓冲区个数 */ 4semaphore full = 0; /* 满缓冲区个数 */ 5 6void producer(void){ 7	int item; 8	while(TRUE) { 9	item=produce_item(); 10	P(&amp;empty); 11	P(&amp;mutex); 12	13	insert_item(item); 14	15	V(&amp;mutex); 16	V(&amp;full); 17	} 18} 19 20void consumer(void){ 21	int item; 22	while(TRUE) { 23	P(&amp;full); 24	P(&amp;mutex); 25	26	item=remove_item(); 27	28	V(&amp;mutex); 29	V(&amp;empty); 30	consume_item(item); 31	} 32} 读者写者问题 读者和写者两组并发进程共享一个文件，要求：多个读者可以同时读文件；只允许一个写者写文件；任一写者在完成写操作之前不允许其他人工作；写者写之前，应该让已有的读写者都退出。"><meta property="og:locale" content="zh_cn"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2026-01-30T00:00:00+00:00"><meta property="article:modified_time" content="2026-01-30T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="附 经典IPC问题"><meta name=twitter:description content="生产者-消费者问题 1#define N 100 /* 缓冲区个数 */ 2semaphore mutex =1; /* 互斥信号量：控制对临界区的访问 */ 3semaphore empty =N; /* 空缓冲区个数 */ 4semaphore full = 0; /* 满缓冲区个数 */ 5 6void producer(void){ 7	int item; 8	while(TRUE) { 9	item=produce_item(); 10	P(&amp;empty); 11	P(&amp;mutex); 12	13	insert_item(item); 14	15	V(&amp;mutex); 16	V(&amp;full); 17	} 18} 19 20void consumer(void){ 21	int item; 22	while(TRUE) { 23	P(&amp;full); 24	P(&amp;mutex); 25	26	item=remove_item(); 27	28	V(&amp;mutex); 29	V(&amp;empty); 30	consume_item(item); 31	} 32} 读者写者问题 读者和写者两组并发进程共享一个文件，要求：多个读者可以同时读文件；只允许一个写者写文件；任一写者在完成写操作之前不允许其他人工作；写者写之前，应该让已有的读写者都退出。"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://All-on.github.io/posts/"},{"@type":"ListItem","position":2,"name":"附 经典IPC问题","item":"https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E9%99%84-%E7%BB%8F%E5%85%B8ipc%E9%97%AE%E9%A2%98/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"附 经典IPC问题","name":"附 经典IPC问题","description":"生产者-消费者问题 1#define N 100 /* 缓冲区个数 */ 2semaphore mutex =1; /* 互斥信号量：控制对临界区的访问 */ 3semaphore empty =N; /* 空缓冲区个数 */ 4semaphore full = 0; /* 满缓冲区个数 */ 5 6void producer(void){ 7\tint item; 8\twhile(TRUE) { 9\titem=produce_item(); 10\tP(\u0026amp;empty); 11\tP(\u0026amp;mutex); 12\t13\tinsert_item(item); 14\t15\tV(\u0026amp;mutex); 16\tV(\u0026amp;full); 17\t} 18} 19 20void consumer(void){ 21\tint item; 22\twhile(TRUE) { 23\tP(\u0026amp;full); 24\tP(\u0026amp;mutex); 25\t26\titem=remove_item(); 27\t28\tV(\u0026amp;mutex); 29\tV(\u0026amp;empty); 30\tconsume_item(item); 31\t} 32} 读者写者问题 读者和写者两组并发进程共享一个文件，要求：多个读者可以同时读文件；只允许一个写者写文件；任一写者在完成写操作之前不允许其他人工作；写者写之前，应该让已有的读写者都退出。\n","keywords":[],"articleBody":"生产者-消费者问题 1#define N 100 /* 缓冲区个数 */ 2semaphore mutex =1; /* 互斥信号量：控制对临界区的访问 */ 3semaphore empty =N; /* 空缓冲区个数 */ 4semaphore full = 0; /* 满缓冲区个数 */ 5 6void producer(void){ 7\tint item; 8\twhile(TRUE) { 9\titem=produce_item(); 10\tP(\u0026empty); 11\tP(\u0026mutex); 12\t13\tinsert_item(item); 14\t15\tV(\u0026mutex); 16\tV(\u0026full); 17\t} 18} 19 20void consumer(void){ 21\tint item; 22\twhile(TRUE) { 23\tP(\u0026full); 24\tP(\u0026mutex); 25\t26\titem=remove_item(); 27\t28\tV(\u0026mutex); 29\tV(\u0026empty); 30\tconsume_item(item); 31\t} 32} 读者写者问题 读者和写者两组并发进程共享一个文件，要求：多个读者可以同时读文件；只允许一个写者写文件；任一写者在完成写操作之前不允许其他人工作；写者写之前，应该让已有的读写者都退出。\n分析：本质就是连续多个同类进程访问同一个临界资源的问题 2类进程：读者和写者。 其中有互斥关系的是：写者之间、写者与读者之间。 参考：408OS_PV操作大题总结\n读优先 1 2int count = 0; // 读者数量 3 4semaphore busy = 1; // \"读文件\"和\"写文件\"的互斥锁 5 6semaphore mutex = 1; // 变量 count 的互斥锁 7 8Reader(){ // 读者进程 9 while(1){ 10 P(mutex); // 给count上锁 11 count++; 12 if (count == 1){ // 有人读时加锁，后面人继续读不用再加锁了 13 P(busy); // 有读者时因互斥关系不能写 14 } 15 V(mutex); 16 17 // 读文件; 18 19 P(mutex); 20 count--; 21 if (count == 0){ // 没有读者时去锁 22 V(busy); 23 } 24 V(mutex); 25 } 26} 27 28 29 30Writer(){ // 写者进程 31 while(1){ 32 P(busy); 33 // 写文件; 34 V(busy); 35 } 36} 读优先缺点是读进程会抢占资源导致写者饥饿。\n读写公平 1 2int count = 0; 3semaphore queue = 1; // 实现\"读写公平\"的互斥锁，可以视为一个队列 4semaphore busy = 1; // \"读文件\"和\"写文件\"的互斥锁 5semaphore mutex = 1; // 变量 count 的互斥锁 6 7Reader(){ // 读者进程 8 while(1){ 9 P(queue); // 在无写进程请求时不需要进入队列 10 P(mutex); // 该互斥量实际上是多余的，上面语句已经兼有互斥功能 11 count++; 12 if (count == 1){ 13 P(busy); 14 } 15 V(mutex); // 该互斥量实际上是多余的，下面语句已经兼有此功能，可以去掉 16 V(queue); // 恢复对共享文件的访问，不然其他读者没法读了 17 18 // 读文件; 19 20 P(mutex); 21 count--; 22 if (count == 0){ 23 V(busy); 24 } 25 V(mutex); 26 } 27} 28 29 30 31Writer(){ // 写者进程 32 while(1){ 33 P(queue); // 在无其他写进程请求时不需要进入队列 34 P(busy); 35 36 // 写文件; 37 38 V(busy); 39 V(queue); // 恢复对共享文件的访问 40 } 41} 这样子有一个写者排入队列就会把后面的读者堵住，后面的读者形成不了抢占。\n顺序为：之前的读者-写者-后来的读者\n写优先 1 2int ReaderCount = 0; // 读者数量 3int WriterCount = 0; // 写者数量 4 5semaphore Read = 1; // \"读文件\"的互斥锁 6semaphore Write = 1; // \"写文件\"的互斥锁 7semaphore ReaderMutex = 1; // 变量 ReaderCount 的互斥锁 8semaphore WriterMutex = 1; // 变量 WriterCount 的互斥锁 9 10Reader(){ // 读者进程 11 while(1){ 12 P(Read); // 每个读进程都需要对 Read 加锁 13 P(ReaderMutex); // 对 ReadCount 的互斥，实际上，上条语句已经兼有此功能，可以去掉 14 15 ReaderCount++; 16 17 if (ReaderCount == 1){ // 如果是第一个读进程 18 P(Write); // 则对写者上锁 19 } 20 21 V(ReaderMutex); // 对 ReadCount 的互斥，实际上，下条语句已经兼有此功能，可以去掉 22 V(Read); // Read 解锁 23 24 读文件; 25 26 P(ReaderMutex); // 对 ReadCount 的互斥 27 ReaderCount--; 28 if (ReaderCount == 0){ // 如果是最后一个读进程 29 V(Write); // 则对写者解锁 30 } 31 32 V(ReaderMutex); // 对 ReadCount 的互斥 33 } 34} 35 36 37 38Writer(){ // 写者进程 39 while(1){ 40 P(WriterMutex); // 对 WriterCount 的互斥 41 42 WriterCount++; 43 44 if (WriterCount == 1){ // 如果是第一个写进程 45 P(Read); // 则对读者上锁 46 } 47 48 V(WriterMutex); // 对 WriterCount 的互斥 49 50 P(Write); // Write 加锁 51 写文件; 52 V(Write); // Write 解锁 53 54 P(WriterMutex); // 对 WriterCount 的互斥 55 56 WriterCount--; 57 58 if (WriterCount == 0){ // 如果是最后一个写进程 59 V(Read); // 则对读者解锁 60 } 61 62 V(WriterMutex); // 对 WriterCount 的互斥 63 } 64} 食品供货问题 某商店有两种食品A和B， 最大数量各为M个。该商店将A、B两种食品搭配出售，每次各取一个。为避免食品变质，遵循先到食品先出售的原则。有两个食品公司分别不断地供应A、B两种食品(每次一个)。为保证正常销售，当某种食品的数量比另一种的数量超过K(K","wordCount":"3467","inLanguage":"zh-cn","datePublished":"2026-01-30T00:00:00Z","dateModified":"2026-01-30T00:00:00Z","author":{"@type":"Person","name":"All-on"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E9%99%84-%E7%BB%8F%E5%85%B8ipc%E9%97%AE%E9%A2%98/"},"publisher":{"@type":"Organization","name":"All-on's Blog","logo":{"@type":"ImageObject","url":"https://All-on.github.io/images/site-icon.jpg"}}}</script></head><body id=top><header class=header><nav class=header-nav><div class=logo><a href=https://All-on.github.io/ accesskey=h title="All-on's Blog (Alt + H)"><img src=https://All-on.github.io/images/site-icon.jpg alt aria-label=logo height=35>All-on's Blog</a><div class=logo-switches><button id=theme-toggle class=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu class=menu><li><a href=https://All-on.github.io/search/ title="搜索 (Alt + /)" accesskey=/><span>搜索</span></a></li><li><a href=https://All-on.github.io/posts/ title=文章><span>文章</span></a></li><li><a href=https://All-on.github.io/categories/ title=类别><span>类别</span></a></li><li><a href=https://All-on.github.io/archives/ title=归档><span>归档</span></a></li><li><a href=https://All-on.github.io/about/ title=关于><span>关于</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><nav class=breadcrumbs role=navigation aria-label=Breadcrumb><a href=/>Home</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/>Posts</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg></nav><h1 class="post-title entry-hint-parent">附 经典IPC问题</h1><div class=post-meta><span title='2026-01-30 00:00:00 +0000 UTC'>2026-01-30</span>&nbsp;·&nbsp;<span>7 min</span>&nbsp;·&nbsp;<span>3467 words</span>&nbsp;·&nbsp;<span>All-on</span></div></header><aside id=toc-container class="toc-container wide"><div class=toc><details><summary accesskey=c title="(Alt + C)"><span class=details>Table of Contents</span></summary><div class=inner><ul><li><a href=#%e7%94%9f%e4%ba%a7%e8%80%85-%e6%b6%88%e8%b4%b9%e8%80%85%e9%97%ae%e9%a2%98 aria-label=生产者-消费者问题>生产者-消费者问题</a></li><li><a href=#%e8%af%bb%e8%80%85%e5%86%99%e8%80%85%e9%97%ae%e9%a2%98 aria-label=读者写者问题>读者写者问题</a><ul><li><a href=#%e8%af%bb%e4%bc%98%e5%85%88 aria-label=读优先>读优先</a></li><li><a href=#%e8%af%bb%e5%86%99%e5%85%ac%e5%b9%b3 aria-label=读写公平>读写公平</a></li><li><a href=#%e5%86%99%e4%bc%98%e5%85%88 aria-label=写优先>写优先</a></li></ul></li><li><a href=#%e9%a3%9f%e5%93%81%e4%be%9b%e8%b4%a7%e9%97%ae%e9%a2%98 aria-label=食品供货问题>食品供货问题</a></li><li><a href=#%e4%b8%89%e5%b3%a1%e5%a4%a7%e5%9d%9d%e8%88%b9%e9%97%b8%e8%b0%83%e5%ba%a6%e9%97%ae%e9%a2%98 aria-label=三峡大坝船闸调度问题>三峡大坝船闸调度问题</a></li><li><a href=#%e7%8b%92%e7%8b%92%e8%bf%87%e5%b3%a1%e8%b0%b7%e9%97%ae%e9%a2%98 aria-label=狒狒过峡谷问题>狒狒过峡谷问题</a><ul><li><a href=#%e4%b8%8d%e8%80%83%e8%99%91%e9%a5%a5%e9%a5%bf aria-label=不考虑饥饿>不考虑饥饿</a></li><li><a href=#%e8%80%83%e8%99%91%e9%a5%a5%e9%a5%bf aria-label=考虑饥饿>考虑饥饿</a></li></ul></li><li><a href=#%e7%9d%a1%e7%9c%a0%e7%90%86%e5%8f%91%e5%b8%88%e9%97%ae%e9%a2%98 aria-label=睡眠理发师问题>睡眠理发师问题</a></li></ul></div></details></div></aside><script>let activeElement,elements;window.addEventListener("DOMContentLoaded",function(){checkTocPosition(),elements=document.querySelectorAll("h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]"),activeElement=elements[0];const t=encodeURI(activeElement.getAttribute("id")).toLowerCase();document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active")},!1),window.addEventListener("resize",function(){checkTocPosition()},!1),window.addEventListener("scroll",()=>{activeElement=Array.from(elements).find(e=>{if(getOffsetTop(e)-window.pageYOffset>0&&getOffsetTop(e)-window.pageYOffset<window.innerHeight/2)return e})||activeElement,elements.forEach(e=>{const t=encodeURI(e.getAttribute("id")).toLowerCase();e===activeElement?document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active"):document.querySelector(`.inner ul li a[href="#${t}"]`).classList.remove("active")})},!1);const main=parseInt(getComputedStyle(document.body).getPropertyValue("--article-width"),10),toc=parseInt(getComputedStyle(document.body).getPropertyValue("--toc-width"),10),gap=parseInt(getComputedStyle(document.body).getPropertyValue("--gap"),10);function checkTocPosition(){const e=document.body.scrollWidth;e-main-toc*2-gap*4>0?document.getElementById("toc-container").classList.add("wide"):document.getElementById("toc-container").classList.remove("wide")}function getOffsetTop(e){if(!e.getClientRects().length)return 0;let t=e.getBoundingClientRect(),n=e.ownerDocument.defaultView;return t.top+n.pageYOffset}</script><div class="post-content md-content"><h1 id=生产者-消费者问题>生产者-消费者问题<a hidden class=anchor aria-hidden=true href=#生产者-消费者问题>#</a></h1><div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=ln> 1</span><span class=cl><span class=cp>#define N 100  </span><span class=cm>/* 缓冲区个数 */</span><span class=cp>
+</span></span></span><span class=line><span class=ln> 2</span><span class=cl><span class=n>semaphore</span> <span class=n>mutex</span> <span class=o>=</span><span class=mi>1</span><span class=p>;</span>  <span class=cm>/* 互斥信号量：控制对临界区的访问 */</span>
+</span></span><span class=line><span class=ln> 3</span><span class=cl><span class=n>semaphore</span> <span class=n>empty</span> <span class=o>=</span><span class=n>N</span><span class=p>;</span>  <span class=cm>/* 空缓冲区个数 */</span>
+</span></span><span class=line><span class=ln> 4</span><span class=cl><span class=n>semaphore</span> <span class=n>full</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>  <span class=cm>/* 满缓冲区个数 */</span>
+</span></span><span class=line><span class=ln> 5</span><span class=cl>
+</span></span><span class=line><span class=ln> 6</span><span class=cl><span class=kt>void</span> <span class=nf>producer</span><span class=p>(</span><span class=kt>void</span><span class=p>){</span> 
+</span></span><span class=line><span class=ln> 7</span><span class=cl>	<span class=kt>int</span> <span class=n>item</span><span class=p>;</span>
+</span></span><span class=line><span class=ln> 8</span><span class=cl>	<span class=k>while</span><span class=p>(</span><span class=n>TRUE</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=ln> 9</span><span class=cl>		<span class=n>item</span><span class=o>=</span><span class=nf>produce_item</span><span class=p>();</span>
+</span></span><span class=line><span class=ln>10</span><span class=cl>		<span class=nf>P</span><span class=p>(</span><span class=o>&amp;</span><span class=n>empty</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>11</span><span class=cl>		<span class=nf>P</span><span class=p>(</span><span class=o>&amp;</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>12</span><span class=cl>		
+</span></span><span class=line><span class=ln>13</span><span class=cl>		<span class=nf>insert_item</span><span class=p>(</span><span class=n>item</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>14</span><span class=cl>		
+</span></span><span class=line><span class=ln>15</span><span class=cl>		<span class=nf>V</span><span class=p>(</span><span class=o>&amp;</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>16</span><span class=cl>		<span class=nf>V</span><span class=p>(</span><span class=o>&amp;</span><span class=n>full</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>17</span><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=ln>18</span><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=ln>19</span><span class=cl>
+</span></span><span class=line><span class=ln>20</span><span class=cl><span class=kt>void</span> <span class=nf>consumer</span><span class=p>(</span><span class=kt>void</span><span class=p>){</span> 
+</span></span><span class=line><span class=ln>21</span><span class=cl>	<span class=kt>int</span> <span class=n>item</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>22</span><span class=cl>	<span class=k>while</span><span class=p>(</span><span class=n>TRUE</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=ln>23</span><span class=cl>		<span class=nf>P</span><span class=p>(</span><span class=o>&amp;</span><span class=n>full</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>24</span><span class=cl>		<span class=nf>P</span><span class=p>(</span><span class=o>&amp;</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>25</span><span class=cl>		
+</span></span><span class=line><span class=ln>26</span><span class=cl>		<span class=n>item</span><span class=o>=</span><span class=nf>remove_item</span><span class=p>();</span>
+</span></span><span class=line><span class=ln>27</span><span class=cl>		
+</span></span><span class=line><span class=ln>28</span><span class=cl>		<span class=nf>V</span><span class=p>(</span><span class=o>&amp;</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>29</span><span class=cl>		<span class=nf>V</span><span class=p>(</span><span class=o>&amp;</span><span class=n>empty</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>30</span><span class=cl>		<span class=nf>consume_item</span><span class=p>(</span><span class=n>item</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>31</span><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=ln>32</span><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><h1 id=读者写者问题>读者写者问题<a hidden class=anchor aria-hidden=true href=#读者写者问题>#</a></h1><p>读者和写者两组并发进程共享一个文件，要求：多个读者可以同时读文件；只允许一个写者写文件；任一写者在完成写操作之前不允许其他人工作；写者写之前，应该让已有的读写者都退出。</p><ul><li>分析：本质就是连续多个同类进程访问同一个临界资源的问题</li><li>2类进程：读者和写者。</li><li>其中有互斥关系的是：写者之间、写者与读者之间。</li></ul><p>参考：<a href=https://www.cnblogs.com/CauchyPt/p/18429835>408OS_PV操作大题总结</a></p><h2 id=读优先>读优先<a hidden class=anchor aria-hidden=true href=#读优先>#</a></h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=ln> 1</span><span class=cl>
+</span></span><span class=line><span class=ln> 2</span><span class=cl><span class=kt>int</span> <span class=n>count</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span> <span class=c1>// 读者数量
+</span></span></span><span class=line><span class=ln> 3</span><span class=cl>
+</span></span><span class=line><span class=ln> 4</span><span class=cl><span class=n>semaphore</span> <span class=n>busy</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span> <span class=c1>// &#34;读文件&#34;和&#34;写文件&#34;的互斥锁
+</span></span></span><span class=line><span class=ln> 5</span><span class=cl>
+</span></span><span class=line><span class=ln> 6</span><span class=cl><span class=n>semaphore</span> <span class=n>mutex</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span> <span class=c1>// 变量 count 的互斥锁
+</span></span></span><span class=line><span class=ln> 7</span><span class=cl>
+</span></span><span class=line><span class=ln> 8</span><span class=cl><span class=nf>Reader</span><span class=p>(){</span> <span class=c1>// 读者进程
+</span></span></span><span class=line><span class=ln> 9</span><span class=cl>    <span class=k>while</span><span class=p>(</span><span class=mi>1</span><span class=p>){</span>
+</span></span><span class=line><span class=ln>10</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span> <span class=c1>// 给count上锁
+</span></span></span><span class=line><span class=ln>11</span><span class=cl>        <span class=n>count</span><span class=o>++</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>12</span><span class=cl>        <span class=k>if</span> <span class=p>(</span><span class=n>count</span> <span class=o>==</span> <span class=mi>1</span><span class=p>){</span> <span class=c1>// 有人读时加锁，后面人继续读不用再加锁了
+</span></span></span><span class=line><span class=ln>13</span><span class=cl>            <span class=nf>P</span><span class=p>(</span><span class=n>busy</span><span class=p>);</span> <span class=c1>// 有读者时因互斥关系不能写
+</span></span></span><span class=line><span class=ln>14</span><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=ln>15</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>16</span><span class=cl>
+</span></span><span class=line><span class=ln>17</span><span class=cl>        <span class=c1>// 读文件;
+</span></span></span><span class=line><span class=ln>18</span><span class=cl>
+</span></span><span class=line><span class=ln>19</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>20</span><span class=cl>        <span class=n>count</span><span class=o>--</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>21</span><span class=cl>        <span class=k>if</span> <span class=p>(</span><span class=n>count</span> <span class=o>==</span> <span class=mi>0</span><span class=p>){</span> <span class=c1>// 没有读者时去锁
+</span></span></span><span class=line><span class=ln>22</span><span class=cl>            <span class=nf>V</span><span class=p>(</span><span class=n>busy</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>23</span><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=ln>24</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>25</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>26</span><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=ln>27</span><span class=cl>
+</span></span><span class=line><span class=ln>28</span><span class=cl>  
+</span></span><span class=line><span class=ln>29</span><span class=cl>
+</span></span><span class=line><span class=ln>30</span><span class=cl><span class=nf>Writer</span><span class=p>(){</span> <span class=c1>// 写者进程
+</span></span></span><span class=line><span class=ln>31</span><span class=cl>    <span class=k>while</span><span class=p>(</span><span class=mi>1</span><span class=p>){</span>
+</span></span><span class=line><span class=ln>32</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>busy</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>33</span><span class=cl>        <span class=c1>// 写文件;
+</span></span></span><span class=line><span class=ln>34</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>busy</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>35</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>36</span><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><p>读优先缺点是读进程会抢占资源导致写者饥饿。</p><h2 id=读写公平>读写公平<a hidden class=anchor aria-hidden=true href=#读写公平>#</a></h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=ln> 1</span><span class=cl>
+</span></span><span class=line><span class=ln> 2</span><span class=cl><span class=kt>int</span> <span class=n>count</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>
+</span></span><span class=line><span class=ln> 3</span><span class=cl><span class=n>semaphore</span> <span class=n>queue</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>  <span class=c1>// 实现&#34;读写公平&#34;的互斥锁，可以视为一个队列
+</span></span></span><span class=line><span class=ln> 4</span><span class=cl><span class=n>semaphore</span> <span class=n>busy</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>   <span class=c1>// &#34;读文件&#34;和&#34;写文件&#34;的互斥锁
+</span></span></span><span class=line><span class=ln> 5</span><span class=cl><span class=n>semaphore</span> <span class=n>mutex</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>  <span class=c1>// 变量 count 的互斥锁
+</span></span></span><span class=line><span class=ln> 6</span><span class=cl>
+</span></span><span class=line><span class=ln> 7</span><span class=cl><span class=nf>Reader</span><span class=p>(){</span> <span class=c1>// 读者进程
+</span></span></span><span class=line><span class=ln> 8</span><span class=cl>    <span class=k>while</span><span class=p>(</span><span class=mi>1</span><span class=p>){</span>
+</span></span><span class=line><span class=ln> 9</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>queue</span><span class=p>);</span> <span class=c1>// 在无写进程请求时不需要进入队列
+</span></span></span><span class=line><span class=ln>10</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span> <span class=c1>// 该互斥量实际上是多余的，上面语句已经兼有互斥功能
+</span></span></span><span class=line><span class=ln>11</span><span class=cl>        <span class=n>count</span><span class=o>++</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>12</span><span class=cl>        <span class=k>if</span> <span class=p>(</span><span class=n>count</span> <span class=o>==</span> <span class=mi>1</span><span class=p>){</span>
+</span></span><span class=line><span class=ln>13</span><span class=cl>            <span class=nf>P</span><span class=p>(</span><span class=n>busy</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>14</span><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=ln>15</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span> <span class=c1>// 该互斥量实际上是多余的，下面语句已经兼有此功能，可以去掉
+</span></span></span><span class=line><span class=ln>16</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>queue</span><span class=p>);</span> <span class=c1>// 恢复对共享文件的访问，不然其他读者没法读了
+</span></span></span><span class=line><span class=ln>17</span><span class=cl>
+</span></span><span class=line><span class=ln>18</span><span class=cl>        <span class=c1>// 读文件;
+</span></span></span><span class=line><span class=ln>19</span><span class=cl>
+</span></span><span class=line><span class=ln>20</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>21</span><span class=cl>        <span class=n>count</span><span class=o>--</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>22</span><span class=cl>        <span class=k>if</span> <span class=p>(</span><span class=n>count</span> <span class=o>==</span> <span class=mi>0</span><span class=p>){</span>
+</span></span><span class=line><span class=ln>23</span><span class=cl>            <span class=nf>V</span><span class=p>(</span><span class=n>busy</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>24</span><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=ln>25</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>26</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>27</span><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=ln>28</span><span class=cl>
+</span></span><span class=line><span class=ln>29</span><span class=cl>  
+</span></span><span class=line><span class=ln>30</span><span class=cl>
+</span></span><span class=line><span class=ln>31</span><span class=cl><span class=nf>Writer</span><span class=p>(){</span> <span class=c1>// 写者进程
+</span></span></span><span class=line><span class=ln>32</span><span class=cl>    <span class=k>while</span><span class=p>(</span><span class=mi>1</span><span class=p>){</span>
+</span></span><span class=line><span class=ln>33</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>queue</span><span class=p>);</span> <span class=c1>// 在无其他写进程请求时不需要进入队列
+</span></span></span><span class=line><span class=ln>34</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>busy</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>35</span><span class=cl>
+</span></span><span class=line><span class=ln>36</span><span class=cl>        <span class=c1>// 写文件;
+</span></span></span><span class=line><span class=ln>37</span><span class=cl>
+</span></span><span class=line><span class=ln>38</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>busy</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>39</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>queue</span><span class=p>);</span> <span class=c1>// 恢复对共享文件的访问
+</span></span></span><span class=line><span class=ln>40</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>41</span><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><p>这样子有一个写者排入队列就会把后面的读者堵住，后面的读者形成不了抢占。</p><p>顺序为：之前的读者-写者-后来的读者</p><h2 id=写优先>写优先<a hidden class=anchor aria-hidden=true href=#写优先>#</a></h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=ln> 1</span><span class=cl>
+</span></span><span class=line><span class=ln> 2</span><span class=cl><span class=kt>int</span> <span class=n>ReaderCount</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span> <span class=c1>// 读者数量
+</span></span></span><span class=line><span class=ln> 3</span><span class=cl><span class=kt>int</span> <span class=n>WriterCount</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span> <span class=c1>// 写者数量
+</span></span></span><span class=line><span class=ln> 4</span><span class=cl>
+</span></span><span class=line><span class=ln> 5</span><span class=cl><span class=n>semaphore</span> <span class=n>Read</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span> <span class=c1>// &#34;读文件&#34;的互斥锁
+</span></span></span><span class=line><span class=ln> 6</span><span class=cl><span class=n>semaphore</span> <span class=n>Write</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span> <span class=c1>// &#34;写文件&#34;的互斥锁
+</span></span></span><span class=line><span class=ln> 7</span><span class=cl><span class=n>semaphore</span> <span class=n>ReaderMutex</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span> <span class=c1>// 变量 ReaderCount 的互斥锁
+</span></span></span><span class=line><span class=ln> 8</span><span class=cl><span class=n>semaphore</span> <span class=n>WriterMutex</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span> <span class=c1>// 变量 WriterCount 的互斥锁  
+</span></span></span><span class=line><span class=ln> 9</span><span class=cl>
+</span></span><span class=line><span class=ln>10</span><span class=cl><span class=nf>Reader</span><span class=p>(){</span> <span class=c1>// 读者进程
+</span></span></span><span class=line><span class=ln>11</span><span class=cl>    <span class=k>while</span><span class=p>(</span><span class=mi>1</span><span class=p>){</span>
+</span></span><span class=line><span class=ln>12</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>Read</span><span class=p>);</span> <span class=c1>// 每个读进程都需要对 Read 加锁
+</span></span></span><span class=line><span class=ln>13</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>ReaderMutex</span><span class=p>);</span> <span class=c1>// 对 ReadCount 的互斥，实际上，上条语句已经兼有此功能，可以去掉
+</span></span></span><span class=line><span class=ln>14</span><span class=cl>
+</span></span><span class=line><span class=ln>15</span><span class=cl>        <span class=n>ReaderCount</span><span class=o>++</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>16</span><span class=cl>
+</span></span><span class=line><span class=ln>17</span><span class=cl>        <span class=k>if</span> <span class=p>(</span><span class=n>ReaderCount</span> <span class=o>==</span> <span class=mi>1</span><span class=p>){</span> <span class=c1>// 如果是第一个读进程
+</span></span></span><span class=line><span class=ln>18</span><span class=cl>            <span class=nf>P</span><span class=p>(</span><span class=n>Write</span><span class=p>);</span> <span class=c1>// 则对写者上锁
+</span></span></span><span class=line><span class=ln>19</span><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=ln>20</span><span class=cl>
+</span></span><span class=line><span class=ln>21</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>ReaderMutex</span><span class=p>);</span> <span class=c1>// 对 ReadCount 的互斥，实际上，下条语句已经兼有此功能，可以去掉
+</span></span></span><span class=line><span class=ln>22</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>Read</span><span class=p>);</span> <span class=c1>// Read 解锁
+</span></span></span><span class=line><span class=ln>23</span><span class=cl>
+</span></span><span class=line><span class=ln>24</span><span class=cl>        <span class=err>读文件</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>25</span><span class=cl>
+</span></span><span class=line><span class=ln>26</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>ReaderMutex</span><span class=p>);</span> <span class=c1>// 对 ReadCount 的互斥
+</span></span></span><span class=line><span class=ln>27</span><span class=cl>        <span class=n>ReaderCount</span><span class=o>--</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>28</span><span class=cl>        <span class=k>if</span> <span class=p>(</span><span class=n>ReaderCount</span> <span class=o>==</span> <span class=mi>0</span><span class=p>){</span> <span class=c1>// 如果是最后一个读进程
+</span></span></span><span class=line><span class=ln>29</span><span class=cl>            <span class=nf>V</span><span class=p>(</span><span class=n>Write</span><span class=p>);</span> <span class=c1>// 则对写者解锁
+</span></span></span><span class=line><span class=ln>30</span><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=ln>31</span><span class=cl>
+</span></span><span class=line><span class=ln>32</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>ReaderMutex</span><span class=p>);</span> <span class=c1>// 对 ReadCount 的互斥
+</span></span></span><span class=line><span class=ln>33</span><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=ln>34</span><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=ln>35</span><span class=cl>
+</span></span><span class=line><span class=ln>36</span><span class=cl>  
+</span></span><span class=line><span class=ln>37</span><span class=cl>
+</span></span><span class=line><span class=ln>38</span><span class=cl><span class=nf>Writer</span><span class=p>(){</span> <span class=c1>// 写者进程
+</span></span></span><span class=line><span class=ln>39</span><span class=cl>    <span class=k>while</span><span class=p>(</span><span class=mi>1</span><span class=p>){</span>
+</span></span><span class=line><span class=ln>40</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>WriterMutex</span><span class=p>);</span> <span class=c1>// 对 WriterCount 的互斥
+</span></span></span><span class=line><span class=ln>41</span><span class=cl>        
+</span></span><span class=line><span class=ln>42</span><span class=cl>        <span class=n>WriterCount</span><span class=o>++</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>43</span><span class=cl>        
+</span></span><span class=line><span class=ln>44</span><span class=cl>        <span class=k>if</span> <span class=p>(</span><span class=n>WriterCount</span> <span class=o>==</span> <span class=mi>1</span><span class=p>){</span> <span class=c1>// 如果是第一个写进程
+</span></span></span><span class=line><span class=ln>45</span><span class=cl>            <span class=nf>P</span><span class=p>(</span><span class=n>Read</span><span class=p>);</span> <span class=c1>// 则对读者上锁
+</span></span></span><span class=line><span class=ln>46</span><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=ln>47</span><span class=cl>
+</span></span><span class=line><span class=ln>48</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>WriterMutex</span><span class=p>);</span> <span class=c1>// 对 WriterCount 的互斥
+</span></span></span><span class=line><span class=ln>49</span><span class=cl>
+</span></span><span class=line><span class=ln>50</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>Write</span><span class=p>);</span> <span class=c1>// Write 加锁
+</span></span></span><span class=line><span class=ln>51</span><span class=cl>        <span class=err>写文件</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>52</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>Write</span><span class=p>);</span> <span class=c1>// Write 解锁
+</span></span></span><span class=line><span class=ln>53</span><span class=cl>
+</span></span><span class=line><span class=ln>54</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>WriterMutex</span><span class=p>);</span> <span class=c1>// 对 WriterCount 的互斥
+</span></span></span><span class=line><span class=ln>55</span><span class=cl>
+</span></span><span class=line><span class=ln>56</span><span class=cl>        <span class=n>WriterCount</span><span class=o>--</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>57</span><span class=cl>
+</span></span><span class=line><span class=ln>58</span><span class=cl>        <span class=k>if</span> <span class=p>(</span><span class=n>WriterCount</span> <span class=o>==</span> <span class=mi>0</span><span class=p>){</span> <span class=c1>// 如果是最后一个写进程
+</span></span></span><span class=line><span class=ln>59</span><span class=cl>            <span class=nf>V</span><span class=p>(</span><span class=n>Read</span><span class=p>);</span> <span class=c1>// 则对读者解锁
+</span></span></span><span class=line><span class=ln>60</span><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=ln>61</span><span class=cl>
+</span></span><span class=line><span class=ln>62</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>WriterMutex</span><span class=p>);</span> <span class=c1>// 对 WriterCount 的互斥
+</span></span></span><span class=line><span class=ln>63</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>64</span><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><hr><h1 id=食品供货问题>食品供货问题<a hidden class=anchor aria-hidden=true href=#食品供货问题>#</a></h1><p>某商店有两种食品A和B， 最大数量各为M个。该商店将A、B两种食品搭配出售，每次各取一个。为避免食品变质，遵循先到食品先出售的原则。有两个食品公司分别不断地供应A、B两种食品(每次一个)。为保证正常销售，当某种食品的数量比另一种的数量超过K(K&lt;M)个时，暂停对数量大的食品进货。</p><p>这就是两个生产者-消费者关系。</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=ln> 1</span><span class=cl><span class=kt>int</span> <span class=n>countA</span> <span class=o>=</span> <span class=mi>0</span><span class=p>,</span> <span class=n>countB</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span> <span class=c1>// 食品数量
+</span></span></span><span class=line><span class=ln> 2</span><span class=cl>
+</span></span><span class=line><span class=ln> 3</span><span class=cl><span class=c1>// 信号量
+</span></span></span><span class=line><span class=ln> 4</span><span class=cl><span class=n>semaphore</span> <span class=n>mutex</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>
+</span></span><span class=line><span class=ln> 5</span><span class=cl><span class=n>semaphore</span> <span class=n>emptyA</span> <span class=o>=</span> <span class=n>m</span><span class=p>,</span> <span class=n>emptyB</span> <span class=o>=</span> <span class=n>m</span><span class=p>;</span>
+</span></span><span class=line><span class=ln> 6</span><span class=cl><span class=n>semaphore</span> <span class=n>foodA</span> <span class=o>=</span> <span class=mi>0</span><span class=p>,</span> <span class=n>foodB</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>
+</span></span><span class=line><span class=ln> 7</span><span class=cl><span class=n>semaphore</span> <span class=n>limitA</span> <span class=o>=</span> <span class=n>k</span><span class=p>,</span> <span class=n>limitB</span> <span class=o>=</span> <span class=n>k</span><span class=p>;</span> <span class=c1>// A比B, B比A的富余量
+</span></span></span><span class=line><span class=ln> 8</span><span class=cl>
+</span></span><span class=line><span class=ln> 9</span><span class=cl><span class=c1>// 供应A进程
+</span></span></span><span class=line><span class=ln>10</span><span class=cl><span class=nf>ProviderA</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=ln>11</span><span class=cl>    <span class=k>while</span><span class=p>(</span><span class=nb>true</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=ln>12</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>emptyA</span><span class=p>);</span>       <span class=c1>// 是否还有空货架放A?
+</span></span></span><span class=line><span class=ln>13</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>limitB</span><span class=p>);</span>       <span class=c1>// 消耗一个B对A的富余名额
+</span></span></span><span class=line><span class=ln>14</span><span class=cl>        
+</span></span><span class=line><span class=ln>15</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>16</span><span class=cl>        <span class=n>countA</span><span class=o>++</span><span class=p>;</span>        <span class=c1>// 生产一个A并放入
+</span></span></span><span class=line><span class=ln>17</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>18</span><span class=cl>
+</span></span><span class=line><span class=ln>19</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>limitA</span><span class=p>);</span>       <span class=c1>// 增加一个A对B的富余名额
+</span></span></span><span class=line><span class=ln>20</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>foodA</span><span class=p>);</span>        <span class=c1>// 增加一个食品A
+</span></span></span><span class=line><span class=ln>21</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>22</span><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=ln>23</span><span class=cl>
+</span></span><span class=line><span class=ln>24</span><span class=cl><span class=c1>// 供应B进程
+</span></span></span><span class=line><span class=ln>25</span><span class=cl><span class=nf>ProviderB</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=ln>26</span><span class=cl>    <span class=k>while</span><span class=p>(</span><span class=nb>true</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=ln>27</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>emptyB</span><span class=p>);</span>       <span class=c1>// 是否还有空货架放B?
+</span></span></span><span class=line><span class=ln>28</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>limitA</span><span class=p>);</span>       <span class=c1>// 消耗一个A对B的富余名额
+</span></span></span><span class=line><span class=ln>29</span><span class=cl>        
+</span></span><span class=line><span class=ln>30</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>31</span><span class=cl>        <span class=c1>// 生产一个B并放入
+</span></span></span><span class=line><span class=ln>32</span><span class=cl>        <span class=n>countB</span><span class=o>++</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>33</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>34</span><span class=cl>
+</span></span><span class=line><span class=ln>35</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>limitB</span><span class=p>);</span>       <span class=c1>// 增加一个B对A的富余名额
+</span></span></span><span class=line><span class=ln>36</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>foodB</span><span class=p>);</span>        <span class=c1>// 增加一个食品B
+</span></span></span><span class=line><span class=ln>37</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>38</span><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=ln>39</span><span class=cl>
+</span></span><span class=line><span class=ln>40</span><span class=cl><span class=c1>// 销售员进程
+</span></span></span><span class=line><span class=ln>41</span><span class=cl><span class=nf>Seller</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=ln>42</span><span class=cl>    <span class=k>while</span><span class=p>(</span><span class=nb>true</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=ln>43</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>foodA</span><span class=p>);</span> <span class=c1>// 是否有食品A?
+</span></span></span><span class=line><span class=ln>44</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>foodB</span><span class=p>);</span> <span class=c1>// 是否有食品B?
+</span></span></span><span class=line><span class=ln>45</span><span class=cl>
+</span></span><span class=line><span class=ln>46</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>47</span><span class=cl>        <span class=c1>// 取走A和B
+</span></span></span><span class=line><span class=ln>48</span><span class=cl>        <span class=n>countA</span><span class=o>--</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>49</span><span class=cl>        <span class=n>countB</span><span class=o>--</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>50</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>51</span><span class=cl>
+</span></span><span class=line><span class=ln>52</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>emptyA</span><span class=p>);</span> <span class=c1>// 货架空出
+</span></span></span><span class=line><span class=ln>53</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>emptyB</span><span class=p>);</span> <span class=c1>// 货架空出
+</span></span></span><span class=line><span class=ln>54</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>55</span><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><h1 id=三峡大坝船闸调度问题>三峡大坝船闸调度问题<a hidden class=anchor aria-hidden=true href=#三峡大坝船闸调度问题>#</a></h1><p>由于水面高度不同，有160<del>175米的落差，所以三峡大坝有五级船闸，T1</del>T5。由上游驶来的船需经由各级船闸到下游；由下游驶来的船需经由各级船闸到上游。假设只能允许单方向通行（此假设与实际情况不符，实际为双向各五级船闸）。</p><p>这是两个读者。出于简化，我们不考虑5个闸门。</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=ln> 1</span><span class=cl><span class=c1>// 信号量和计数器
+</span></span></span><span class=line><span class=ln> 2</span><span class=cl><span class=n>semaphore</span> <span class=n>up_mutex</span> <span class=o>=</span> <span class=mi>1</span><span class=p>,</span> <span class=n>down_mutex</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>
+</span></span><span class=line><span class=ln> 3</span><span class=cl><span class=n>semaphore</span> <span class=n>direction_mutex</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>
+</span></span><span class=line><span class=ln> 4</span><span class=cl><span class=kt>int</span> <span class=n>up_count</span> <span class=o>=</span> <span class=mi>0</span><span class=p>,</span> <span class=n>down_count</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>
+</span></span><span class=line><span class=ln> 5</span><span class=cl>
+</span></span><span class=line><span class=ln> 6</span><span class=cl><span class=c1>// 上行船只进程 
+</span></span></span><span class=line><span class=ln> 7</span><span class=cl><span class=nf>Upward_Ship</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=ln> 8</span><span class=cl>    <span class=nf>P</span><span class=p>(</span><span class=n>up_mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln> 9</span><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>up_count</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span> <span class=p>{</span> <span class=c1>// 如果是第一艘上行船
+</span></span></span><span class=line><span class=ln>10</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>direction_mutex</span><span class=p>);</span> <span class=c1>// 尝试获取航行方向控制权
+</span></span></span><span class=line><span class=ln>11</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>12</span><span class=cl>    <span class=n>up_count</span><span class=o>++</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>13</span><span class=cl>    <span class=nf>V</span><span class=p>(</span><span class=n>up_mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>14</span><span class=cl>	
+</span></span><span class=line><span class=ln>15</span><span class=cl>	<span class=nf>cross</span><span class=p>();</span>  <span class=c1>// 通过闸门
+</span></span></span><span class=line><span class=ln>16</span><span class=cl>    
+</span></span><span class=line><span class=ln>17</span><span class=cl>    <span class=nf>P</span><span class=p>(</span><span class=n>up_mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>18</span><span class=cl>    <span class=n>up_count</span><span class=o>--</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>19</span><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>up_count</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span> <span class=p>{</span> <span class=c1>// 如果是最后一艘上行船
+</span></span></span><span class=line><span class=ln>20</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>direction_mutex</span><span class=p>);</span> <span class=c1>// 释放航行方向控制权
+</span></span></span><span class=line><span class=ln>21</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>22</span><span class=cl>    <span class=nf>V</span><span class=p>(</span><span class=n>up_mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>23</span><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=ln>24</span><span class=cl>
+</span></span><span class=line><span class=ln>25</span><span class=cl><span class=c1>// 下行船只进程 (上游 -&gt; 下游: T1 -&gt; T5)
+</span></span></span><span class=line><span class=ln>26</span><span class=cl><span class=nf>Downward_Ship</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=ln>27</span><span class=cl>    <span class=nf>P</span><span class=p>(</span><span class=n>down_mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>28</span><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>down_count</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span> <span class=p>{</span> <span class=c1>// 如果是第一艘下行船
+</span></span></span><span class=line><span class=ln>29</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>direction_mutex</span><span class=p>);</span> <span class=c1>// 尝试获取航行方向控制权
+</span></span></span><span class=line><span class=ln>30</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>31</span><span class=cl>    <span class=n>down_count</span><span class=o>++</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>32</span><span class=cl>    <span class=nf>V</span><span class=p>(</span><span class=n>down_mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>33</span><span class=cl>
+</span></span><span class=line><span class=ln>34</span><span class=cl>    <span class=nf>cross</span><span class=p>();</span>  <span class=c1>// 通过闸门
+</span></span></span><span class=line><span class=ln>35</span><span class=cl>    
+</span></span><span class=line><span class=ln>36</span><span class=cl>    <span class=nf>P</span><span class=p>(</span><span class=n>down_mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>37</span><span class=cl>    <span class=n>down_count</span><span class=o>--</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>38</span><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>down_count</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span> <span class=p>{</span> <span class=c1>// 如果是最后一艘下行船
+</span></span></span><span class=line><span class=ln>39</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>direction_mutex</span><span class=p>);</span> <span class=c1>// 释放航行方向控制权
+</span></span></span><span class=line><span class=ln>40</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>41</span><span class=cl>    <span class=nf>V</span><span class=p>(</span><span class=n>down_mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>42</span><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><h1 id=狒狒过峡谷问题>狒狒过峡谷问题<a hidden class=anchor aria-hidden=true href=#狒狒过峡谷问题>#</a></h1><p>一个主修人类学、辅修计算机科学的学生参加了一个研究课题，调查是否可以教会非洲狒狒理解死锁。他找到一处很深的峡谷，在上边固定了一根横跨峡谷的绳索，这样狒狒就可以攀住绳索越过峡谷。同一时刻，只要朝着相同的方向就可以有几只狒狒通过。但如果向东和向西的狒狒同时攀在绳索上那么会产生死锁（狒狒会被卡在中间），由于它们无法在绳索上从另一只的背上翻过去。如果一只狒狒想越过峡谷，它必须看当前是否有别的狒狒正在逆向通行。利用信号量编写一个避免死锁的程序来解决该问题。不考虑连续东行的狒狒会使得西行的狒狒无限制地等待的情况。</p><p>参考：<a href=https://www.lyt0112.com/blog/operating_systems_note_10-zh>Operating Systems Notes 10: Classic Synchronization Problems</a></p><h2 id=不考虑饥饿>不考虑饥饿<a hidden class=anchor aria-hidden=true href=#不考虑饥饿>#</a></h2><p>在不考虑饥饿的情况下，这就是和上面的狒狒过峡谷一样了。</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=ln> 1</span><span class=cl><span class=c1>// 信号量和计数器
+</span></span></span><span class=line><span class=ln> 2</span><span class=cl><span class=n>semaphore</span> <span class=n>mutex</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>
+</span></span><span class=line><span class=ln> 3</span><span class=cl><span class=n>semaphore</span> <span class=n>rope</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>
+</span></span><span class=line><span class=ln> 4</span><span class=cl><span class=kt>int</span> <span class=n>east_count</span> <span class=o>=</span> <span class=mi>0</span><span class=p>,</span> <span class=n>west_count</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span> <span class=c1>// 可以合并为一个方向计数器和一个方向变量
+</span></span></span><span class=line><span class=ln> 5</span><span class=cl>
+</span></span><span class=line><span class=ln> 6</span><span class=cl><span class=c1>// 向东走的狒狒
+</span></span></span><span class=line><span class=ln> 7</span><span class=cl><span class=nf>Eastward_Baboon</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=ln> 8</span><span class=cl>    <span class=nf>P</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln> 9</span><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>east_count</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span> <span class=p>{</span> <span class=c1>// 如果是第一只向东的狒狒
+</span></span></span><span class=line><span class=ln>10</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>rope</span><span class=p>);</span>           <span class=c1>// 尝试获取绳索
+</span></span></span><span class=line><span class=ln>11</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>12</span><span class=cl>    <span class=n>east_count</span><span class=o>++</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>13</span><span class=cl>    <span class=nf>V</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>14</span><span class=cl>
+</span></span><span class=line><span class=ln>15</span><span class=cl>    <span class=c1>// --- 过峡谷 ---
+</span></span></span><span class=line><span class=ln>16</span><span class=cl>     <span class=nf>crossing</span><span class=p>();</span>
+</span></span><span class=line><span class=ln>17</span><span class=cl>    <span class=c1>// --- 过完峡谷 ---
+</span></span></span><span class=line><span class=ln>18</span><span class=cl>
+</span></span><span class=line><span class=ln>19</span><span class=cl>    <span class=nf>P</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>20</span><span class=cl>    <span class=n>east_count</span><span class=o>--</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>21</span><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>east_count</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span> <span class=p>{</span> <span class=c1>// 如果是最后一只向东的狒狒
+</span></span></span><span class=line><span class=ln>22</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>rope</span><span class=p>);</span>           <span class=c1>// 释放绳索
+</span></span></span><span class=line><span class=ln>23</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>24</span><span class=cl>    <span class=nf>V</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>25</span><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=ln>26</span><span class=cl>
+</span></span><span class=line><span class=ln>27</span><span class=cl><span class=c1>// 向西走的狒狒
+</span></span></span><span class=line><span class=ln>28</span><span class=cl><span class=nf>Westward_Baboon</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=ln>29</span><span class=cl>    <span class=nf>P</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>30</span><span class=cl>    <span class=c1>// 这里我们用 west_count 来实现, 逻辑完全对称
+</span></span></span><span class=line><span class=ln>31</span><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>west_count</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span> <span class=p>{</span> <span class=c1>// 如果是第一只向西的狒狒
+</span></span></span><span class=line><span class=ln>32</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>rope</span><span class=p>);</span>           <span class=c1>// 尝试获取绳索
+</span></span></span><span class=line><span class=ln>33</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>34</span><span class=cl>    <span class=n>west_count</span><span class=o>++</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>35</span><span class=cl>    <span class=nf>V</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>36</span><span class=cl>
+</span></span><span class=line><span class=ln>37</span><span class=cl>    <span class=c1>// --- 过峡谷 ---
+</span></span></span><span class=line><span class=ln>38</span><span class=cl>    <span class=nf>crossing</span><span class=p>();</span>
+</span></span><span class=line><span class=ln>39</span><span class=cl>    <span class=c1>// --- 过完峡谷 ---
+</span></span></span><span class=line><span class=ln>40</span><span class=cl>
+</span></span><span class=line><span class=ln>41</span><span class=cl>    <span class=nf>P</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>42</span><span class=cl>    <span class=n>west_count</span><span class=o>--</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>43</span><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>west_count</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span> <span class=p>{</span> <span class=c1>// 如果是最后一只向西的狒狒
+</span></span></span><span class=line><span class=ln>44</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>rope</span><span class=p>);</span>           <span class=c1>// 释放绳索
+</span></span></span><span class=line><span class=ln>45</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>46</span><span class=cl>    <span class=nf>V</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>47</span><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><h2 id=考虑饥饿>考虑饥饿<a hidden class=anchor aria-hidden=true href=#考虑饥饿>#</a></h2><p>考虑饥饿的话，可以让两边等待的狒狒都去争turn。谁争到谁上。</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=ln> 1</span><span class=cl><span class=c1>// 信号量和计数器
+</span></span></span><span class=line><span class=ln> 2</span><span class=cl><span class=n>semaphore</span> <span class=n>mutex_e</span> <span class=o>=</span> <span class=mi>1</span><span class=p>,</span> <span class=n>mutex_w</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>
+</span></span><span class=line><span class=ln> 3</span><span class=cl><span class=n>semaphore</span> <span class=n>rope</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>
+</span></span><span class=line><span class=ln> 4</span><span class=cl><span class=n>semaphore</span> <span class=n>turn</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span> 
+</span></span><span class=line><span class=ln> 5</span><span class=cl><span class=kt>int</span> <span class=n>east_count</span> <span class=o>=</span> <span class=mi>0</span><span class=p>,</span> <span class=n>west_count</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>
+</span></span><span class=line><span class=ln> 6</span><span class=cl>
+</span></span><span class=line><span class=ln> 7</span><span class=cl><span class=c1>// 向东走的狒狒
+</span></span></span><span class=line><span class=ln> 8</span><span class=cl><span class=nf>Eastward_Baboon</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=ln> 9</span><span class=cl>    <span class=nf>P</span><span class=p>(</span><span class=n>turn</span><span class=p>);</span> <span class=c1>// 在旋转门前排队
+</span></span></span><span class=line><span class=ln>10</span><span class=cl>    <span class=nf>P</span><span class=p>(</span><span class=n>mutex_e</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>11</span><span class=cl>    <span class=n>east_count</span><span class=o>++</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>12</span><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>east_count</span> <span class=o>==</span> <span class=mi>1</span><span class=p>)</span> <span class=p>{</span> <span class=c1>// 如果是第一只东行狒狒
+</span></span></span><span class=line><span class=ln>13</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>rope</span><span class=p>);</span>           <span class=c1>// 尝试为东行方向获取绳索
+</span></span></span><span class=line><span class=ln>14</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>15</span><span class=cl>    <span class=nf>V</span><span class=p>(</span><span class=n>mutex_e</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>16</span><span class=cl>    <span class=nf>V</span><span class=p>(</span><span class=n>turn</span><span class=p>);</span> <span class=c1>// 通过旋转门, 让下一个人/狒狒可以排队
+</span></span></span><span class=line><span class=ln>17</span><span class=cl>
+</span></span><span class=line><span class=ln>18</span><span class=cl>    <span class=c1>// --- 过峡谷 ---
+</span></span></span><span class=line><span class=ln>19</span><span class=cl>
+</span></span><span class=line><span class=ln>20</span><span class=cl>    <span class=nf>P</span><span class=p>(</span><span class=n>mutex_e</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>21</span><span class=cl>    <span class=n>east_count</span><span class=o>--</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>22</span><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>east_count</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span> <span class=p>{</span> <span class=c1>// 如果是最后一只东行狒狒
+</span></span></span><span class=line><span class=ln>23</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>rope</span><span class=p>);</span>           <span class=c1>// 释放绳索
+</span></span></span><span class=line><span class=ln>24</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>25</span><span class=cl>    <span class=nf>V</span><span class=p>(</span><span class=n>mutex_e</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>26</span><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=ln>27</span><span class=cl>
+</span></span><span class=line><span class=ln>28</span><span class=cl><span class=c1>// 向西走的狒狒
+</span></span></span><span class=line><span class=ln>29</span><span class=cl><span class=nf>Westward_Baboon</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=ln>30</span><span class=cl>    <span class=nf>P</span><span class=p>(</span><span class=n>turn</span><span class=p>);</span> <span class=c1>// 在旋转门前排队
+</span></span></span><span class=line><span class=ln>31</span><span class=cl>    <span class=nf>P</span><span class=p>(</span><span class=n>mutex_w</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>32</span><span class=cl>    <span class=n>west_count</span><span class=o>++</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>33</span><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>west_count</span> <span class=o>==</span> <span class=mi>1</span><span class=p>)</span> <span class=p>{</span> <span class=c1>// 如果是第一只西行狒狒
+</span></span></span><span class=line><span class=ln>34</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>rope</span><span class=p>);</span>           <span class=c1>// 尝试为西行方向获取绳索
+</span></span></span><span class=line><span class=ln>35</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>36</span><span class=cl>    <span class=nf>V</span><span class=p>(</span><span class=n>mutex_w</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>37</span><span class=cl>    <span class=nf>V</span><span class=p>(</span><span class=n>turn</span><span class=p>);</span> <span class=c1>// 通过旋转门
+</span></span></span><span class=line><span class=ln>38</span><span class=cl>
+</span></span><span class=line><span class=ln>39</span><span class=cl>    <span class=c1>// --- 过峡谷 ---
+</span></span></span><span class=line><span class=ln>40</span><span class=cl>
+</span></span><span class=line><span class=ln>41</span><span class=cl>    <span class=nf>P</span><span class=p>(</span><span class=n>mutex_w</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>42</span><span class=cl>    <span class=n>west_count</span><span class=o>--</span><span class=p>;</span>
+</span></span><span class=line><span class=ln>43</span><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>west_count</span> <span class=o>==</span> <span class=mi>0</span><span class=p>)</span> <span class=p>{</span> <span class=c1>// 如果是最后一只西行狒狒
+</span></span></span><span class=line><span class=ln>44</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>rope</span><span class=p>);</span>           <span class=c1>// 释放绳索
+</span></span></span><span class=line><span class=ln>45</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>46</span><span class=cl>    <span class=nf>V</span><span class=p>(</span><span class=n>mutex_w</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>47</span><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><h1 id=睡眠理发师问题>睡眠理发师问题<a hidden class=anchor aria-hidden=true href=#睡眠理发师问题>#</a></h1><p>也是生产者-消费者模型</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=ln> 1</span><span class=cl><span class=c1>// 常量和变量
+</span></span></span><span class=line><span class=ln> 2</span><span class=cl><span class=cp>#define N 5 </span><span class=c1>// 假设有5把椅子
+</span></span></span><span class=line><span class=ln> 3</span><span class=cl><span class=kt>int</span> <span class=n>waiting_chairs</span> <span class=o>=</span> <span class=n>N</span><span class=p>;</span> <span class=c1>// 可用的等候椅数量, 就是生产者-消费者模型中的 empty 信号量
+</span></span></span><span class=line><span class=ln> 4</span><span class=cl>
+</span></span><span class=line><span class=ln> 5</span><span class=cl><span class=c1>// 信号量
+</span></span></span><span class=line><span class=ln> 6</span><span class=cl><span class=n>semaphore</span> <span class=n>customers</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span> <span class=c1>// 等待的顾客数, 就是生产者-消费者模型中的 full 信号量
+</span></span></span><span class=line><span class=ln> 7</span><span class=cl><span class=n>semaphore</span> <span class=n>barbers</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>   <span class=c1>// 空闲的理发师数, 加入的新信号量, 因为必须理完发才能走, 所以必须找到一个空闲的理发师
+</span></span></span><span class=line><span class=ln> 8</span><span class=cl><span class=n>semaphore</span> <span class=n>mutex</span> <span class=o>=</span> <span class=mi>1</span><span class=p>;</span>     <span class=c1>// 保护 waiting_chairs, 就是生产者-消费者模型中的 mutex 信号量
+</span></span></span><span class=line><span class=ln> 9</span><span class=cl>
+</span></span><span class=line><span class=ln>10</span><span class=cl><span class=c1>// 顾客进程-生产者
+</span></span></span><span class=line><span class=ln>11</span><span class=cl><span class=nf>Customer</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=ln>12</span><span class=cl>    <span class=nf>P</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>13</span><span class=cl>    <span class=k>if</span> <span class=p>(</span><span class=n>waiting_chairs</span> <span class=o>&gt;</span> <span class=mi>0</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=ln>14</span><span class=cl>        <span class=n>waiting_chairs</span><span class=o>--</span><span class=p>;</span> <span class=c1>// 坐下一把椅子
+</span></span></span><span class=line><span class=ln>15</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>         <span class=c1>// 释放锁
+</span></span></span><span class=line><span class=ln>16</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>customers</span><span class=p>);</span>     <span class=c1>// 通知理发师, 我来了
+</span></span></span><span class=line><span class=ln>17</span><span class=cl>
+</span></span><span class=line><span class=ln>18</span><span class=cl>        <span class=c1>// 如果是生产者-消费者模型, 这里就可以结束了, 因为进入就可以结束了, 但是理发坐下之后还得等
+</span></span></span><span class=line><span class=ln>19</span><span class=cl>
+</span></span><span class=line><span class=ln>20</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>barbers</span><span class=p>);</span>       <span class=c1>// 等待理发师准备好 (即理发师被叫醒给自己理发)
+</span></span></span><span class=line><span class=ln>21</span><span class=cl>        
+</span></span><span class=line><span class=ln>22</span><span class=cl>        <span class=c1>// --- 正在理发 ---
+</span></span></span><span class=line><span class=ln>23</span><span class=cl>        <span class=c1>// get_haircut();
+</span></span></span><span class=line><span class=ln>24</span><span class=cl>    <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>      <span class=c1>// 没有空椅子了
+</span></span></span><span class=line><span class=ln>25</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span> <span class=c1>// 必须释放锁再离开
+</span></span></span><span class=line><span class=ln>26</span><span class=cl>        
+</span></span><span class=line><span class=ln>27</span><span class=cl>        <span class=c1>// --- 顾客离开 ---
+</span></span></span><span class=line><span class=ln>28</span><span class=cl>        <span class=nf>leave</span><span class=p>();</span>
+</span></span><span class=line><span class=ln>29</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>30</span><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=ln>31</span><span class=cl>
+</span></span><span class=line><span class=ln>32</span><span class=cl><span class=c1>// 理发师进程-消费者
+</span></span></span><span class=line><span class=ln>33</span><span class=cl><span class=nf>Barber</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=ln>34</span><span class=cl>    <span class=k>while</span><span class=p>(</span><span class=nb>true</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=ln>35</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>customers</span><span class=p>);</span> <span class=c1>// 等待顾客到来. 如果没有顾客, 则在椅子上睡眠. 
+</span></span></span><span class=line><span class=ln>36</span><span class=cl>
+</span></span><span class=line><span class=ln>37</span><span class=cl>        <span class=c1>// 下述三行其实就是生产者-消费者模型中的 V(empty) 操作, 因为顾客坐下之后, 等待用的椅子就多了一把, 所以 empty 信号量加一
+</span></span></span><span class=line><span class=ln>38</span><span class=cl>        <span class=nf>P</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>39</span><span class=cl>        <span class=n>waiting_chairs</span><span class=o>++</span><span class=p>;</span> <span class=c1>// 一个顾客从等待区坐到理发椅上, 空出一把椅子
+</span></span></span><span class=line><span class=ln>40</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>mutex</span><span class=p>);</span>
+</span></span><span class=line><span class=ln>41</span><span class=cl>
+</span></span><span class=line><span class=ln>42</span><span class=cl>        <span class=c1>// 如果是生产者-消费者模型, 这里就可以结束了, 因为使用完物品就可以结束了
+</span></span></span><span class=line><span class=ln>43</span><span class=cl>
+</span></span><span class=line><span class=ln>44</span><span class=cl>        <span class=nf>V</span><span class=p>(</span><span class=n>barbers</span><span class=p>);</span> <span class=c1>// 我这个理发师被叫醒了, 可以开始理发了
+</span></span></span><span class=line><span class=ln>45</span><span class=cl>
+</span></span><span class=line><span class=ln>46</span><span class=cl>        <span class=c1>// --- 理发进行中 ---
+</span></span></span><span class=line><span class=ln>47</span><span class=cl>        <span class=nf>cut_hair</span><span class=p>();</span>
+</span></span><span class=line><span class=ln>48</span><span class=cl>        <span class=c1>// --- 理发结束 ---
+</span></span></span><span class=line><span class=ln>49</span><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=ln>50</span><span class=cl><span class=p>}</span>
+</span></span></code></pre></div></div><footer class=post-footer><ul class=post-tags></ul><nav class=paginav><a class=prev href=https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC9%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E5%90%8C%E6%AD%A5%E6%9C%BA%E5%88%B6/><span class=title>« </span><span>第9章 进程同步机制</span>
+</a><a class=next href=https://All-on.github.io/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC10%E7%AB%A0-%E6%AD%BB%E9%94%81/><span class=title>»</span>
+<span>第10章 死锁</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://All-on.github.io/>All-on's Blog</a></span> ·
+<span>Powered by
+<a href="https://gohugo.io/?utm_source=papermod" rel=noopener target=_blank>Hugo</a> &
+<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top id=top-link class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey=g><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg>
+</a><script>let menu=document.getElementById("menu");if(menu){const e=localStorage.getItem("menu-scroll-position");e&&(menu.scrollLeft=parseInt(e,10)),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}}document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var toplink=document.getElementById("top-link");window.onscroll=function(){const e=window.innerHeight;document.body.scrollTop>e||document.documentElement.scrollTop>e?toplink.classList.remove("hidden"):toplink.classList.add("hidden")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{const e=document.querySelector("html");e.dataset.theme==="dark"?(e.dataset.theme="light",localStorage.setItem("pref-theme","light")):(e.dataset.theme="dark",localStorage.setItem("pref-theme","dark"))})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="copy";function s(){t.innerHTML="copied!",setTimeout(()=>{t.innerHTML="copy"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script></body></html>
