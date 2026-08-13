@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>第4章 进程与线程调度 | All-on&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="一、 调度概述与层次
+1. 调度的三个层次
+
+长程调度（作业调度）：决定是否将新进程加入当前活跃进程集合。
+中程调度：负责进程在内存和外存之间的交换（Swapping）。
+短程调度（微观调度）：决定哪个就绪进程/线程获得CPU使用权。时间尺度为毫秒级，要求高效。
+
+2. 调度要解决的三个核心问题 (What, When, How)
+
+What：依据什么原则选择进程 -&gt; 调度算法
+When：在什么时候进行调度 -&gt; 调度时机
+How：如何分配CPU -&gt; 上下文切换过程
+
+3. CPU调度时机
+
+关键事件：进程创建/退出、I/O请求/完成、阻塞/唤醒、时间片用完、中断/异常。
+核心时机：在内核处理完中断/异常/系统调用后，返回到用户态之前的最后时刻。
+
+4. 上下文切换
+
+过程：保存当前进程的硬件状态（到PCB）-&gt; 切换地址空间 -&gt; 恢复新进程的硬件状态。
+开销：
+
+直接开销：执行切换操作本身消耗的CPU时间。
+
+保存/恢复寄存器的CPU时间。
+切换地址空间（如更新页表基址寄存器），这个操作尤其昂贵。
+
+
+间接开销：Cache、TLB、Buffer Cache失效带来的性能损失。
+
+
+
+
+二、 调度算法设计目标与原则
+1. 不同系统的目标
+
+	
+			
+					系统类型
+					用户关心
+					系统关心
+			
+	
+	
+			
+					批处理系统
+					周转时间
+					吞吐量、CPU利用率
+			
+			
+					交互式系统
+					响应时间
+					均衡性、公平性
+			
+			
+					实时系统
+					最后期限、可预测性
+					截止时间保证
+			
+	
+
+2. 调度算法的衡量指标
+
+周转时间：从提交到完成的时间。
+响应时间：从提交到第一次响应的时间。
+吞吐量：单位时间内完成的进程数。
+CPU利用率：CPU做有效工作的时间比例。
+等待时间：进程在就绪队列中等待的总时间。
+公平性：每个进程都能获得合理的CPU时间。
+可预测性：进程执行的延迟是可预期的。
+
+3. 设计调度算法的要点
+
+进程优先级：静态（创建时确定） vs 动态（运行时调整）。
+就绪队列组织：如何按优先级组织队列。
+抢占 vs 非抢占：
+
+抢占式：高优先级进程可剥夺当前进程的CPU。
+非抢占式：进程一旦运行，除非主动放弃，否则一直运行。
+
+
+进程类型：
+
+I/O密集型：频繁I/O，应获得更高优先级以提升设备利用率。
+CPU密集型：长时间计算，可分配较长的时间片以减少切换开销。
+
+
+时间片选择：需在响应时间和切换开销之间权衡。
+
+
+三、 典型的调度算法
+1. 批处理系统调度算法
+
+	
+			
+					算法
+					思想
+					特点
+			
+	
+	
+			
+					FCFS
+					先来先服务
+					公平、简单；对短作业不利，易导致&quot;护航效应&quot;
+			
+			
+					SJF
+					最短作业优先
+					平均周转时间最短；可能导致长作业&quot;饥饿&quot;，需预知运行时间
+			
+			
+					SRTN
+					最短剩余时间优先
+					SJF的抢占式版本
+			
+			
+					HRRN
+					最高响应比优先 R=1&#43;等待时间/运行时间
+					折衷方案，兼顾等待时间和运行时间
+			
+	
+
+2. 交互式系统调度算法
+
+	
+			
+					算法
+					思想
+					特点
+			
+	
+	
+			
+					RR
+					时间片轮转
+					公平，响应快；时间片大小对性能影响大
+			
+			
+					优先级调度
+					优先级高的先运行
+					简单；可能导致低优先级进程&quot;饥饿&quot;
+			
+			
+					多级队列
+					不同队列用不同策略
+					分类处理，灵活性高
+			
+			
+					多级反馈队列
+					进程可在队列间移动
+					综合型算法，兼具RR和优先级的优点，对I/O型进程友好
+			
+	
+
+3. 实时系统调度算法
+
+目标：满足最后期限，保证可预测性。
+策略：通常采用基于优先级的抢占式调度。
+
+4. 算法比较摘要
+
+	
+			
+					算法
+					决策模式
+					优点
+					缺点
+			
+	
+	
+			
+					FCFS
+					非抢占
+					公平、简单
+					平均等待时间长
+			
+			
+					RR
+					抢占
+					响应快、公平
+					上下文切换开销大
+			
+			
+					SJF/SRTN
+					非抢占/抢占
+					平均周转时间最短
+					可能导致饥饿，需预测未来
+			
+			
+					HRRN
+					非抢占
+					平衡性好
+					
+			
+			
+					多级反馈队列
+					抢占
+					灵活，通用性好
+					可能复杂
+			
+	
+
+
+四、 高级主题与实例系统
+1. 优先级反转问题
+
+问题：中优先级进程阻止高优先级进程运行（因为低优先级进程持有高优先级进程所需的资源）。
+解决方案：优先级继承、优先级天花板协议。
+
+2. 机制与策略分离
+
+机制：如何实现调度（如上下文切换、队列管理）。
+策略：选择哪个进程运行（如调度算法）。
+分离好处：提高系统灵活性，允许更改策略而不影响机制。
+
+3. 实例操作系统调度算法
+
+Windows：基于动态优先级的抢占式多任务调度。调度单位是线程，支持优先级提升（如I/O完成后）以防止饥饿。
+Linux：
+
+演化：O(1)调度器 -&gt; RSDL -&gt; CFS（完全公平调度器）。
+CFS核心：不再区分交互式与批处理进程，而是追求完全公平。
+实现：使用红黑树以虚拟运行时间（vruntime） 为键值，每次选择vruntime最小的进程运行。vruntime的增长速度与优先级成反比。
+
+
+
+4. 多处理器调度
+
+挑战：负载均衡 vs 缓存亲和性（尽量减少进程在CPU间迁移）。
+分配方式：
+
+静态分配：每个CPU有自己的队列，开销小，但可能负载不均。
+动态分配：共享一个公共队列，负载均衡好，但调度开销和同步成本高。
+
+
+
+
+五、 重点概念辨析
+
+调度时机 vs 调度过程：时机是“何时做”，过程是“如何做（切换）”。
+吞吐量 vs 周转时间：吞吐量是系统视角（活干得多快），周转时间是用户视角（我的活多久干完）。
+响应时间 vs 截止时间：响应时间是交互式系统的延迟要求，截止时间是实时系统的硬性规定。
+抢占式 vs 非抢占式：根本区别在于调度是否由运行进程自身主动引发。
+">
+<meta name="author" content="All-on">
+<link rel="canonical" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC4%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E8%B0%83%E5%BA%A6/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.4f7a70c28f67918d50819ad94370c535de5b6f0d6c6299d10477402264aea5fd.css" integrity="sha256-T3pwwo9nkY1QgZrZQ3DFNd5bbw1sYpnRBHdAImSupf0=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/images/site-icon.jpg">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh-cn" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC4%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E8%B0%83%E5%BA%A6/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.6.0/lxgwwenkaiscreen.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body, {
+        delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '$', right: '$', display: false}
+        ],
+        throwOnError: false,
+        ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+        ignoredClasses: ['entry-content']
+    });"></script>
+<meta property="og:url" content="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC4%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E8%B0%83%E5%BA%A6/">
+  <meta property="og:site_name" content="All-on&#39;s Blog">
+  <meta property="og:title" content="第4章 进程与线程调度">
+  <meta property="og:description" content="一、 调度概述与层次 1. 调度的三个层次 长程调度（作业调度）：决定是否将新进程加入当前活跃进程集合。 中程调度：负责进程在内存和外存之间的交换（Swapping）。 短程调度（微观调度）：决定哪个就绪进程/线程获得CPU使用权。时间尺度为毫秒级，要求高效。 2. 调度要解决的三个核心问题 (What, When, How) What：依据什么原则选择进程 -&gt; 调度算法 When：在什么时候进行调度 -&gt; 调度时机 How：如何分配CPU -&gt; 上下文切换过程 3. CPU调度时机 关键事件：进程创建/退出、I/O请求/完成、阻塞/唤醒、时间片用完、中断/异常。 核心时机：在内核处理完中断/异常/系统调用后，返回到用户态之前的最后时刻。 4. 上下文切换 过程：保存当前进程的硬件状态（到PCB）-&gt; 切换地址空间 -&gt; 恢复新进程的硬件状态。 开销： 直接开销：执行切换操作本身消耗的CPU时间。 保存/恢复寄存器的CPU时间。 切换地址空间（如更新页表基址寄存器），这个操作尤其昂贵。 间接开销：Cache、TLB、Buffer Cache失效带来的性能损失。 二、 调度算法设计目标与原则 1. 不同系统的目标 系统类型 用户关心 系统关心 批处理系统 周转时间 吞吐量、CPU利用率 交互式系统 响应时间 均衡性、公平性 实时系统 最后期限、可预测性 截止时间保证 2. 调度算法的衡量指标 周转时间：从提交到完成的时间。 响应时间：从提交到第一次响应的时间。 吞吐量：单位时间内完成的进程数。 CPU利用率：CPU做有效工作的时间比例。 等待时间：进程在就绪队列中等待的总时间。 公平性：每个进程都能获得合理的CPU时间。 可预测性：进程执行的延迟是可预期的。 3. 设计调度算法的要点 进程优先级：静态（创建时确定） vs 动态（运行时调整）。 就绪队列组织：如何按优先级组织队列。 抢占 vs 非抢占： 抢占式：高优先级进程可剥夺当前进程的CPU。 非抢占式：进程一旦运行，除非主动放弃，否则一直运行。 进程类型： I/O密集型：频繁I/O，应获得更高优先级以提升设备利用率。 CPU密集型：长时间计算，可分配较长的时间片以减少切换开销。 时间片选择：需在响应时间和切换开销之间权衡。 三、 典型的调度算法 1. 批处理系统调度算法 算法 思想 特点 FCFS 先来先服务 公平、简单；对短作业不利，易导致&#34;护航效应&#34; SJF 最短作业优先 平均周转时间最短；可能导致长作业&#34;饥饿&#34;，需预知运行时间 SRTN 最短剩余时间优先 SJF的抢占式版本 HRRN 最高响应比优先 R=1&#43;等待时间/运行时间 折衷方案，兼顾等待时间和运行时间 2. 交互式系统调度算法 算法 思想 特点 RR 时间片轮转 公平，响应快；时间片大小对性能影响大 优先级调度 优先级高的先运行 简单；可能导致低优先级进程&#34;饥饿&#34; 多级队列 不同队列用不同策略 分类处理，灵活性高 多级反馈队列 进程可在队列间移动 综合型算法，兼具RR和优先级的优点，对I/O型进程友好 3. 实时系统调度算法 目标：满足最后期限，保证可预测性。 策略：通常采用基于优先级的抢占式调度。 4. 算法比较摘要 算法 决策模式 优点 缺点 FCFS 非抢占 公平、简单 平均等待时间长 RR 抢占 响应快、公平 上下文切换开销大 SJF/SRTN 非抢占/抢占 平均周转时间最短 可能导致饥饿，需预测未来 HRRN 非抢占 平衡性好 多级反馈队列 抢占 灵活，通用性好 可能复杂 四、 高级主题与实例系统 1. 优先级反转问题 问题：中优先级进程阻止高优先级进程运行（因为低优先级进程持有高优先级进程所需的资源）。 解决方案：优先级继承、优先级天花板协议。 2. 机制与策略分离 机制：如何实现调度（如上下文切换、队列管理）。 策略：选择哪个进程运行（如调度算法）。 分离好处：提高系统灵活性，允许更改策略而不影响机制。 3. 实例操作系统调度算法 Windows：基于动态优先级的抢占式多任务调度。调度单位是线程，支持优先级提升（如I/O完成后）以防止饥饿。 Linux： 演化：O(1)调度器 -&gt; RSDL -&gt; CFS（完全公平调度器）。 CFS核心：不再区分交互式与批处理进程，而是追求完全公平。 实现：使用红黑树以虚拟运行时间（vruntime） 为键值，每次选择vruntime最小的进程运行。vruntime的增长速度与优先级成反比。 4. 多处理器调度 挑战：负载均衡 vs 缓存亲和性（尽量减少进程在CPU间迁移）。 分配方式： 静态分配：每个CPU有自己的队列，开销小，但可能负载不均。 动态分配：共享一个公共队列，负载均衡好，但调度开销和同步成本高。 五、 重点概念辨析 调度时机 vs 调度过程：时机是“何时做”，过程是“如何做（切换）”。 吞吐量 vs 周转时间：吞吐量是系统视角（活干得多快），周转时间是用户视角（我的活多久干完）。 响应时间 vs 截止时间：响应时间是交互式系统的延迟要求，截止时间是实时系统的硬性规定。 抢占式 vs 非抢占式：根本区别在于调度是否由运行进程自身主动引发。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-31T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-31T00:00:00+00:00">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="第4章 进程与线程调度">
+  <meta name="twitter:description" content="一、 调度概述与层次 1. 调度的三个层次 长程调度（作业调度）：决定是否将新进程加入当前活跃进程集合。 中程调度：负责进程在内存和外存之间的交换（Swapping）。 短程调度（微观调度）：决定哪个就绪进程/线程获得CPU使用权。时间尺度为毫秒级，要求高效。 2. 调度要解决的三个核心问题 (What, When, How) What：依据什么原则选择进程 -&gt; 调度算法 When：在什么时候进行调度 -&gt; 调度时机 How：如何分配CPU -&gt; 上下文切换过程 3. CPU调度时机 关键事件：进程创建/退出、I/O请求/完成、阻塞/唤醒、时间片用完、中断/异常。 核心时机：在内核处理完中断/异常/系统调用后，返回到用户态之前的最后时刻。 4. 上下文切换 过程：保存当前进程的硬件状态（到PCB）-&gt; 切换地址空间 -&gt; 恢复新进程的硬件状态。 开销： 直接开销：执行切换操作本身消耗的CPU时间。 保存/恢复寄存器的CPU时间。 切换地址空间（如更新页表基址寄存器），这个操作尤其昂贵。 间接开销：Cache、TLB、Buffer Cache失效带来的性能损失。 二、 调度算法设计目标与原则 1. 不同系统的目标 系统类型 用户关心 系统关心 批处理系统 周转时间 吞吐量、CPU利用率 交互式系统 响应时间 均衡性、公平性 实时系统 最后期限、可预测性 截止时间保证 2. 调度算法的衡量指标 周转时间：从提交到完成的时间。 响应时间：从提交到第一次响应的时间。 吞吐量：单位时间内完成的进程数。 CPU利用率：CPU做有效工作的时间比例。 等待时间：进程在就绪队列中等待的总时间。 公平性：每个进程都能获得合理的CPU时间。 可预测性：进程执行的延迟是可预期的。 3. 设计调度算法的要点 进程优先级：静态（创建时确定） vs 动态（运行时调整）。 就绪队列组织：如何按优先级组织队列。 抢占 vs 非抢占： 抢占式：高优先级进程可剥夺当前进程的CPU。 非抢占式：进程一旦运行，除非主动放弃，否则一直运行。 进程类型： I/O密集型：频繁I/O，应获得更高优先级以提升设备利用率。 CPU密集型：长时间计算，可分配较长的时间片以减少切换开销。 时间片选择：需在响应时间和切换开销之间权衡。 三、 典型的调度算法 1. 批处理系统调度算法 算法 思想 特点 FCFS 先来先服务 公平、简单；对短作业不利，易导致&#34;护航效应&#34; SJF 最短作业优先 平均周转时间最短；可能导致长作业&#34;饥饿&#34;，需预知运行时间 SRTN 最短剩余时间优先 SJF的抢占式版本 HRRN 最高响应比优先 R=1&#43;等待时间/运行时间 折衷方案，兼顾等待时间和运行时间 2. 交互式系统调度算法 算法 思想 特点 RR 时间片轮转 公平，响应快；时间片大小对性能影响大 优先级调度 优先级高的先运行 简单；可能导致低优先级进程&#34;饥饿&#34; 多级队列 不同队列用不同策略 分类处理，灵活性高 多级反馈队列 进程可在队列间移动 综合型算法，兼具RR和优先级的优点，对I/O型进程友好 3. 实时系统调度算法 目标：满足最后期限，保证可预测性。 策略：通常采用基于优先级的抢占式调度。 4. 算法比较摘要 算法 决策模式 优点 缺点 FCFS 非抢占 公平、简单 平均等待时间长 RR 抢占 响应快、公平 上下文切换开销大 SJF/SRTN 非抢占/抢占 平均周转时间最短 可能导致饥饿，需预测未来 HRRN 非抢占 平衡性好 多级反馈队列 抢占 灵活，通用性好 可能复杂 四、 高级主题与实例系统 1. 优先级反转问题 问题：中优先级进程阻止高优先级进程运行（因为低优先级进程持有高优先级进程所需的资源）。 解决方案：优先级继承、优先级天花板协议。 2. 机制与策略分离 机制：如何实现调度（如上下文切换、队列管理）。 策略：选择哪个进程运行（如调度算法）。 分离好处：提高系统灵活性，允许更改策略而不影响机制。 3. 实例操作系统调度算法 Windows：基于动态优先级的抢占式多任务调度。调度单位是线程，支持优先级提升（如I/O完成后）以防止饥饿。 Linux： 演化：O(1)调度器 -&gt; RSDL -&gt; CFS（完全公平调度器）。 CFS核心：不再区分交互式与批处理进程，而是追求完全公平。 实现：使用红黑树以虚拟运行时间（vruntime） 为键值，每次选择vruntime最小的进程运行。vruntime的增长速度与优先级成反比。 4. 多处理器调度 挑战：负载均衡 vs 缓存亲和性（尽量减少进程在CPU间迁移）。 分配方式： 静态分配：每个CPU有自己的队列，开销小，但可能负载不均。 动态分配：共享一个公共队列，负载均衡好，但调度开销和同步成本高。 五、 重点概念辨析 调度时机 vs 调度过程：时机是“何时做”，过程是“如何做（切换）”。 吞吐量 vs 周转时间：吞吐量是系统视角（活干得多快），周转时间是用户视角（我的活多久干完）。 响应时间 vs 截止时间：响应时间是交互式系统的延迟要求，截止时间是实时系统的硬性规定。 抢占式 vs 非抢占式：根本区别在于调度是否由运行进程自身主动引发。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "http://localhost:1313/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "第4章 进程与线程调度",
+      "item": "http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC4%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E8%B0%83%E5%BA%A6/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "第4章 进程与线程调度",
+  "name": "第4章 进程与线程调度",
+  "description": "一、 调度概述与层次 1. 调度的三个层次 长程调度（作业调度）：决定是否将新进程加入当前活跃进程集合。 中程调度：负责进程在内存和外存之间的交换（Swapping）。 短程调度（微观调度）：决定哪个就绪进程/线程获得CPU使用权。时间尺度为毫秒级，要求高效。 2. 调度要解决的三个核心问题 (What, When, How) What：依据什么原则选择进程 -\u0026gt; 调度算法 When：在什么时候进行调度 -\u0026gt; 调度时机 How：如何分配CPU -\u0026gt; 上下文切换过程 3. CPU调度时机 关键事件：进程创建/退出、I/O请求/完成、阻塞/唤醒、时间片用完、中断/异常。 核心时机：在内核处理完中断/异常/系统调用后，返回到用户态之前的最后时刻。 4. 上下文切换 过程：保存当前进程的硬件状态（到PCB）-\u0026gt; 切换地址空间 -\u0026gt; 恢复新进程的硬件状态。 开销： 直接开销：执行切换操作本身消耗的CPU时间。 保存/恢复寄存器的CPU时间。 切换地址空间（如更新页表基址寄存器），这个操作尤其昂贵。 间接开销：Cache、TLB、Buffer Cache失效带来的性能损失。 二、 调度算法设计目标与原则 1. 不同系统的目标 系统类型 用户关心 系统关心 批处理系统 周转时间 吞吐量、CPU利用率 交互式系统 响应时间 均衡性、公平性 实时系统 最后期限、可预测性 截止时间保证 2. 调度算法的衡量指标 周转时间：从提交到完成的时间。 响应时间：从提交到第一次响应的时间。 吞吐量：单位时间内完成的进程数。 CPU利用率：CPU做有效工作的时间比例。 等待时间：进程在就绪队列中等待的总时间。 公平性：每个进程都能获得合理的CPU时间。 可预测性：进程执行的延迟是可预期的。 3. 设计调度算法的要点 进程优先级：静态（创建时确定） vs 动态（运行时调整）。 就绪队列组织：如何按优先级组织队列。 抢占 vs 非抢占： 抢占式：高优先级进程可剥夺当前进程的CPU。 非抢占式：进程一旦运行，除非主动放弃，否则一直运行。 进程类型： I/O密集型：频繁I/O，应获得更高优先级以提升设备利用率。 CPU密集型：长时间计算，可分配较长的时间片以减少切换开销。 时间片选择：需在响应时间和切换开销之间权衡。 三、 典型的调度算法 1. 批处理系统调度算法 算法 思想 特点 FCFS 先来先服务 公平、简单；对短作业不利，易导致\u0026quot;护航效应\u0026quot; SJF 最短作业优先 平均周转时间最短；可能导致长作业\u0026quot;饥饿\u0026quot;，需预知运行时间 SRTN 最短剩余时间优先 SJF的抢占式版本 HRRN 最高响应比优先 R=1+等待时间/运行时间 折衷方案，兼顾等待时间和运行时间 2. 交互式系统调度算法 算法 思想 特点 RR 时间片轮转 公平，响应快；时间片大小对性能影响大 优先级调度 优先级高的先运行 简单；可能导致低优先级进程\u0026quot;饥饿\u0026quot; 多级队列 不同队列用不同策略 分类处理，灵活性高 多级反馈队列 进程可在队列间移动 综合型算法，兼具RR和优先级的优点，对I/O型进程友好 3. 实时系统调度算法 目标：满足最后期限，保证可预测性。 策略：通常采用基于优先级的抢占式调度。 4. 算法比较摘要 算法 决策模式 优点 缺点 FCFS 非抢占 公平、简单 平均等待时间长 RR 抢占 响应快、公平 上下文切换开销大 SJF/SRTN 非抢占/抢占 平均周转时间最短 可能导致饥饿，需预测未来 HRRN 非抢占 平衡性好 多级反馈队列 抢占 灵活，通用性好 可能复杂 四、 高级主题与实例系统 1. 优先级反转问题 问题：中优先级进程阻止高优先级进程运行（因为低优先级进程持有高优先级进程所需的资源）。 解决方案：优先级继承、优先级天花板协议。 2. 机制与策略分离 机制：如何实现调度（如上下文切换、队列管理）。 策略：选择哪个进程运行（如调度算法）。 分离好处：提高系统灵活性，允许更改策略而不影响机制。 3. 实例操作系统调度算法 Windows：基于动态优先级的抢占式多任务调度。调度单位是线程，支持优先级提升（如I/O完成后）以防止饥饿。 Linux： 演化：O(1)调度器 -\u0026gt; RSDL -\u0026gt; CFS（完全公平调度器）。 CFS核心：不再区分交互式与批处理进程，而是追求完全公平。 实现：使用红黑树以虚拟运行时间（vruntime） 为键值，每次选择vruntime最小的进程运行。vruntime的增长速度与优先级成反比。 4. 多处理器调度 挑战：负载均衡 vs 缓存亲和性（尽量减少进程在CPU间迁移）。 分配方式： 静态分配：每个CPU有自己的队列，开销小，但可能负载不均。 动态分配：共享一个公共队列，负载均衡好，但调度开销和同步成本高。 五、 重点概念辨析 调度时机 vs 调度过程：时机是“何时做”，过程是“如何做（切换）”。 吞吐量 vs 周转时间：吞吐量是系统视角（活干得多快），周转时间是用户视角（我的活多久干完）。 响应时间 vs 截止时间：响应时间是交互式系统的延迟要求，截止时间是实时系统的硬性规定。 抢占式 vs 非抢占式：根本区别在于调度是否由运行进程自身主动引发。 ",
+  "keywords": [
+    
+  ],
+  "articleBody": "一、 调度概述与层次 1. 调度的三个层次 长程调度（作业调度）：决定是否将新进程加入当前活跃进程集合。 中程调度：负责进程在内存和外存之间的交换（Swapping）。 短程调度（微观调度）：决定哪个就绪进程/线程获得CPU使用权。时间尺度为毫秒级，要求高效。 2. 调度要解决的三个核心问题 (What, When, How) What：依据什么原则选择进程 -\u003e 调度算法 When：在什么时候进行调度 -\u003e 调度时机 How：如何分配CPU -\u003e 上下文切换过程 3. CPU调度时机 关键事件：进程创建/退出、I/O请求/完成、阻塞/唤醒、时间片用完、中断/异常。 核心时机：在内核处理完中断/异常/系统调用后，返回到用户态之前的最后时刻。 4. 上下文切换 过程：保存当前进程的硬件状态（到PCB）-\u003e 切换地址空间 -\u003e 恢复新进程的硬件状态。 开销： 直接开销：执行切换操作本身消耗的CPU时间。 保存/恢复寄存器的CPU时间。 切换地址空间（如更新页表基址寄存器），这个操作尤其昂贵。 间接开销：Cache、TLB、Buffer Cache失效带来的性能损失。 二、 调度算法设计目标与原则 1. 不同系统的目标 系统类型 用户关心 系统关心 批处理系统 周转时间 吞吐量、CPU利用率 交互式系统 响应时间 均衡性、公平性 实时系统 最后期限、可预测性 截止时间保证 2. 调度算法的衡量指标 周转时间：从提交到完成的时间。 响应时间：从提交到第一次响应的时间。 吞吐量：单位时间内完成的进程数。 CPU利用率：CPU做有效工作的时间比例。 等待时间：进程在就绪队列中等待的总时间。 公平性：每个进程都能获得合理的CPU时间。 可预测性：进程执行的延迟是可预期的。 3. 设计调度算法的要点 进程优先级：静态（创建时确定） vs 动态（运行时调整）。 就绪队列组织：如何按优先级组织队列。 抢占 vs 非抢占： 抢占式：高优先级进程可剥夺当前进程的CPU。 非抢占式：进程一旦运行，除非主动放弃，否则一直运行。 进程类型： I/O密集型：频繁I/O，应获得更高优先级以提升设备利用率。 CPU密集型：长时间计算，可分配较长的时间片以减少切换开销。 时间片选择：需在响应时间和切换开销之间权衡。 三、 典型的调度算法 1. 批处理系统调度算法 算法 思想 特点 FCFS 先来先服务 公平、简单；对短作业不利，易导致\"护航效应\" SJF 最短作业优先 平均周转时间最短；可能导致长作业\"饥饿\"，需预知运行时间 SRTN 最短剩余时间优先 SJF的抢占式版本 HRRN 最高响应比优先 R=1+等待时间/运行时间 折衷方案，兼顾等待时间和运行时间 2. 交互式系统调度算法 算法 思想 特点 RR 时间片轮转 公平，响应快；时间片大小对性能影响大 优先级调度 优先级高的先运行 简单；可能导致低优先级进程\"饥饿\" 多级队列 不同队列用不同策略 分类处理，灵活性高 多级反馈队列 进程可在队列间移动 综合型算法，兼具RR和优先级的优点，对I/O型进程友好 3. 实时系统调度算法 目标：满足最后期限，保证可预测性。 策略：通常采用基于优先级的抢占式调度。 4. 算法比较摘要 算法 决策模式 优点 缺点 FCFS 非抢占 公平、简单 平均等待时间长 RR 抢占 响应快、公平 上下文切换开销大 SJF/SRTN 非抢占/抢占 平均周转时间最短 可能导致饥饿，需预测未来 HRRN 非抢占 平衡性好 多级反馈队列 抢占 灵活，通用性好 可能复杂 四、 高级主题与实例系统 1. 优先级反转问题 问题：中优先级进程阻止高优先级进程运行（因为低优先级进程持有高优先级进程所需的资源）。 解决方案：优先级继承、优先级天花板协议。 2. 机制与策略分离 机制：如何实现调度（如上下文切换、队列管理）。 策略：选择哪个进程运行（如调度算法）。 分离好处：提高系统灵活性，允许更改策略而不影响机制。 3. 实例操作系统调度算法 Windows：基于动态优先级的抢占式多任务调度。调度单位是线程，支持优先级提升（如I/O完成后）以防止饥饿。 Linux： 演化：O(1)调度器 -\u003e RSDL -\u003e CFS（完全公平调度器）。 CFS核心：不再区分交互式与批处理进程，而是追求完全公平。 实现：使用红黑树以虚拟运行时间（vruntime） 为键值，每次选择vruntime最小的进程运行。vruntime的增长速度与优先级成反比。 4. 多处理器调度 挑战：负载均衡 vs 缓存亲和性（尽量减少进程在CPU间迁移）。 分配方式： 静态分配：每个CPU有自己的队列，开销小，但可能负载不均。 动态分配：共享一个公共队列，负载均衡好，但调度开销和同步成本高。 五、 重点概念辨析 调度时机 vs 调度过程：时机是“何时做”，过程是“如何做（切换）”。 吞吐量 vs 周转时间：吞吐量是系统视角（活干得多快），周转时间是用户视角（我的活多久干完）。 响应时间 vs 截止时间：响应时间是交互式系统的延迟要求，截止时间是实时系统的硬性规定。 抢占式 vs 非抢占式：根本区别在于调度是否由运行进程自身主动引发。 ",
+  "wordCount" : "1926",
+  "inLanguage": "zh-cn",
+  "datePublished": "2026-01-31T00:00:00Z",
+  "dateModified": "2026-01-31T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "All-on"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC4%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E8%B0%83%E5%BA%A6/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "All-on's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://localhost:1313/images/site-icon.jpg"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="All-on&#39;s Blog (Alt + H)">
+                <img src="http://localhost:1313/images/site-icon.jpg" alt="" aria-label="logo"
+                    height="35">All-on&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="http://localhost:1313/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/posts/" title="文章">
+                    <span>文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/categories/" title="类别">
+                    <span>类别</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      第4章 进程与线程调度
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-31 00:00:00 +0000 UTC'>2026-01-31</span>&nbsp;·&nbsp;<span>4 min</span>&nbsp;·&nbsp;<span>1926 words</span>&nbsp;·&nbsp;<span>All-on</span>
+
+</div>
+  </header> <aside id="toc-container" class="toc-container wide">
+<div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e4%b8%80-%e8%b0%83%e5%ba%a6%e6%a6%82%e8%bf%b0%e4%b8%8e%e5%b1%82%e6%ac%a1" aria-label="一、 调度概述与层次">一、 调度概述与层次</a><ul>
+                        
+                <li>
+                    <a href="#1-%e8%b0%83%e5%ba%a6%e7%9a%84%e4%b8%89%e4%b8%aa%e5%b1%82%e6%ac%a1" aria-label="1. 调度的三个层次">1. 调度的三个层次</a></li>
+                <li>
+                    <a href="#2-%e8%b0%83%e5%ba%a6%e8%a6%81%e8%a7%a3%e5%86%b3%e7%9a%84%e4%b8%89%e4%b8%aa%e6%a0%b8%e5%bf%83%e9%97%ae%e9%a2%98-what-when-how" aria-label="2. 调度要解决的三个核心问题 (What, When, How)">2. 调度要解决的三个核心问题 (What, When, How)</a></li>
+                <li>
+                    <a href="#3-cpu%e8%b0%83%e5%ba%a6%e6%97%b6%e6%9c%ba" aria-label="3. CPU调度时机">3. CPU调度时机</a></li>
+                <li>
+                    <a href="#4-%e4%b8%8a%e4%b8%8b%e6%96%87%e5%88%87%e6%8d%a2" aria-label="4. 上下文切换">4. 上下文切换</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e4%ba%8c-%e8%b0%83%e5%ba%a6%e7%ae%97%e6%b3%95%e8%ae%be%e8%ae%a1%e7%9b%ae%e6%a0%87%e4%b8%8e%e5%8e%9f%e5%88%99" aria-label="二、 调度算法设计目标与原则">二、 调度算法设计目标与原则</a><ul>
+                        
+                <li>
+                    <a href="#1-%e4%b8%8d%e5%90%8c%e7%b3%bb%e7%bb%9f%e7%9a%84%e7%9b%ae%e6%a0%87" aria-label="1. 不同系统的目标">1. 不同系统的目标</a></li>
+                <li>
+                    <a href="#2-%e8%b0%83%e5%ba%a6%e7%ae%97%e6%b3%95%e7%9a%84%e8%a1%a1%e9%87%8f%e6%8c%87%e6%a0%87" aria-label="2. 调度算法的衡量指标">2. 调度算法的衡量指标</a></li>
+                <li>
+                    <a href="#3-%e8%ae%be%e8%ae%a1%e8%b0%83%e5%ba%a6%e7%ae%97%e6%b3%95%e7%9a%84%e8%a6%81%e7%82%b9" aria-label="3. 设计调度算法的要点">3. 设计调度算法的要点</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e4%b8%89-%e5%85%b8%e5%9e%8b%e7%9a%84%e8%b0%83%e5%ba%a6%e7%ae%97%e6%b3%95" aria-label="三、 典型的调度算法">三、 典型的调度算法</a><ul>
+                        
+                <li>
+                    <a href="#1-%e6%89%b9%e5%a4%84%e7%90%86%e7%b3%bb%e7%bb%9f%e8%b0%83%e5%ba%a6%e7%ae%97%e6%b3%95" aria-label="1. 批处理系统调度算法">1. 批处理系统调度算法</a></li>
+                <li>
+                    <a href="#2-%e4%ba%a4%e4%ba%92%e5%bc%8f%e7%b3%bb%e7%bb%9f%e8%b0%83%e5%ba%a6%e7%ae%97%e6%b3%95" aria-label="2. 交互式系统调度算法">2. 交互式系统调度算法</a></li>
+                <li>
+                    <a href="#3-%e5%ae%9e%e6%97%b6%e7%b3%bb%e7%bb%9f%e8%b0%83%e5%ba%a6%e7%ae%97%e6%b3%95" aria-label="3. 实时系统调度算法">3. 实时系统调度算法</a></li>
+                <li>
+                    <a href="#4-%e7%ae%97%e6%b3%95%e6%af%94%e8%be%83%e6%91%98%e8%a6%81" aria-label="4. 算法比较摘要">4. 算法比较摘要</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%9b%9b-%e9%ab%98%e7%ba%a7%e4%b8%bb%e9%a2%98%e4%b8%8e%e5%ae%9e%e4%be%8b%e7%b3%bb%e7%bb%9f" aria-label="四、 高级主题与实例系统">四、 高级主题与实例系统</a><ul>
+                        
+                <li>
+                    <a href="#1-%e4%bc%98%e5%85%88%e7%ba%a7%e5%8f%8d%e8%bd%ac%e9%97%ae%e9%a2%98" aria-label="1. 优先级反转问题">1. 优先级反转问题</a></li>
+                <li>
+                    <a href="#2-%e6%9c%ba%e5%88%b6%e4%b8%8e%e7%ad%96%e7%95%a5%e5%88%86%e7%a6%bb" aria-label="2. 机制与策略分离">2. 机制与策略分离</a></li>
+                <li>
+                    <a href="#3-%e5%ae%9e%e4%be%8b%e6%93%8d%e4%bd%9c%e7%b3%bb%e7%bb%9f%e8%b0%83%e5%ba%a6%e7%ae%97%e6%b3%95" aria-label="3. 实例操作系统调度算法">3. 实例操作系统调度算法</a></li>
+                <li>
+                    <a href="#4-%e5%a4%9a%e5%a4%84%e7%90%86%e5%99%a8%e8%b0%83%e5%ba%a6" aria-label="4. 多处理器调度">4. 多处理器调度</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e4%ba%94-%e9%87%8d%e7%82%b9%e6%a6%82%e5%bf%b5%e8%be%a8%e6%9e%90" aria-label="五、 重点概念辨析">五、 重点概念辨析</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+</aside>
+<script>
+    let activeElement;
+    let elements;
+    window.addEventListener('DOMContentLoaded', function (event) {
+        checkTocPosition();
+
+        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
+         
+         activeElement = elements[0];
+         const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
+         document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+     }, false);
+
+    window.addEventListener('resize', function(event) {
+        checkTocPosition();
+    }, false);
+
+    window.addEventListener('scroll', () => {
+        
+        activeElement = Array.from(elements).find((element) => {
+            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
+                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
+                return element;
+            }
+        }) || activeElement
+
+        elements.forEach(element => {
+             const id = encodeURI(element.getAttribute('id')).toLowerCase();
+             if (element === activeElement){
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+             } else {
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
+             }
+         })
+     }, false);
+
+    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
+    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
+    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
+
+    function checkTocPosition() {
+        const width = document.body.scrollWidth;
+
+        if (width - main - (toc * 2) - (gap * 4) > 0) {
+            document.getElementById("toc-container").classList.add("wide");
+        } else {
+            document.getElementById("toc-container").classList.remove("wide");
+        }
+    }
+
+    function getOffsetTop(element) {
+        if (!element.getClientRects().length) {
+            return 0;
+        }
+        let rect = element.getBoundingClientRect();
+        let win = element.ownerDocument.defaultView;
+        return rect.top + win.pageYOffset;
+    }
+</script>
+
+  <div class="post-content md-content"><h2 id="一-调度概述与层次">一、 调度概述与层次<a hidden class="anchor" aria-hidden="true" href="#一-调度概述与层次">#</a></h2>
+<h3 id="1-调度的三个层次">1. 调度的三个层次<a hidden class="anchor" aria-hidden="true" href="#1-调度的三个层次">#</a></h3>
+<ul>
+<li><strong>长程调度（作业调度）</strong>：决定是否将新进程加入当前活跃进程集合。</li>
+<li><strong>中程调度</strong>：负责进程在内存和外存之间的交换（Swapping）。</li>
+<li><strong>短程调度（微观调度）</strong>：决定哪个就绪进程/线程获得CPU使用权。<strong>时间尺度为毫秒级</strong>，要求高效。</li>
+</ul>
+<h3 id="2-调度要解决的三个核心问题-what-when-how">2. 调度要解决的三个核心问题 (What, When, How)<a hidden class="anchor" aria-hidden="true" href="#2-调度要解决的三个核心问题-what-when-how">#</a></h3>
+<ul>
+<li><strong>What</strong>：依据什么原则选择进程 -&gt; <strong>调度算法</strong></li>
+<li><strong>When</strong>：在什么时候进行调度 -&gt; <strong>调度时机</strong></li>
+<li><strong>How</strong>：如何分配CPU -&gt; <strong>上下文切换过程</strong></li>
+</ul>
+<h3 id="3-cpu调度时机">3. CPU调度时机<a hidden class="anchor" aria-hidden="true" href="#3-cpu调度时机">#</a></h3>
+<ul>
+<li><strong>关键事件</strong>：进程创建/退出、I/O请求/完成、阻塞/唤醒、时间片用完、中断/异常。</li>
+<li><strong>核心时机</strong>：<strong>在内核处理完中断/异常/系统调用后，返回到用户态之前的最后时刻</strong>。</li>
+</ul>
+<h3 id="4-上下文切换">4. 上下文切换<a hidden class="anchor" aria-hidden="true" href="#4-上下文切换">#</a></h3>
+<ul>
+<li><strong>过程</strong>：保存当前进程的硬件状态（到PCB）-&gt; 切换地址空间 -&gt; 恢复新进程的硬件状态。</li>
+<li><strong>开销</strong>：
+<ul>
+<li><strong>直接开销</strong>：执行切换操作本身消耗的CPU时间。
+<ul>
+<li>保存/恢复寄存器的CPU时间。</li>
+<li>切换地址空间（如更新页表基址寄存器），这个操作尤其昂贵。</li>
+</ul>
+</li>
+<li><strong>间接开销</strong>：Cache、TLB、Buffer Cache失效带来的性能损失。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="二-调度算法设计目标与原则">二、 调度算法设计目标与原则<a hidden class="anchor" aria-hidden="true" href="#二-调度算法设计目标与原则">#</a></h2>
+<h3 id="1-不同系统的目标">1. 不同系统的目标<a hidden class="anchor" aria-hidden="true" href="#1-不同系统的目标">#</a></h3>
+<table>
+	<thead>
+			<tr>
+					<th style="text-align: left">系统类型</th>
+					<th style="text-align: left">用户关心</th>
+					<th style="text-align: left">系统关心</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td style="text-align: left"><strong>批处理系统</strong></td>
+					<td style="text-align: left">周转时间</td>
+					<td style="text-align: left">吞吐量、CPU利用率</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>交互式系统</strong></td>
+					<td style="text-align: left">响应时间</td>
+					<td style="text-align: left">均衡性、公平性</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>实时系统</strong></td>
+					<td style="text-align: left">最后期限、可预测性</td>
+					<td style="text-align: left">截止时间保证</td>
+			</tr>
+	</tbody>
+</table>
+<h3 id="2-调度算法的衡量指标">2. 调度算法的衡量指标<a hidden class="anchor" aria-hidden="true" href="#2-调度算法的衡量指标">#</a></h3>
+<ul>
+<li><strong>周转时间</strong>：从提交到完成的时间。</li>
+<li><strong>响应时间</strong>：从提交到第一次响应的时间。</li>
+<li><strong>吞吐量</strong>：单位时间内完成的进程数。</li>
+<li><strong>CPU利用率</strong>：CPU做有效工作的时间比例。</li>
+<li><strong>等待时间</strong>：进程在就绪队列中等待的总时间。</li>
+<li><strong>公平性</strong>：每个进程都能获得合理的CPU时间。</li>
+<li><strong>可预测性</strong>：进程执行的延迟是可预期的。</li>
+</ul>
+<h3 id="3-设计调度算法的要点">3. 设计调度算法的要点<a hidden class="anchor" aria-hidden="true" href="#3-设计调度算法的要点">#</a></h3>
+<ul>
+<li><strong>进程优先级</strong>：静态（创建时确定） vs 动态（运行时调整）。</li>
+<li><strong>就绪队列组织</strong>：如何按优先级组织队列。</li>
+<li><strong>抢占 vs 非抢占</strong>：
+<ul>
+<li><strong>抢占式</strong>：高优先级进程可剥夺当前进程的CPU。</li>
+<li><strong>非抢占式</strong>：进程一旦运行，除非主动放弃，否则一直运行。</li>
+</ul>
+</li>
+<li><strong>进程类型</strong>：
+<ul>
+<li><strong>I/O密集型</strong>：频繁I/O，应获得更高优先级以提升设备利用率。</li>
+<li><strong>CPU密集型</strong>：长时间计算，可分配较长的时间片以减少切换开销。</li>
+</ul>
+</li>
+<li><strong>时间片选择</strong>：需在<strong>响应时间</strong>和<strong>切换开销</strong>之间权衡。</li>
+</ul>
+<hr>
+<h2 id="三-典型的调度算法">三、 典型的调度算法<a hidden class="anchor" aria-hidden="true" href="#三-典型的调度算法">#</a></h2>
+<h3 id="1-批处理系统调度算法">1. 批处理系统调度算法<a hidden class="anchor" aria-hidden="true" href="#1-批处理系统调度算法">#</a></h3>
+<table>
+	<thead>
+			<tr>
+					<th style="text-align: left">算法</th>
+					<th style="text-align: left">思想</th>
+					<th style="text-align: left">特点</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td style="text-align: left"><strong>FCFS</strong></td>
+					<td style="text-align: left">先来先服务</td>
+					<td style="text-align: left">公平、简单；对短作业不利，易导致&quot;护航效应&quot;</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>SJF</strong></td>
+					<td style="text-align: left">最短作业优先</td>
+					<td style="text-align: left"><strong>平均周转时间最短</strong>；可能导致长作业&quot;饥饿&quot;，需预知运行时间</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>SRTN</strong></td>
+					<td style="text-align: left">最短剩余时间优先</td>
+					<td style="text-align: left">SJF的抢占式版本</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>HRRN</strong></td>
+					<td style="text-align: left">最高响应比优先 <code>R=1+等待时间/运行时间</code></td>
+					<td style="text-align: left">折衷方案，兼顾等待时间和运行时间</td>
+			</tr>
+	</tbody>
+</table>
+<h3 id="2-交互式系统调度算法">2. 交互式系统调度算法<a hidden class="anchor" aria-hidden="true" href="#2-交互式系统调度算法">#</a></h3>
+<table>
+	<thead>
+			<tr>
+					<th style="text-align: left">算法</th>
+					<th style="text-align: left">思想</th>
+					<th style="text-align: left">特点</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td style="text-align: left"><strong>RR</strong></td>
+					<td style="text-align: left">时间片轮转</td>
+					<td style="text-align: left">公平，响应快；时间片大小对性能影响大</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>优先级调度</strong></td>
+					<td style="text-align: left">优先级高的先运行</td>
+					<td style="text-align: left">简单；可能导致低优先级进程&quot;饥饿&quot;</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>多级队列</strong></td>
+					<td style="text-align: left">不同队列用不同策略</td>
+					<td style="text-align: left">分类处理，灵活性高</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>多级反馈队列</strong></td>
+					<td style="text-align: left">进程可在队列间移动</td>
+					<td style="text-align: left"><strong>综合型算法</strong>，兼具RR和优先级的优点，对I/O型进程友好</td>
+			</tr>
+	</tbody>
+</table>
+<h3 id="3-实时系统调度算法">3. 实时系统调度算法<a hidden class="anchor" aria-hidden="true" href="#3-实时系统调度算法">#</a></h3>
+<ul>
+<li>目标：满足<strong>最后期限</strong>，保证<strong>可预测性</strong>。</li>
+<li>策略：通常采用<strong>基于优先级的抢占式调度</strong>。</li>
+</ul>
+<h3 id="4-算法比较摘要">4. 算法比较摘要<a hidden class="anchor" aria-hidden="true" href="#4-算法比较摘要">#</a></h3>
+<table>
+	<thead>
+			<tr>
+					<th style="text-align: left">算法</th>
+					<th style="text-align: left">决策模式</th>
+					<th style="text-align: left">优点</th>
+					<th style="text-align: left">缺点</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td style="text-align: left"><strong>FCFS</strong></td>
+					<td style="text-align: left">非抢占</td>
+					<td style="text-align: left">公平、简单</td>
+					<td style="text-align: left">平均等待时间长</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>RR</strong></td>
+					<td style="text-align: left">抢占</td>
+					<td style="text-align: left">响应快、公平</td>
+					<td style="text-align: left">上下文切换开销大</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>SJF/SRTN</strong></td>
+					<td style="text-align: left">非抢占/抢占</td>
+					<td style="text-align: left">平均周转时间最短</td>
+					<td style="text-align: left">可能导致饥饿，需预测未来</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>HRRN</strong></td>
+					<td style="text-align: left">非抢占</td>
+					<td style="text-align: left">平衡性好</td>
+					<td style="text-align: left"></td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>多级反馈队列</strong></td>
+					<td style="text-align: left">抢占</td>
+					<td style="text-align: left">灵活，通用性好</td>
+					<td style="text-align: left">可能复杂</td>
+			</tr>
+	</tbody>
+</table>
+<hr>
+<h2 id="四-高级主题与实例系统">四、 高级主题与实例系统<a hidden class="anchor" aria-hidden="true" href="#四-高级主题与实例系统">#</a></h2>
+<h3 id="1-优先级反转问题">1. 优先级反转问题<a hidden class="anchor" aria-hidden="true" href="#1-优先级反转问题">#</a></h3>
+<ul>
+<li><strong>问题</strong>：中优先级进程阻止高优先级进程运行（因为低优先级进程持有高优先级进程所需的资源）。</li>
+<li><strong>解决方案</strong>：优先级继承、优先级天花板协议。</li>
+</ul>
+<h3 id="2-机制与策略分离">2. 机制与策略分离<a hidden class="anchor" aria-hidden="true" href="#2-机制与策略分离">#</a></h3>
+<ul>
+<li><strong>机制</strong>：<strong>如何</strong>实现调度（如上下文切换、队列管理）。</li>
+<li><strong>策略</strong>：<strong>选择哪个</strong>进程运行（如调度算法）。</li>
+<li><strong>分离好处</strong>：提高系统灵活性，允许更改策略而不影响机制。</li>
+</ul>
+<h3 id="3-实例操作系统调度算法">3. 实例操作系统调度算法<a hidden class="anchor" aria-hidden="true" href="#3-实例操作系统调度算法">#</a></h3>
+<ul>
+<li><strong>Windows</strong>：基于<strong>动态优先级</strong>的<strong>抢占式</strong>多任务调度。调度单位是<strong>线程</strong>，支持优先级提升（如I/O完成后）以防止饥饿。</li>
+<li><strong>Linux</strong>：
+<ul>
+<li><strong>演化</strong>：O(1)调度器 -&gt; RSDL -&gt; <strong>CFS（完全公平调度器）</strong>。</li>
+<li><strong>CFS核心</strong>：不再区分交互式与批处理进程，而是追求<strong>完全公平</strong>。</li>
+<li><strong>实现</strong>：使用<strong>红黑树</strong>以<strong>虚拟运行时间（vruntime）</strong> 为键值，每次选择<code>vruntime</code>最小的进程运行。<code>vruntime</code>的增长速度与优先级成反比。</li>
+</ul>
+</li>
+</ul>
+<h3 id="4-多处理器调度">4. 多处理器调度<a hidden class="anchor" aria-hidden="true" href="#4-多处理器调度">#</a></h3>
+<ul>
+<li><strong>挑战</strong>：负载均衡 vs 缓存亲和性（尽量减少进程在CPU间迁移）。</li>
+<li><strong>分配方式</strong>：
+<ul>
+<li><strong>静态分配</strong>：每个CPU有自己的队列，开销小，但可能负载不均。</li>
+<li><strong>动态分配</strong>：共享一个公共队列，负载均衡好，但调度开销和同步成本高。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="五-重点概念辨析">五、 重点概念辨析<a hidden class="anchor" aria-hidden="true" href="#五-重点概念辨析">#</a></h2>
+<ul>
+<li><strong>调度时机</strong> vs <strong>调度过程</strong>：时机是“何时做”，过程是“如何做（切换）”。</li>
+<li><strong>吞吐量</strong> vs <strong>周转时间</strong>：吞吐量是系统视角（活干得多快），周转时间是用户视角（我的活多久干完）。</li>
+<li><strong>响应时间</strong> vs <strong>截止时间</strong>：响应时间是交互式系统的延迟要求，截止时间是实时系统的硬性规定。</li>
+<li><strong>抢占式</strong> vs <strong>非抢占式</strong>：根本区别在于<strong>调度是否由运行进程自身主动引发</strong>。</li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC3%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/">
+    <span class="title">« </span>
+    <span>第3章 进程与线程模型</span>
+  </a>
+  <a class="next" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC5%E7%AB%A0-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">
+    <span class="title"> »</span>
+    <span>第5章 内存管理</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">All-on&#39;s Blog</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

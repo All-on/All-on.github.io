@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>第2章 运行环境与运行机制 | All-on&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="一、 核心思想：异常控制流
+异常控制流是理解操作系统一切交互和机制的关键。
+
+理解ECF，就可以理解：
+
+应用程序与操作系统的交互。
+并发。
+软件异常的工作原理。
+
+
+操作系统是由“中断/异常/事件驱动”的：操作系统本身是一个被动的管理程序，通过响应来自硬件（中断）和软件（异常）的各种事件来获得CPU控制权并开展工作。
+
+
+二、 运行环境（硬件基础）
+操作系统运行需要硬件提供以下支持：">
+<meta name="author" content="All-on">
+<link rel="canonical" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC2%E7%AB%A0-%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83%E4%B8%8E%E8%BF%90%E8%A1%8C%E6%9C%BA%E5%88%B6/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.4f7a70c28f67918d50819ad94370c535de5b6f0d6c6299d10477402264aea5fd.css" integrity="sha256-T3pwwo9nkY1QgZrZQ3DFNd5bbw1sYpnRBHdAImSupf0=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/images/site-icon.jpg">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh-cn" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC2%E7%AB%A0-%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83%E4%B8%8E%E8%BF%90%E8%A1%8C%E6%9C%BA%E5%88%B6/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.6.0/lxgwwenkaiscreen.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body, {
+        delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '$', right: '$', display: false}
+        ],
+        throwOnError: false,
+        ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+        ignoredClasses: ['entry-content']
+    });"></script>
+<meta property="og:url" content="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC2%E7%AB%A0-%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83%E4%B8%8E%E8%BF%90%E8%A1%8C%E6%9C%BA%E5%88%B6/">
+  <meta property="og:site_name" content="All-on&#39;s Blog">
+  <meta property="og:title" content="第2章 运行环境与运行机制">
+  <meta property="og:description" content="一、 核心思想：异常控制流 异常控制流是理解操作系统一切交互和机制的关键。
+理解ECF，就可以理解： 应用程序与操作系统的交互。 并发。 软件异常的工作原理。 操作系统是由“中断/异常/事件驱动”的：操作系统本身是一个被动的管理程序，通过响应来自硬件（中断）和软件（异常）的各种事件来获得CPU控制权并开展工作。 二、 运行环境（硬件基础） 操作系统运行需要硬件提供以下支持：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-31T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-31T00:00:00+00:00">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="第2章 运行环境与运行机制">
+  <meta name="twitter:description" content="一、 核心思想：异常控制流 异常控制流是理解操作系统一切交互和机制的关键。
+理解ECF，就可以理解： 应用程序与操作系统的交互。 并发。 软件异常的工作原理。 操作系统是由“中断/异常/事件驱动”的：操作系统本身是一个被动的管理程序，通过响应来自硬件（中断）和软件（异常）的各种事件来获得CPU控制权并开展工作。 二、 运行环境（硬件基础） 操作系统运行需要硬件提供以下支持：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "http://localhost:1313/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "第2章 运行环境与运行机制",
+      "item": "http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC2%E7%AB%A0-%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83%E4%B8%8E%E8%BF%90%E8%A1%8C%E6%9C%BA%E5%88%B6/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "第2章 运行环境与运行机制",
+  "name": "第2章 运行环境与运行机制",
+  "description": "一、 核心思想：异常控制流 异常控制流是理解操作系统一切交互和机制的关键。\n理解ECF，就可以理解： 应用程序与操作系统的交互。 并发。 软件异常的工作原理。 操作系统是由“中断/异常/事件驱动”的：操作系统本身是一个被动的管理程序，通过响应来自硬件（中断）和软件（异常）的各种事件来获得CPU控制权并开展工作。 二、 运行环境（硬件基础） 操作系统运行需要硬件提供以下支持：\n",
+  "keywords": [
+    
+  ],
+  "articleBody": "一、 核心思想：异常控制流 异常控制流是理解操作系统一切交互和机制的关键。\n理解ECF，就可以理解： 应用程序与操作系统的交互。 并发。 软件异常的工作原理。 操作系统是由“中断/异常/事件驱动”的：操作系统本身是一个被动的管理程序，通过响应来自硬件（中断）和软件（异常）的各种事件来获得CPU控制权并开展工作。 二、 运行环境（硬件基础） 操作系统运行需要硬件提供以下支持：\n1. 中央处理器 两类寄存器： 用户可见寄存器：数据、地址、条件码寄存器。 控制和状态寄存器：用于控制处理器。 程序计数器：下一条指令地址。 程序状态字：包含条件码和系统状态位（如中断允许位）。 处理器状态/模式： 用户态：运行用户程序，不能执行特权指令。 内核态：运行操作系统程序，可以执行一切指令。 模式转换： 用户态 → 内核态：唯一途径是通过中断/异常/陷入。 内核态 → 用户态：通过设置PSW。 特权指令：只能在内核态下由操作系统使用的指令。 2. 中断与异常机制 这是操作系统的“引擎”，是ECF的具体实现。\n中断：来自CPU外部（如I/O设备、时钟），异步发生。总是返回到下一条指令。\n异常：来自CPU内部（执行指令时），同步发生。\n陷入：有意识安排的，如系统调用。返回到下一条指令。 故障：可恢复的错误，如页故障。可能返回到当前指令重新执行。 终止：不可恢复的错误，不会返回。 中断/异常处理流程（软硬协同）：\n硬件负责（响应）： 检测中断/异常。 保存部分现场（PC、PSW）。 关中断（针对中断门）。 通过中断向量号查询中断描述符表，找到处理程序入口地址。 软件负责（处理）： 保存完整现场（所有寄存器）。 分析具体原因并执行处理程序。 恢复现场。 执行返回指令（如IRET），回到用户程序。 关键数据结构：\n中断描述符表：存储中断门/陷阱门描述符，包含处理程序的段选择符和偏移量。IDTR寄存器指向它。 系统调用是通过陷入指令（如int 0x80）触发的一个异常。 三、 运行机制（系统调用） 系统调用是用户程序主动与操作系统交互的唯一接口。\n1. 系统调用机制设计 陷入指令：引发异常，完成用户态到内核态的切换（如int 0x80, syscall）。 系统调用号：每个系统功能一个唯一编号，存放在EAX寄存器。 系统调用表：存储系统调用服务例程的入口地址，根据调用号索引。 参数传递：通过寄存器（如EBX, ECX, EDX）或内存堆栈。 2. 系统调用执行流程（以Linux x86的write为例） 用户态：应用程序调用C库函数write()。 封装例程：C库将系统调用号(4)放入EAX，参数放入相应寄存器，执行int 0x80。 硬件响应： 切换栈（用户栈→内核栈）。 保存现场（用户态SS:ESP, EFLAGS, CS:EIP）。 通过IDT[128]找到system_call入口。 内核态： system_call保存所有寄存器(SAVE_ALL)。 根据EAX中的调用号，查sys_call_table，调用sys_write()。 sys_write()执行具体操作。 返回： 返回值存入EAX。 跳转到ret_from_sys_call，可能进行调度、信号处理。 RESTORE_ALL恢复现场，执行IRET返回用户态。 3. 重要区别 系统调用 vs 函数调用： 特征 系统调用 函数调用 执行环境 内核态 用户态 切换方式 陷入指令 + 软硬件上下文切换 CALL / RET 指令 性能开销 大 小 系统调用 vs C库函数 vs API： API：是一个函数定义，说明如何获得一个给定的服务。 C库函数：是API的一种实现，可能完全在用户态，也可能封装了系统调用。 系统调用：是操作系统内核实现的真正服务例程。 四、 机制与策略分离 机制：提供怎么做的能力（如：系统调用机制、中断处理机制）。—— 操作系统实现 策略：决定做什么、何时做（如：调度算法、页面置换算法）。—— 可由用户或上层软件决定 操作系统设计应尽可能将机制与策略分离，以提高灵活性和可扩展性。\n五、事件类别 中断 - 来自CPU外部，异步 中断主要由硬件设备产生，通常与当前执行的指令没有直接关系。\n1. I/O 中断 由各种输入/输出设备产生，表示一个I/O操作已经完成或设备需要关注。\n磁盘中断：当磁盘读写操作完成时，磁盘控制器会发出中断，通知CPU数据已准备好或已写入。 网络中断：网卡接收到新的数据包，或数据包发送完成时产生。 键盘/鼠标中断：用户按下按键或移动鼠标时产生，将输入事件通知给系统。 声卡中断：处理音频流的输入或输出。 USB设备中断：各种USB设备（如U盘、摄像头）与系统通信时产生。 2. 时钟中断 由系统的定时器硬件周期性产生，与具体的I/O设备无关，是操作系统心跳的来源。\n系统时钟中断：以固定频率（如100Hz或1000Hz）发生，是操作系统实现时间片轮转调度、更新系统时间、计算进程执行时间的基础。 高精度事件定时器：为需要更精确时间管理的应用提供支持。 3. 硬件故障 通常指非预期的、严重的硬件问题，虽然罕见，但一旦发生通常难以恢复。\n内存校验错误：例如ECC内存检测到无法纠正的错误。 电源故障：系统检测到电源异常。 总线错误：在访问内存或设备时，在系统总线上检测到物理错误。 异常 - 来自CPU内部，同步 异常是由当前正在执行的指令直接触发的。\n1. 陷入 这是有意识、故意安排的异常，通常用于实现从用户态到内核态的切换。\n系统调用：这是最典型的陷入。用户程序通过执行一条特殊指令（如 x86 的 int 0x80/syscall，RISC-V 的 ecall）来主动请求操作系统提供服务。 断点指令：由调试器故意插入到被调试程序中的指令（如 x86 的 int 3），用于暂停程序执行，进入调试状态。 调试单步：通过设置标志位，让CPU每执行一条指令就产生一次异常，方便调试。 2. 故障 这是由指令执行过程中遇到的可恢复的错误 触发的。处理程序会修复这个错误，然后重新执行这条指令。\n页错误：这是最常见、最重要的故障。 缺页：要访问的页面不在物理内存中。处理程序会从磁盘调入该页，然后重新执行指令。 写保护错误：试图向只读的页面写入数据。 权限错误：用户程序试图访问内核空间的页面。 除零错误：执行除法指令时除数为零。 浮点异常：如浮点溢出、下溢等。 3. 终止 这是由不可恢复的严重硬件错误 导致的，处理程序通常无法修复，只能终止出错的进程甚至导致系统崩溃。\n机器检查：检测到致命的硬件问题，如CPU温度过高、严重的硬件损坏。 奇偶校验错误：在关键系统总线上检测到数据损坏且无法恢复。 双重故障：在尝试处理一个异常时，又发生了另一个异常。 总结表格 类别 原因 异步/同步 返回行为 详细举例 中断 来自I/O设备、其他硬件部件 异步 总是返回到下一条指令 磁盘中断、网络中断、键盘中断、时钟中断、硬件故障中断 陷入 有意识安排的 同步 返回到下一条指令 系统调用、断点调试、单步调试 故障 可恢复的错误 同步 返回到当前指令 页错误、除零错误、段保护异常 终止 不可恢复的错误 同步 不会返回 硬件故障、机器检查、双重故障 六、一些问题 1. 应用程序是如何与操作系统交互的？ 通过系统调用（System Call），这是操作系统提供给编程人员的唯一接口。应用程序通过执行特殊的陷入指令（如 int 0x80、syscall）触发异常，从而从用户态切换到内核态，由操作系统内核代为执行请求的服务。 2. 怎样理解“操作系统是由中断/异常/事件驱动的”？ 操作系统本身通常不主动执行，而是被动响应来自硬件（如I/O设备中断、时钟中断）或软件（如系统调用、页故障）的事件。这些事件改变了CPU的控制流，使操作系统获得控制权并执行相应处理程序。 3. 中断/异常的来源有什么不同？处理方式是一样的吗？ 中断：来自外部硬件设备，异步发生（如I/O完成）。 异常：由CPU执行指令时同步触发（如除零、页故障、陷入指令）。 处理方式：硬件响应流程类似（通过中断向量表/IDT转移控制权），但软件处理程序根据具体类型不同。 4. 回顾一下：ICS对异常的描述及分类 异常被分类为： 陷入（Trap）：有意安排的（如系统调用），返回到下一条指令。 故障（Fault）：可恢复的错误（如页故障），可能重新执行当前指令。 终止（Abort）：不可恢复的错误，不会返回。 5. 中断/异常处理流程中，哪些工作是硬件负责的？哪些是软件负责的？ 硬件：检测中断/异常、保存部分现场（如PC、PSW）、关中断（部分情况）、通过中断向量表定位处理程序入口。 软件：保存完整现场、分析原因、执行处理功能、恢复现场、返回。 6. 从中断响应到中断处理程序执行结束，计算机系统经过了哪些流程？ 硬件检测中断 → 保存现场 → 查中断向量表 → 转至处理程序 → 软件保存现场 → 执行处理 → 恢复现场 → 返回被中断程序。 7. 操作系统初始化与中断/异常有哪些关联？ 操作系统在初始化阶段会设置中断描述符表（IDT） 和系统调用表，为每个中断/异常向量指定相应的处理程序入口地址。 8. 什么是软件异常？它是如何工作的？ “理解ECF就可以理解软件异常如何工作”。软件异常通常指由程序主动触发的异常（如系统调用），通过执行陷入指令实现，引发CPU异常控制流转移至内核处理程序。 9. X86有哪些控制和状态寄存器？所起的作用是什么？ 程序计数器（PC/EIP）：下一条指令地址。 程序状态字（PSW/EFLAGS）：条件码、系统标志（如IF中断允许位）。 控制寄存器：如CR0-CR4，控制CPU操作模式（如分页、保护模式）。 段寄存器：CS、DS、ES、SS等，用于内存分段管理。 10. X86在Pentium II 300之后提供了SYSENTER/SYSEXIT指令，为什么？与INT 0x80/IRET有什么不同？X86-64提供的系统调用指令是什么？ 原因：SYSENTER/SYSEXIT 提供了更快速的系统调用进入/返回机制，减少了传统 int 0x80/iret 的硬件开销。 不同：SYSENTER/SYSEXIT 不经过中断描述符表（IDT），直接切换到预设的内核栈和代码段，性能更高。 x86-64系统调用指令：syscall / sysret。 11. 关于基于X86体系结构的Linux的系统调用实现： （1）系统调用入口程序system_call()与中断描述符表是什么关系？与系统调用表是什么关系？\n与IDT关系：IDT中第128项（0x80）指向 system_call 作为总入口。 与系统调用表关系：system_call 根据EAX中的系统调用号，查系统调用表（sys_call_table）跳转到具体的内核处理函数（如 sys_write）。 （2）系统调用处理结束后，处理器转去执行哪个模块？\n执行 ret_from_sys_call 例程，进行进程调度、信号处理等后续工作，最后恢复现场返回用户态。 12. 系统调用与函数/过程调用的区别是什么？系统调用与C函数调用的区别？系统调用与API的关系？ 系统调用 vs 函数调用： 系统调用涉及特权级切换（用户态→内核态），使用陷入指令，由操作系统内核执行。 函数调用在同一特权级下执行，使用CALL/RET指令。 系统调用 vs C函数调用：C库函数（如 printf）可能封装系统调用（如 write），但并非所有C函数都触发系统调用。 系统调用 vs API：API是编程接口，系统调用是底层实现。API函数可能通过系统调用实现，也可能完全在用户态完成。 ",
+  "wordCount" : "4432",
+  "inLanguage": "zh-cn",
+  "datePublished": "2026-01-31T00:00:00Z",
+  "dateModified": "2026-01-31T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "All-on"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC2%E7%AB%A0-%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83%E4%B8%8E%E8%BF%90%E8%A1%8C%E6%9C%BA%E5%88%B6/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "All-on's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://localhost:1313/images/site-icon.jpg"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="All-on&#39;s Blog (Alt + H)">
+                <img src="http://localhost:1313/images/site-icon.jpg" alt="" aria-label="logo"
+                    height="35">All-on&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="http://localhost:1313/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/posts/" title="文章">
+                    <span>文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/categories/" title="类别">
+                    <span>类别</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      第2章 运行环境与运行机制
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-31 00:00:00 +0000 UTC'>2026-01-31</span>&nbsp;·&nbsp;<span>9 min</span>&nbsp;·&nbsp;<span>4432 words</span>&nbsp;·&nbsp;<span>All-on</span>
+
+</div>
+  </header> <aside id="toc-container" class="toc-container wide">
+<div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e4%b8%80-%e6%a0%b8%e5%bf%83%e6%80%9d%e6%83%b3%e5%bc%82%e5%b8%b8%e6%8e%a7%e5%88%b6%e6%b5%81" aria-label="一、 核心思想：异常控制流">一、 核心思想：异常控制流</a></li>
+                <li>
+                    <a href="#%e4%ba%8c-%e8%bf%90%e8%a1%8c%e7%8e%af%e5%a2%83%e7%a1%ac%e4%bb%b6%e5%9f%ba%e7%a1%80" aria-label="二、 运行环境（硬件基础）">二、 运行环境（硬件基础）</a><ul>
+                        
+                <li>
+                    <a href="#1-%e4%b8%ad%e5%a4%ae%e5%a4%84%e7%90%86%e5%99%a8" aria-label="1. 中央处理器">1. 中央处理器</a></li>
+                <li>
+                    <a href="#2-%e4%b8%ad%e6%96%ad%e4%b8%8e%e5%bc%82%e5%b8%b8%e6%9c%ba%e5%88%b6" aria-label="2. 中断与异常机制">2. 中断与异常机制</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e4%b8%89-%e8%bf%90%e8%a1%8c%e6%9c%ba%e5%88%b6%e7%b3%bb%e7%bb%9f%e8%b0%83%e7%94%a8" aria-label="三、 运行机制（系统调用）">三、 运行机制（系统调用）</a><ul>
+                        
+                <li>
+                    <a href="#1-%e7%b3%bb%e7%bb%9f%e8%b0%83%e7%94%a8%e6%9c%ba%e5%88%b6%e8%ae%be%e8%ae%a1" aria-label="1. 系统调用机制设计">1. 系统调用机制设计</a></li>
+                <li>
+                    <a href="#2-%e7%b3%bb%e7%bb%9f%e8%b0%83%e7%94%a8%e6%89%a7%e8%a1%8c%e6%b5%81%e7%a8%8b%e4%bb%a5linux-x86%e7%9a%84write%e4%b8%ba%e4%be%8b" aria-label="2. 系统调用执行流程（以Linux x86的write为例）">2. 系统调用执行流程（以Linux x86的<code>write</code>为例）</a></li>
+                <li>
+                    <a href="#3-%e9%87%8d%e8%a6%81%e5%8c%ba%e5%88%ab" aria-label="3. 重要区别">3. 重要区别</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%9b%9b-%e6%9c%ba%e5%88%b6%e4%b8%8e%e7%ad%96%e7%95%a5%e5%88%86%e7%a6%bb" aria-label="四、 机制与策略分离">四、 机制与策略分离</a></li>
+                <li>
+                    <a href="#%e4%ba%94%e4%ba%8b%e4%bb%b6%e7%b1%bb%e5%88%ab" aria-label="五、事件类别">五、事件类别</a><ul>
+                        
+                <li>
+                    <a href="#%e4%b8%ad%e6%96%ad---%e6%9d%a5%e8%87%aacpu%e5%a4%96%e9%83%a8%e5%bc%82%e6%ad%a5" aria-label="中断 - 来自CPU外部，异步">中断 - 来自CPU外部，异步</a><ul>
+                        
+                <li>
+                    <a href="#1-io-%e4%b8%ad%e6%96%ad" aria-label="1. I/O 中断">1. I/O 中断</a></li>
+                <li>
+                    <a href="#2-%e6%97%b6%e9%92%9f%e4%b8%ad%e6%96%ad" aria-label="2. 时钟中断">2. 时钟中断</a></li>
+                <li>
+                    <a href="#3-%e7%a1%ac%e4%bb%b6%e6%95%85%e9%9a%9c" aria-label="3. 硬件故障">3. 硬件故障</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%bc%82%e5%b8%b8---%e6%9d%a5%e8%87%aacpu%e5%86%85%e9%83%a8%e5%90%8c%e6%ad%a5" aria-label="异常 - 来自CPU内部，同步">异常 - 来自CPU内部，同步</a><ul>
+                        
+                <li>
+                    <a href="#1-%e9%99%b7%e5%85%a5" aria-label="1. 陷入">1. 陷入</a></li>
+                <li>
+                    <a href="#2-%e6%95%85%e9%9a%9c" aria-label="2. 故障">2. 故障</a></li>
+                <li>
+                    <a href="#3-%e7%bb%88%e6%ad%a2" aria-label="3. 终止">3. 终止</a></li>
+                <li>
+                    <a href="#%e6%80%bb%e7%bb%93%e8%a1%a8%e6%a0%bc" aria-label="总结表格">总结表格</a></li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%85%ad%e4%b8%80%e4%ba%9b%e9%97%ae%e9%a2%98" aria-label="六、一些问题">六、一些问题</a><ul>
+                        
+                <li>
+                    <a href="#1-%e5%ba%94%e7%94%a8%e7%a8%8b%e5%ba%8f%e6%98%af%e5%a6%82%e4%bd%95%e4%b8%8e%e6%93%8d%e4%bd%9c%e7%b3%bb%e7%bb%9f%e4%ba%a4%e4%ba%92%e7%9a%84" aria-label="1. 应用程序是如何与操作系统交互的？">1. 应用程序是如何与操作系统交互的？</a></li>
+                <li>
+                    <a href="#2-%e6%80%8e%e6%a0%b7%e7%90%86%e8%a7%a3%e6%93%8d%e4%bd%9c%e7%b3%bb%e7%bb%9f%e6%98%af%e7%94%b1%e4%b8%ad%e6%96%ad%e5%bc%82%e5%b8%b8%e4%ba%8b%e4%bb%b6%e9%a9%b1%e5%8a%a8%e7%9a%84" aria-label="2. 怎样理解“操作系统是由中断/异常/事件驱动的”？">2. 怎样理解“操作系统是由中断/异常/事件驱动的”？</a></li>
+                <li>
+                    <a href="#3-%e4%b8%ad%e6%96%ad%e5%bc%82%e5%b8%b8%e7%9a%84%e6%9d%a5%e6%ba%90%e6%9c%89%e4%bb%80%e4%b9%88%e4%b8%8d%e5%90%8c%e5%a4%84%e7%90%86%e6%96%b9%e5%bc%8f%e6%98%af%e4%b8%80%e6%a0%b7%e7%9a%84%e5%90%97" aria-label="3. 中断/异常的来源有什么不同？处理方式是一样的吗？">3. 中断/异常的来源有什么不同？处理方式是一样的吗？</a></li>
+                <li>
+                    <a href="#4-%e5%9b%9e%e9%a1%be%e4%b8%80%e4%b8%8bics%e5%af%b9%e5%bc%82%e5%b8%b8%e7%9a%84%e6%8f%8f%e8%bf%b0%e5%8f%8a%e5%88%86%e7%b1%bb" aria-label="4. 回顾一下：ICS对异常的描述及分类">4. 回顾一下：ICS对异常的描述及分类</a></li>
+                <li>
+                    <a href="#5-%e4%b8%ad%e6%96%ad%e5%bc%82%e5%b8%b8%e5%a4%84%e7%90%86%e6%b5%81%e7%a8%8b%e4%b8%ad%e5%93%aa%e4%ba%9b%e5%b7%a5%e4%bd%9c%e6%98%af%e7%a1%ac%e4%bb%b6%e8%b4%9f%e8%b4%a3%e7%9a%84%e5%93%aa%e4%ba%9b%e6%98%af%e8%bd%af%e4%bb%b6%e8%b4%9f%e8%b4%a3%e7%9a%84" aria-label="5. 中断/异常处理流程中，哪些工作是硬件负责的？哪些是软件负责的？">5. 中断/异常处理流程中，哪些工作是硬件负责的？哪些是软件负责的？</a></li>
+                <li>
+                    <a href="#6-%e4%bb%8e%e4%b8%ad%e6%96%ad%e5%93%8d%e5%ba%94%e5%88%b0%e4%b8%ad%e6%96%ad%e5%a4%84%e7%90%86%e7%a8%8b%e5%ba%8f%e6%89%a7%e8%a1%8c%e7%bb%93%e6%9d%9f%e8%ae%a1%e7%ae%97%e6%9c%ba%e7%b3%bb%e7%bb%9f%e7%bb%8f%e8%bf%87%e4%ba%86%e5%93%aa%e4%ba%9b%e6%b5%81%e7%a8%8b" aria-label="6. 从中断响应到中断处理程序执行结束，计算机系统经过了哪些流程？">6. 从中断响应到中断处理程序执行结束，计算机系统经过了哪些流程？</a></li>
+                <li>
+                    <a href="#7-%e6%93%8d%e4%bd%9c%e7%b3%bb%e7%bb%9f%e5%88%9d%e5%a7%8b%e5%8c%96%e4%b8%8e%e4%b8%ad%e6%96%ad%e5%bc%82%e5%b8%b8%e6%9c%89%e5%93%aa%e4%ba%9b%e5%85%b3%e8%81%94" aria-label="7. 操作系统初始化与中断/异常有哪些关联？">7. 操作系统初始化与中断/异常有哪些关联？</a></li>
+                <li>
+                    <a href="#8-%e4%bb%80%e4%b9%88%e6%98%af%e8%bd%af%e4%bb%b6%e5%bc%82%e5%b8%b8%e5%ae%83%e6%98%af%e5%a6%82%e4%bd%95%e5%b7%a5%e4%bd%9c%e7%9a%84" aria-label="8. 什么是软件异常？它是如何工作的？">8. 什么是软件异常？它是如何工作的？</a></li>
+                <li>
+                    <a href="#9-x86%e6%9c%89%e5%93%aa%e4%ba%9b%e6%8e%a7%e5%88%b6%e5%92%8c%e7%8a%b6%e6%80%81%e5%af%84%e5%ad%98%e5%99%a8%e6%89%80%e8%b5%b7%e7%9a%84%e4%bd%9c%e7%94%a8%e6%98%af%e4%bb%80%e4%b9%88" aria-label="9. X86有哪些控制和状态寄存器？所起的作用是什么？">9. X86有哪些控制和状态寄存器？所起的作用是什么？</a></li>
+                <li>
+                    <a href="#10-x86%e5%9c%a8pentium-ii-300%e4%b9%8b%e5%90%8e%e6%8f%90%e4%be%9b%e4%ba%86sysentersysexit%e6%8c%87%e4%bb%a4%e4%b8%ba%e4%bb%80%e4%b9%88%e4%b8%8eint-0x80iret%e6%9c%89%e4%bb%80%e4%b9%88%e4%b8%8d%e5%90%8cx86-64%e6%8f%90%e4%be%9b%e7%9a%84%e7%b3%bb%e7%bb%9f%e8%b0%83%e7%94%a8%e6%8c%87%e4%bb%a4%e6%98%af%e4%bb%80%e4%b9%88" aria-label="10. X86在Pentium II 300之后提供了SYSENTER/SYSEXIT指令，为什么？与INT 0x80/IRET有什么不同？X86-64提供的系统调用指令是什么？">10. X86在Pentium II 300之后提供了SYSENTER/SYSEXIT指令，为什么？与INT 0x80/IRET有什么不同？X86-64提供的系统调用指令是什么？</a></li>
+                <li>
+                    <a href="#11-%e5%85%b3%e4%ba%8e%e5%9f%ba%e4%ba%8ex86%e4%bd%93%e7%b3%bb%e7%bb%93%e6%9e%84%e7%9a%84linux%e7%9a%84%e7%b3%bb%e7%bb%9f%e8%b0%83%e7%94%a8%e5%ae%9e%e7%8e%b0" aria-label="11. 关于基于X86体系结构的Linux的系统调用实现：">11. 关于基于X86体系结构的Linux的系统调用实现：</a></li>
+                <li>
+                    <a href="#12-%e7%b3%bb%e7%bb%9f%e8%b0%83%e7%94%a8%e4%b8%8e%e5%87%bd%e6%95%b0%e8%bf%87%e7%a8%8b%e8%b0%83%e7%94%a8%e7%9a%84%e5%8c%ba%e5%88%ab%e6%98%af%e4%bb%80%e4%b9%88%e7%b3%bb%e7%bb%9f%e8%b0%83%e7%94%a8%e4%b8%8ec%e5%87%bd%e6%95%b0%e8%b0%83%e7%94%a8%e7%9a%84%e5%8c%ba%e5%88%ab%e7%b3%bb%e7%bb%9f%e8%b0%83%e7%94%a8%e4%b8%8eapi%e7%9a%84%e5%85%b3%e7%b3%bb" aria-label="12. 系统调用与函数/过程调用的区别是什么？系统调用与C函数调用的区别？系统调用与API的关系？">12. 系统调用与函数/过程调用的区别是什么？系统调用与C函数调用的区别？系统调用与API的关系？</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+</aside>
+<script>
+    let activeElement;
+    let elements;
+    window.addEventListener('DOMContentLoaded', function (event) {
+        checkTocPosition();
+
+        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
+         
+         activeElement = elements[0];
+         const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
+         document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+     }, false);
+
+    window.addEventListener('resize', function(event) {
+        checkTocPosition();
+    }, false);
+
+    window.addEventListener('scroll', () => {
+        
+        activeElement = Array.from(elements).find((element) => {
+            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
+                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
+                return element;
+            }
+        }) || activeElement
+
+        elements.forEach(element => {
+             const id = encodeURI(element.getAttribute('id')).toLowerCase();
+             if (element === activeElement){
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+             } else {
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
+             }
+         })
+     }, false);
+
+    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
+    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
+    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
+
+    function checkTocPosition() {
+        const width = document.body.scrollWidth;
+
+        if (width - main - (toc * 2) - (gap * 4) > 0) {
+            document.getElementById("toc-container").classList.add("wide");
+        } else {
+            document.getElementById("toc-container").classList.remove("wide");
+        }
+    }
+
+    function getOffsetTop(element) {
+        if (!element.getClientRects().length) {
+            return 0;
+        }
+        let rect = element.getBoundingClientRect();
+        let win = element.ownerDocument.defaultView;
+        return rect.top + win.pageYOffset;
+    }
+</script>
+
+  <div class="post-content md-content"><h3 id="一-核心思想异常控制流">一、 核心思想：异常控制流<a hidden class="anchor" aria-hidden="true" href="#一-核心思想异常控制流">#</a></h3>
+<p><strong>异常控制流是理解操作系统一切交互和机制的关键。</strong></p>
+<ul>
+<li><strong>理解ECF，就可以理解：</strong>
+<ol>
+<li>应用程序与操作系统的交互。</li>
+<li>并发。</li>
+<li>软件异常的工作原理。</li>
+</ol>
+</li>
+<li><strong>操作系统是由“中断/异常/事件驱动”的</strong>：操作系统本身是一个被动的管理程序，通过响应来自硬件（中断）和软件（异常）的各种事件来获得CPU控制权并开展工作。</li>
+</ul>
+<hr>
+<h3 id="二-运行环境硬件基础">二、 运行环境（硬件基础）<a hidden class="anchor" aria-hidden="true" href="#二-运行环境硬件基础">#</a></h3>
+<p>操作系统运行需要硬件提供以下支持：</p>
+<h4 id="1-中央处理器">1. 中央处理器<a hidden class="anchor" aria-hidden="true" href="#1-中央处理器">#</a></h4>
+<ul>
+<li><strong>两类寄存器：</strong>
+<ul>
+<li><strong>用户可见寄存器</strong>：数据、地址、条件码寄存器。</li>
+<li><strong>控制和状态寄存器</strong>：用于控制处理器。
+<ul>
+<li><strong>程序计数器</strong>：下一条指令地址。</li>
+<li><strong>程序状态字</strong>：包含条件码和系统状态位（如中断允许位）。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>处理器状态/模式</strong>：
+<ul>
+<li><strong>用户态</strong>：运行用户程序，不能执行特权指令。</li>
+<li><strong>内核态</strong>：运行操作系统程序，可以执行一切指令。</li>
+<li><strong>模式转换</strong>：
+<ul>
+<li><strong>用户态 → 内核态</strong>：<strong>唯一途径</strong>是通过<strong>中断/异常/陷入</strong>。</li>
+<li><strong>内核态 → 用户态</strong>：通过设置PSW。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>特权指令</strong>：只能在内核态下由操作系统使用的指令。</li>
+</ul>
+<h4 id="2-中断与异常机制">2. 中断与异常机制<a hidden class="anchor" aria-hidden="true" href="#2-中断与异常机制">#</a></h4>
+<p>这是操作系统的“引擎”，是ECF的具体实现。</p>
+<ul>
+<li>
+<p><strong>中断</strong>：来自CPU外部（如I/O设备、时钟），<strong>异步</strong>发生。总是返回到<strong>下一条</strong>指令。</p>
+</li>
+<li>
+<p><strong>异常</strong>：来自CPU内部（执行指令时），<strong>同步</strong>发生。</p>
+<ul>
+<li><strong>陷入</strong>：有意识安排的，如系统调用。返回到下一条指令。</li>
+<li><strong>故障</strong>：可恢复的错误，如页故障。可能返回到<strong>当前</strong>指令重新执行。</li>
+<li><strong>终止</strong>：不可恢复的错误，不会返回。</li>
+</ul>
+</li>
+<li>
+<p><strong>中断/异常处理流程（软硬协同）：</strong></p>
+<ul>
+<li><strong>硬件负责（响应）</strong>：
+<ol>
+<li>检测中断/异常。</li>
+<li>保存部分现场（PC、PSW）。</li>
+<li>关中断（针对中断门）。</li>
+<li>通过<strong>中断向量号</strong>查询<strong>中断描述符表</strong>，找到处理程序入口地址。</li>
+</ol>
+</li>
+<li><strong>软件负责（处理）</strong>：
+<ol>
+<li>保存完整现场（所有寄存器）。</li>
+<li>分析具体原因并执行处理程序。</li>
+<li>恢复现场。</li>
+<li>执行返回指令（如<code>IRET</code>），回到用户程序。</li>
+</ol>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>关键数据结构</strong>：</p>
+<ul>
+<li><strong>中断描述符表</strong>：存储<strong>中断门/陷阱门</strong>描述符，包含处理程序的段选择符和偏移量。<strong>IDTR</strong>寄存器指向它。</li>
+<li><strong>系统调用</strong>是通过<strong>陷入指令</strong>（如<code>int 0x80</code>）触发的一个<strong>异常</strong>。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="三-运行机制系统调用">三、 运行机制（系统调用）<a hidden class="anchor" aria-hidden="true" href="#三-运行机制系统调用">#</a></h3>
+<p>系统调用是用户程序主动与操作系统交互的唯一接口。</p>
+<h4 id="1-系统调用机制设计">1. 系统调用机制设计<a hidden class="anchor" aria-hidden="true" href="#1-系统调用机制设计">#</a></h4>
+<ol>
+<li><strong>陷入指令</strong>：引发异常，完成用户态到内核态的切换（如<code>int 0x80</code>, <code>syscall</code>）。</li>
+<li><strong>系统调用号</strong>：每个系统功能一个唯一编号，存放在<code>EAX</code>寄存器。</li>
+<li><strong>系统调用表</strong>：存储系统调用服务例程的入口地址，根据调用号索引。</li>
+<li><strong>参数传递</strong>：通过寄存器（如<code>EBX</code>, <code>ECX</code>, <code>EDX</code>）或内存堆栈。</li>
+</ol>
+<h4 id="2-系统调用执行流程以linux-x86的write为例">2. 系统调用执行流程（以Linux x86的<code>write</code>为例）<a hidden class="anchor" aria-hidden="true" href="#2-系统调用执行流程以linux-x86的write为例">#</a></h4>
+<ol>
+<li><strong>用户态</strong>：应用程序调用C库函数<code>write()</code>。</li>
+<li><strong>封装例程</strong>：C库将系统调用号(<code>4</code>)放入<code>EAX</code>，参数放入相应寄存器，执行<code>int 0x80</code>。</li>
+<li><strong>硬件响应</strong>：
+<ul>
+<li>切换栈（用户栈→内核栈）。</li>
+<li>保存现场（用户态<code>SS:ESP</code>, <code>EFLAGS</code>, <code>CS:EIP</code>）。</li>
+<li>通过IDT[128]找到<code>system_call</code>入口。</li>
+</ul>
+</li>
+<li><strong>内核态</strong>：
+<ul>
+<li><code>system_call</code>保存所有寄存器(<code>SAVE_ALL</code>)。</li>
+<li>根据<code>EAX</code>中的调用号，查<code>sys_call_table</code>，调用<code>sys_write()</code>。</li>
+<li><code>sys_write()</code>执行具体操作。</li>
+</ul>
+</li>
+<li><strong>返回</strong>：
+<ul>
+<li>返回值存入<code>EAX</code>。</li>
+<li>跳转到<code>ret_from_sys_call</code>，可能进行调度、信号处理。</li>
+<li><code>RESTORE_ALL</code>恢复现场，执行<code>IRET</code>返回用户态。</li>
+</ul>
+</li>
+</ol>
+<h4 id="3-重要区别">3. 重要区别<a hidden class="anchor" aria-hidden="true" href="#3-重要区别">#</a></h4>
+<ul>
+<li><strong>系统调用 vs 函数调用</strong>：</li>
+</ul>
+<table>
+	<thead>
+			<tr>
+					<th style="text-align: center">特征</th>
+					<th style="text-align: center">系统调用</th>
+					<th style="text-align: center">函数调用</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td style="text-align: center">执行环境</td>
+					<td style="text-align: center">内核态</td>
+					<td style="text-align: center">用户态</td>
+			</tr>
+			<tr>
+					<td style="text-align: center">切换方式</td>
+					<td style="text-align: center">陷入指令 + 软硬件上下文切换</td>
+					<td style="text-align: center"><code>CALL</code> / <code>RET</code> 指令</td>
+			</tr>
+			<tr>
+					<td style="text-align: center">性能开销</td>
+					<td style="text-align: center">大</td>
+					<td style="text-align: center">小</td>
+			</tr>
+	</tbody>
+</table>
+<ul>
+<li><strong>系统调用 vs C库函数 vs API</strong>：
+<ul>
+<li><strong>API</strong>：是一个函数定义，说明如何获得一个给定的服务。</li>
+<li><strong>C库函数</strong>：是API的一种实现，可能完全在用户态，也可能<strong>封装</strong>了系统调用。</li>
+<li><strong>系统调用</strong>：是操作系统内核实现的真正服务例程。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="四-机制与策略分离">四、 机制与策略分离<a hidden class="anchor" aria-hidden="true" href="#四-机制与策略分离">#</a></h3>
+<ul>
+<li><strong>机制</strong>：提供<strong>怎么做</strong>的能力（如：系统调用机制、中断处理机制）。—— 操作系统实现</li>
+<li><strong>策略</strong>：决定<strong>做什么</strong>、<strong>何时做</strong>（如：调度算法、页面置换算法）。—— 可由用户或上层软件决定</li>
+</ul>
+<p>操作系统设计应尽可能将机制与策略分离，以提高灵活性和可扩展性。</p>
+<hr>
+<h3 id="五事件类别">五、事件类别<a hidden class="anchor" aria-hidden="true" href="#五事件类别">#</a></h3>
+<h4 id="中断---来自cpu外部异步">中断 - 来自CPU外部，异步<a hidden class="anchor" aria-hidden="true" href="#中断---来自cpu外部异步">#</a></h4>
+<p>中断主要由硬件设备产生，通常与当前执行的指令没有直接关系。</p>
+<h5 id="1-io-中断">1. I/O 中断<a hidden class="anchor" aria-hidden="true" href="#1-io-中断">#</a></h5>
+<p>由各种输入/输出设备产生，表示一个I/O操作已经完成或设备需要关注。</p>
+<ul>
+<li><strong>磁盘中断</strong>：当磁盘读写操作完成时，磁盘控制器会发出中断，通知CPU数据已准备好或已写入。</li>
+<li><strong>网络中断</strong>：网卡接收到新的数据包，或数据包发送完成时产生。</li>
+<li><strong>键盘/鼠标中断</strong>：用户按下按键或移动鼠标时产生，将输入事件通知给系统。</li>
+<li><strong>声卡中断</strong>：处理音频流的输入或输出。</li>
+<li><strong>USB设备中断</strong>：各种USB设备（如U盘、摄像头）与系统通信时产生。</li>
+</ul>
+<h5 id="2-时钟中断">2. 时钟中断<a hidden class="anchor" aria-hidden="true" href="#2-时钟中断">#</a></h5>
+<p>由系统的定时器硬件周期性产生，与具体的I/O设备无关，是操作系统心跳的来源。</p>
+<ul>
+<li><strong>系统时钟中断</strong>：以固定频率（如100Hz或1000Hz）发生，是操作系统实现<strong>时间片轮转调度</strong>、更新系统时间、计算进程执行时间的基础。</li>
+<li><strong>高精度事件定时器</strong>：为需要更精确时间管理的应用提供支持。</li>
+</ul>
+<h5 id="3-硬件故障">3. 硬件故障<a hidden class="anchor" aria-hidden="true" href="#3-硬件故障">#</a></h5>
+<p>通常指非预期的、严重的硬件问题，虽然罕见，但一旦发生通常难以恢复。</p>
+<ul>
+<li><strong>内存校验错误</strong>：例如ECC内存检测到无法纠正的错误。</li>
+<li><strong>电源故障</strong>：系统检测到电源异常。</li>
+<li><strong>总线错误</strong>：在访问内存或设备时，在系统总线上检测到物理错误。</li>
+</ul>
+<hr>
+<h4 id="异常---来自cpu内部同步">异常 - 来自CPU内部，同步<a hidden class="anchor" aria-hidden="true" href="#异常---来自cpu内部同步">#</a></h4>
+<p>异常是由当前正在执行的指令直接触发的。</p>
+<h5 id="1-陷入">1. 陷入<a hidden class="anchor" aria-hidden="true" href="#1-陷入">#</a></h5>
+<p>这是<strong>有意识、故意</strong>安排的异常，通常用于实现从用户态到内核态的切换。</p>
+<ul>
+<li><strong>系统调用</strong>：这是最典型的陷入。用户程序通过执行一条特殊指令（如 x86 的 <code>int 0x80</code>/<code>syscall</code>，RISC-V 的 <code>ecall</code>）来主动请求操作系统提供服务。</li>
+<li><strong>断点指令</strong>：由调试器故意插入到被调试程序中的指令（如 x86 的 <code>int 3</code>），用于暂停程序执行，进入调试状态。</li>
+<li><strong>调试单步</strong>：通过设置标志位，让CPU每执行一条指令就产生一次异常，方便调试。</li>
+</ul>
+<h5 id="2-故障">2. 故障<a hidden class="anchor" aria-hidden="true" href="#2-故障">#</a></h5>
+<p>这是由指令执行过程中遇到的<strong>可恢复的错误</strong> 触发的。处理程序会修复这个错误，然后重新执行这条指令。</p>
+<ul>
+<li><strong>页错误</strong>：这是最常见、最重要的故障。
+<ul>
+<li><strong>缺页</strong>：要访问的页面不在物理内存中。处理程序会从磁盘调入该页，然后重新执行指令。</li>
+<li><strong>写保护错误</strong>：试图向只读的页面写入数据。</li>
+<li><strong>权限错误</strong>：用户程序试图访问内核空间的页面。</li>
+</ul>
+</li>
+<li><strong>除零错误</strong>：执行除法指令时除数为零。</li>
+<li><strong>浮点异常</strong>：如浮点溢出、下溢等。</li>
+</ul>
+<h5 id="3-终止">3. 终止<a hidden class="anchor" aria-hidden="true" href="#3-终止">#</a></h5>
+<p>这是由<strong>不可恢复的严重硬件错误</strong> 导致的，处理程序通常无法修复，只能终止出错的进程甚至导致系统崩溃。</p>
+<ul>
+<li><strong>机器检查</strong>：检测到致命的硬件问题，如CPU温度过高、严重的硬件损坏。</li>
+<li><strong>奇偶校验错误</strong>：在关键系统总线上检测到数据损坏且无法恢复。</li>
+<li><strong>双重故障</strong>：在尝试处理一个异常时，又发生了另一个异常。</li>
+</ul>
+<hr>
+<h5 id="总结表格">总结表格<a hidden class="anchor" aria-hidden="true" href="#总结表格">#</a></h5>
+<table>
+	<thead>
+			<tr>
+					<th style="text-align: left">类别</th>
+					<th style="text-align: left">原因</th>
+					<th style="text-align: left">异步/同步</th>
+					<th style="text-align: left">返回行为</th>
+					<th style="text-align: left">详细举例</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td style="text-align: left"><strong>中断</strong></td>
+					<td style="text-align: left">来自I/O设备、其他硬件部件</td>
+					<td style="text-align: left"><strong>异步</strong></td>
+					<td style="text-align: left">总是返回到<strong>下一条</strong>指令</td>
+					<td style="text-align: left"><strong>磁盘中断</strong>、<strong>网络中断</strong>、键盘中断、<strong>时钟中断</strong>、硬件故障中断</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>陷入</strong></td>
+					<td style="text-align: left">有意识安排的</td>
+					<td style="text-align: left"><strong>同步</strong></td>
+					<td style="text-align: left">返回到<strong>下一条</strong>指令</td>
+					<td style="text-align: left"><strong>系统调用</strong>、断点调试、单步调试</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>故障</strong></td>
+					<td style="text-align: left">可恢复的错误</td>
+					<td style="text-align: left"><strong>同步</strong></td>
+					<td style="text-align: left">返回到<strong>当前</strong>指令</td>
+					<td style="text-align: left"><strong>页错误</strong>、除零错误、段保护异常</td>
+			</tr>
+			<tr>
+					<td style="text-align: left"><strong>终止</strong></td>
+					<td style="text-align: left">不可恢复的错误</td>
+					<td style="text-align: left"><strong>同步</strong></td>
+					<td style="text-align: left"><strong>不会返回</strong></td>
+					<td style="text-align: left">硬件故障、机器检查、双重故障</td>
+			</tr>
+	</tbody>
+</table>
+<hr>
+<h3 id="六一些问题">六、一些问题<a hidden class="anchor" aria-hidden="true" href="#六一些问题">#</a></h3>
+<h4 id="1-应用程序是如何与操作系统交互的">1. 应用程序是如何与操作系统交互的？<a hidden class="anchor" aria-hidden="true" href="#1-应用程序是如何与操作系统交互的">#</a></h4>
+<ul>
+<li>通过<strong>系统调用</strong>（System Call），这是操作系统提供给编程人员的唯一接口。应用程序通过执行特殊的<strong>陷入指令</strong>（如 <code>int 0x80</code>、<code>syscall</code>）触发异常，从而从用户态切换到内核态，由操作系统内核代为执行请求的服务。</li>
+</ul>
+<h4 id="2-怎样理解操作系统是由中断异常事件驱动的">2. 怎样理解“操作系统是由中断/异常/事件驱动的”？<a hidden class="anchor" aria-hidden="true" href="#2-怎样理解操作系统是由中断异常事件驱动的">#</a></h4>
+<ul>
+<li>操作系统本身通常不主动执行，而是<strong>被动响应</strong>来自硬件（如I/O设备中断、时钟中断）或软件（如系统调用、页故障）的事件。这些事件改变了CPU的控制流，使操作系统获得控制权并执行相应处理程序。</li>
+</ul>
+<h4 id="3-中断异常的来源有什么不同处理方式是一样的吗">3. 中断/异常的来源有什么不同？处理方式是一样的吗？<a hidden class="anchor" aria-hidden="true" href="#3-中断异常的来源有什么不同处理方式是一样的吗">#</a></h4>
+<ul>
+<li><strong>中断</strong>：来自外部硬件设备，<strong>异步</strong>发生（如I/O完成）。</li>
+<li><strong>异常</strong>：由CPU执行指令时<strong>同步</strong>触发（如除零、页故障、陷入指令）。</li>
+<li><strong>处理方式</strong>：硬件响应流程类似（通过中断向量表/IDT转移控制权），但软件处理程序根据具体类型不同。</li>
+</ul>
+<h4 id="4-回顾一下ics对异常的描述及分类">4. 回顾一下：ICS对异常的描述及分类<a hidden class="anchor" aria-hidden="true" href="#4-回顾一下ics对异常的描述及分类">#</a></h4>
+<ul>
+<li>异常被分类为：
+<ul>
+<li><strong>陷入（Trap）</strong>：有意安排的（如系统调用），返回到下一条指令。</li>
+<li><strong>故障（Fault）</strong>：可恢复的错误（如页故障），可能重新执行当前指令。</li>
+<li><strong>终止（Abort）</strong>：不可恢复的错误，不会返回。</li>
+</ul>
+</li>
+</ul>
+<h4 id="5-中断异常处理流程中哪些工作是硬件负责的哪些是软件负责的">5. 中断/异常处理流程中，哪些工作是硬件负责的？哪些是软件负责的？<a hidden class="anchor" aria-hidden="true" href="#5-中断异常处理流程中哪些工作是硬件负责的哪些是软件负责的">#</a></h4>
+<ul>
+<li><strong>硬件</strong>：检测中断/异常、保存部分现场（如PC、PSW）、关中断（部分情况）、通过中断向量表定位处理程序入口。</li>
+<li><strong>软件</strong>：保存完整现场、分析原因、执行处理功能、恢复现场、返回。</li>
+</ul>
+<h4 id="6-从中断响应到中断处理程序执行结束计算机系统经过了哪些流程">6. 从中断响应到中断处理程序执行结束，计算机系统经过了哪些流程？<a hidden class="anchor" aria-hidden="true" href="#6-从中断响应到中断处理程序执行结束计算机系统经过了哪些流程">#</a></h4>
+<ul>
+<li>硬件检测中断 → 保存现场 → 查中断向量表 → 转至处理程序 → 软件保存现场 → 执行处理 → 恢复现场 → 返回被中断程序。</li>
+</ul>
+<h4 id="7-操作系统初始化与中断异常有哪些关联">7. 操作系统初始化与中断/异常有哪些关联？<a hidden class="anchor" aria-hidden="true" href="#7-操作系统初始化与中断异常有哪些关联">#</a></h4>
+<ul>
+<li>操作系统在初始化阶段会设置<strong>中断描述符表（IDT）</strong> 和<strong>系统调用表</strong>，为每个中断/异常向量指定相应的处理程序入口地址。</li>
+</ul>
+<h4 id="8-什么是软件异常它是如何工作的">8. 什么是软件异常？它是如何工作的？<a hidden class="anchor" aria-hidden="true" href="#8-什么是软件异常它是如何工作的">#</a></h4>
+<ul>
+<li>“理解ECF就可以理解软件异常如何工作”。软件异常通常指由程序主动触发的异常（如系统调用），通过执行陷入指令实现，引发CPU异常控制流转移至内核处理程序。</li>
+</ul>
+<h4 id="9-x86有哪些控制和状态寄存器所起的作用是什么">9. X86有哪些控制和状态寄存器？所起的作用是什么？<a hidden class="anchor" aria-hidden="true" href="#9-x86有哪些控制和状态寄存器所起的作用是什么">#</a></h4>
+<ul>
+<li><strong>程序计数器（PC/EIP）</strong>：下一条指令地址。</li>
+<li><strong>程序状态字（PSW/EFLAGS）</strong>：条件码、系统标志（如IF中断允许位）。</li>
+<li><strong>控制寄存器</strong>：如CR0-CR4，控制CPU操作模式（如分页、保护模式）。</li>
+<li><strong>段寄存器</strong>：CS、DS、ES、SS等，用于内存分段管理。</li>
+</ul>
+<h4 id="10-x86在pentium-ii-300之后提供了sysentersysexit指令为什么与int-0x80iret有什么不同x86-64提供的系统调用指令是什么">10. X86在Pentium II 300之后提供了SYSENTER/SYSEXIT指令，为什么？与INT 0x80/IRET有什么不同？X86-64提供的系统调用指令是什么？<a hidden class="anchor" aria-hidden="true" href="#10-x86在pentium-ii-300之后提供了sysentersysexit指令为什么与int-0x80iret有什么不同x86-64提供的系统调用指令是什么">#</a></h4>
+<ul>
+<li><strong>原因</strong>：<code>SYSENTER/SYSEXIT</code> 提供了<strong>更快速</strong>的系统调用进入/返回机制，减少了传统 <code>int 0x80/iret</code> 的硬件开销。</li>
+<li><strong>不同</strong>：<code>SYSENTER/SYSEXIT</code> 不经过中断描述符表（IDT），直接切换到预设的内核栈和代码段，性能更高。</li>
+<li><strong>x86-64系统调用指令</strong>：<code>syscall</code> / <code>sysret</code>。</li>
+</ul>
+<h4 id="11-关于基于x86体系结构的linux的系统调用实现">11. 关于基于X86体系结构的Linux的系统调用实现：<a hidden class="anchor" aria-hidden="true" href="#11-关于基于x86体系结构的linux的系统调用实现">#</a></h4>
+<ul>
+<li>
+<p><strong>（1）系统调用入口程序system_call()与中断描述符表是什么关系？与系统调用表是什么关系？</strong></p>
+<ul>
+<li><strong>与IDT关系</strong>：IDT中第128项（0x80）指向 <code>system_call</code> 作为总入口。</li>
+<li><strong>与系统调用表关系</strong>：<code>system_call</code> 根据EAX中的系统调用号，查<strong>系统调用表</strong>（<code>sys_call_table</code>）跳转到具体的内核处理函数（如 <code>sys_write</code>）。</li>
+</ul>
+</li>
+<li>
+<p><strong>（2）系统调用处理结束后，处理器转去执行哪个模块？</strong></p>
+<ul>
+<li>执行 <code>ret_from_sys_call</code> 例程，进行进程调度、信号处理等后续工作，最后恢复现场返回用户态。</li>
+</ul>
+</li>
+</ul>
+<h4 id="12-系统调用与函数过程调用的区别是什么系统调用与c函数调用的区别系统调用与api的关系">12. 系统调用与函数/过程调用的区别是什么？系统调用与C函数调用的区别？系统调用与API的关系？<a hidden class="anchor" aria-hidden="true" href="#12-系统调用与函数过程调用的区别是什么系统调用与c函数调用的区别系统调用与api的关系">#</a></h4>
+<ul>
+<li><strong>系统调用 vs 函数调用</strong>：
+<ul>
+<li>系统调用涉及<strong>特权级切换</strong>（用户态→内核态），使用<strong>陷入指令</strong>，由操作系统内核执行。</li>
+<li>函数调用在同一特权级下执行，使用CALL/RET指令。</li>
+</ul>
+</li>
+<li><strong>系统调用 vs C函数调用</strong>：C库函数（如 <code>printf</code>）可能封装系统调用（如 <code>write</code>），但并非所有C函数都触发系统调用。</li>
+<li><strong>系统调用 vs API</strong>：API是编程接口，系统调用是底层实现。API函数可能通过系统调用实现，也可能完全在用户态完成。</li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC1%E7%AB%A0-%E6%A6%82%E8%BF%B0/">
+    <span class="title">« </span>
+    <span>第1章 概述</span>
+  </a>
+  <a class="next" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC3%E7%AB%A0-%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/">
+    <span class="title"> »</span>
+    <span>第3章 进程与线程模型</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">All-on&#39;s Blog</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

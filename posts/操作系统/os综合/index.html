@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>OS综合 | All-on&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="一、open()函数
+1、关键数据结构关系图
+ 1进程A
+ 2├── task_struct
+ 3│   ├── files_struct (用户打开文件表)
+ 4│   │   ├── fd[0] → 指向系统打开文件表的某个file结构体
+ 5│   │   ├── fd[1] → 指向另一个file结构体
+ 6│   │   └── fd[2] → ...
+ 7│   └── mm_struct (内存管理)
+ 8│       └── vm_area_struct (内存映射区域)
+ 9└── 系统调用 open()/mmap() 等
+10
+11系统内核
+12├── file_table (系统打开文件表)
+13│   ├── file结构体1
+14│   ├── file结构体2
+15│   └── ...
+16└── inode缓存
+
+2、open() 系统调用的完整过程
+当调用 open(&quot;file.txt&quot;, O_RDONLY) 时：">
+<meta name="author" content="All-on">
+<link rel="canonical" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/os%E7%BB%BC%E5%90%88/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.4f7a70c28f67918d50819ad94370c535de5b6f0d6c6299d10477402264aea5fd.css" integrity="sha256-T3pwwo9nkY1QgZrZQ3DFNd5bbw1sYpnRBHdAImSupf0=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/images/site-icon.jpg">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh-cn" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/os%E7%BB%BC%E5%90%88/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="stylesheet" href="https://cdn.staticfile.org/lxgw-wenkai-screen-webfont/1.6.0/lxgwwenkaiscreen.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous"><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body, {
+        delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '$', right: '$', display: false}
+        ],
+        throwOnError: false,
+        ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+        ignoredClasses: ['entry-content']
+    });"></script>
+<meta property="og:url" content="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/os%E7%BB%BC%E5%90%88/">
+  <meta property="og:site_name" content="All-on&#39;s Blog">
+  <meta property="og:title" content="OS综合">
+  <meta property="og:description" content="一、open()函数 1、关键数据结构关系图 1进程A 2├── task_struct 3│ ├── files_struct (用户打开文件表) 4│ │ ├── fd[0] → 指向系统打开文件表的某个file结构体 5│ │ ├── fd[1] → 指向另一个file结构体 6│ │ └── fd[2] → ... 7│ └── mm_struct (内存管理) 8│ └── vm_area_struct (内存映射区域) 9└── 系统调用 open()/mmap() 等 10 11系统内核 12├── file_table (系统打开文件表) 13│ ├── file结构体1 14│ ├── file结构体2 15│ └── ... 16└── inode缓存 2、open() 系统调用的完整过程 当调用 open(&#34;file.txt&#34;, O_RDONLY) 时：">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-01-31T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-01-31T00:00:00+00:00">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="OS综合">
+  <meta name="twitter:description" content="一、open()函数 1、关键数据结构关系图 1进程A 2├── task_struct 3│ ├── files_struct (用户打开文件表) 4│ │ ├── fd[0] → 指向系统打开文件表的某个file结构体 5│ │ ├── fd[1] → 指向另一个file结构体 6│ │ └── fd[2] → ... 7│ └── mm_struct (内存管理) 8│ └── vm_area_struct (内存映射区域) 9└── 系统调用 open()/mmap() 等 10 11系统内核 12├── file_table (系统打开文件表) 13│ ├── file结构体1 14│ ├── file结构体2 15│ └── ... 16└── inode缓存 2、open() 系统调用的完整过程 当调用 open(&#34;file.txt&#34;, O_RDONLY) 时：">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "http://localhost:1313/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "OS综合",
+      "item": "http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/os%E7%BB%BC%E5%90%88/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "OS综合",
+  "name": "OS综合",
+  "description": "一、open()函数 1、关键数据结构关系图 1进程A 2├── task_struct 3│ ├── files_struct (用户打开文件表) 4│ │ ├── fd[0] → 指向系统打开文件表的某个file结构体 5│ │ ├── fd[1] → 指向另一个file结构体 6│ │ └── fd[2] → ... 7│ └── mm_struct (内存管理) 8│ └── vm_area_struct (内存映射区域) 9└── 系统调用 open()/mmap() 等 10 11系统内核 12├── file_table (系统打开文件表) 13│ ├── file结构体1 14│ ├── file结构体2 15│ └── ... 16└── inode缓存 2、open() 系统调用的完整过程 当调用 open(\u0026quot;file.txt\u0026quot;, O_RDONLY) 时：\n",
+  "keywords": [
+    
+  ],
+  "articleBody": "一、open()函数 1、关键数据结构关系图 1进程A 2├── task_struct 3│ ├── files_struct (用户打开文件表) 4│ │ ├── fd[0] → 指向系统打开文件表的某个file结构体 5│ │ ├── fd[1] → 指向另一个file结构体 6│ │ └── fd[2] → ... 7│ └── mm_struct (内存管理) 8│ └── vm_area_struct (内存映射区域) 9└── 系统调用 open()/mmap() 等 10 11系统内核 12├── file_table (系统打开文件表) 13│ ├── file结构体1 14│ ├── file结构体2 15│ └── ... 16└── inode缓存 2、open() 系统调用的完整过程 当调用 open(\"file.txt\", O_RDONLY) 时：\n步骤1：路径解析与inode查找 内核解析路径名，查找文件 找到文件的 inode（存储在磁盘上，可能缓存于内存） 验证权限（是否可读等） 步骤2：创建系统打开文件表条目 这里不太准确。应该说，在[[第7章 文件系统1#2. 系统打开文件表|系统打开文件表]]中查找。如果没有对应的系统打开文件表条目，则创建并将引用计数置为1；否则将引用计数加1。\n1// 内核内部创建file结构体（系统打开文件表条目） 2struct file *filp = kmem_cache_alloc(filp_cachep, GFP_KERNEL); 3filp-\u003ef_path.dentry = dentry; // 目录项 4filp-\u003ef_op = inode-\u003ei_fop; // 文件操作函数表 5filp-\u003ef_mode = mode; // 打开模式 6filp-\u003ef_pos = 0; // 文件指针位置 7filp-\u003ef_count = 1; // 引用计数 这是系统级别的数据结构，记录文件打开状态，所有进程共享\n步骤3：更新用户打开文件表 1// 每个进程有自己的files_struct（用户打开文件表） 2// 在其中找到一个空闲的文件描述符fd 3int fd = get_unused_fd_flags(flags); 4 5// 将用户打开文件表fd数组的第fd项指向系统打开文件表条目 6current-\u003efiles-\u003efd_array[fd] = filp; 这里的 current-\u003efiles 就是当前进程的 files_struct\n步骤4：返回fd 返回给用户的fd不是指针，而是一个数组索引 例如返回3，意味着用户打开文件表的第3项指向了系统打开文件表的一个条目 3、用户打开文件表的真实结构 在Linux中：\n1struct files_struct { 2 atomic_t count; // 引用计数 3 struct fdtable *fdt; // 指向文件描述符表 4 ... 5}; 6 7struct fdtable { 8 unsigned int max_fds; // 最大文件描述符数 9 struct file **fd; // 这是一个指针数组，fd[0], fd[1], ... 10}; 关键理解：\nfd[3] 是一个 指针，指向系统打开文件表中的 struct file 用户得到的 fd=3 是这个数组的索引 用户后续使用fd时，内核通过 current-\u003efiles-\u003efdt-\u003efd[fd] 找到对应的 struct file 4、完整流程图 1open(\"file.txt\") 调用过程： 2用户态 → 内核态 3 ↓ 4路径解析 → 找到inode 5 ↓ 6创建file结构体（系统打开文件表） 7 ↓ 8在进程的files_struct中找到空闲fd索引 9 ↓ 10设置 files-\u003efdt-\u003efd[fd] = \u0026file 11 ↓ 12返回fd（整数索引）给用户 13 ↓ 14用户保存fd，后续用于read/write/mmap等 二、read函数 1、整体流程概览 1用户态进程调用read(fd, buf, count) 2 ↓ 3触发int 0x80系统调用（陷入内核） 4 ↓ 5系统调用总入口system_call() 6 ↓ 7调用sys_read()系统调用处理函数 8 ↓ 9根据fd找到file结构体（系统打开文件表） 10 ↓ 11根据file结构体找到inode（目录项） 12 ↓ 13计算要读取的逻辑块号（文件偏移→逻辑块） 14 ↓ 15通过inode索引结构找到物理块号（逻辑块→物理块） 16 ↓ 17检查页缓存，如果命中则直接复制数据 18 ↓ 19如果未命中，向块设备层提交I/O请求 20 ↓ 21磁盘读取数据到页缓存，触发中断 22 ↓ 23中断处理完成，数据就绪 24 ↓ 25将数据从页缓存复制到用户缓冲区buf 26 ↓ 27返回用户态，继续执行 2、详细步骤分解 阶段1：用户态触发系统调用 从这一步开始，一直到阶段，都是具体的[[第2章 运行环境与运行机制#2. 系统调用执行流程（以Linux x86的write为例）|系统调用]]的流程。\n1// 用户程序 2char buffer[1024]; 3int fd = open(\"file.txt\", O_RDONLY); 4read(fd, buffer, 1024); // 触发系统调用 C库包装函数执行：\n1; C库read包装函数的汇编实现 2mov eax, 3 ; 系统调用号3 = sys_read 3mov ebx, [esp+4] ; fd参数 4mov ecx, [esp+8] ; buffer地址 5mov edx, [esp+12] ; count大小 6int 0x80 ; 触发软中断，进入内核态 7ret 阶段2：硬件中断处理（CPU级） CPU响应int 0x80指令：\n从用户态（R3）切换到内核态（R0） 保存用户态上下文到内核栈： 1压栈顺序（从高地址到低地址）： 2SS（用户栈段寄存器） 3ESP（用户栈指针） 4EFLAGS（标志寄存器） 5CS（代码段寄存器） 6EIP（下一条指令地址，即返回地址） 查找中断描述符表（IDT）：\n1// IDT第0x80项在Linux初始化时设置 2IDT[0x80] = { 3 .offset = system_call, // 处理函数入口 4 .segment_selector = KERNEL_CS, 5 .type = TRAP_GATE, 6 .DPL = 3 // 用户态可调用 7}; 切换到内核栈：\n从TSS（任务状态段）加载内核栈指针 当前进程的task_struct-\u003ethread.esp0指向内核栈顶 阶段3：系统调用总入口system_call 1// arch/x86/kernel/entry_32.S 2ENTRY(system_call) 3 // 1. 保存完整上下文 4 SAVE_ALL // 将所有通用寄存器压栈 5 6 // 2. 参数检查 7 cmpl $(NR_syscalls), %eax 8 jae badsys 9 10 // 3. 调用sys_read处理函数 11 call *sys_call_table(,%eax,4) // eax=3 → sys_read 12 13 // 4. 保存返回值 14 movl %eax, PT_EAX(%esp) 15 16 // 5. 检查是否需要调度 17 jmp ret_from_sys_call 此时栈结构（从栈底到栈顶）：\n1SS（用户栈段） 2ESP（用户栈指针） 3EFLAGS 4CS 5EIP \u003c-- 中断硬件压栈 6EAX 7ECX 8EDX 9EBX 10ESP（原始） 11EBP 12ESI 13EDI \u003c-- SAVE_ALL压栈 14GS 15FS 16ES 17DS 阶段4：sys_read系统调用处理 1// fs/read_write.c 2asmlinkage ssize_t sys_read(unsigned int fd, char __user *buf, size_t count) 3{ 4 struct file *file; 5 ssize_t ret = -EBADF; 6 7 // 1. 根据fd找到file结构体 8 file = fget(fd); // 实际代码：current-\u003efiles-\u003efd_array[fd] 9 if (!file) 10 goto out; 11 12 // 2. 检查权限 13 if (!(file-\u003ef_mode \u0026 FMODE_READ)) 14 goto out_fput; 15 16 // 3. 调用虚拟文件系统（VFS）的读操作 17 ret = vfs_read(file, buf, count, \u0026file-\u003ef_pos); 18 19out_fput: 20 fput(file); // 减少引用计数 21out: 22 return ret; 23} 关键步骤解析：\nfget(fd)：从当前进程的files_struct中通过fd索引找到file结构体指针 1// 简化逻辑 2struct file *fget(unsigned int fd) 3{ 4 struct files_struct *files = current-\u003efiles; 5 struct file *file; 6 7 rcu_read_lock(); 8 file = files-\u003efd_array[fd]; // 这就是fd的真实含义：数组索引 9 if (file) 10 atomic_inc(\u0026file-\u003ef_count); // 增加引用计数 11 rcu_read_unlock(); 12 return file; 13} 阶段5：VFS层处理vfs_read [[第8章 文件系统2#2. 虚拟文件系统（VFS）|VFS]]负责提供统一接口。\n1// fs/read_write.c 2ssize_t vfs_read(struct file *file, char __user *buf, size_t count, loff_t *pos) 3{ 4 ssize_t ret; 5 6 // 1. 检查边界（文件大小、权限等） 7 if (!(file-\u003ef_mode \u0026 FMODE_READ)) 8 return -EBADF; 9 10 // 2. 调用文件系统的具体读方法 11 ret = file-\u003ef_op-\u003eread(file, buf, count, pos); 12 13 return ret; 14} file结构体关键字段：\n1struct file { 2 struct path f_path; // 包含dentry（目录项） 3 struct inode *f_inode; // 文件的inode 4 const struct file_operations *f_op; // 操作函数表 5 loff_t f_pos; // 当前文件位置 6 unsigned int f_flags; // 打开标志 7 fmode_t f_mode; // 文件模式 8 // ... 9}; 阶段6：文件系统具体实现（以ext4为例） 以[[第8章 文件系统2#ext家族简介|日志文件系统ext]]作为例子。\n1// fs/ext4/file.c 2const struct file_operations ext4_file_operations = { 3 .read = do_sync_read, // 实际指向generic_file_aio_read 4 .write = do_sync_write, 5 // ... 6}; 读取流程：\n1// mm/filemap.c 2ssize_t generic_file_aio_read(struct kiocb *iocb, const struct iovec *iov, 3 unsigned long nr_segs, loff_t pos) 4{ 5 // 1. 计算要读取的逻辑块 6 // 文件偏移量pos → 逻辑块号 7 // 例如：块大小4KB，pos=8192 → 逻辑块号=2 8 9 // 2. 检查页缓存 10 page = find_get_page(mapping, index); 11 if (page) { 12 // 缓存命中，直接复制数据 13 copy_page_to_user(page, buf); 14 return count; 15 } 16 17 // 3. 缓存未命中，执行磁盘I/O 18 ret = filemap_fault(vma, vmf); // 触发缺页异常 19 // 实际会调用ext4_readpage 20} 阶段7：地址转换（逻辑块→物理块） 1// fs/ext4/inode.c 2static int ext4_readpage(struct file *file, struct page *page) 3{ 4 struct inode *inode = page-\u003emapping-\u003ehost; 5 6 // 1. 通过inode找到文件的索引结构（ext4是extent树） 7 // 逻辑块号 → 物理块号 8 9 // 2. 向块设备层提交I/O请求 10 submit_bio(READ, bio); 11} ext4 extent树查找：\n1inode → i_data[]数组（前12项直接索引） 2 第13项：一级间接索引 3 第14项：二级间接索引 4 第15项：三级间接索引 5 6例如要读取逻辑块号1000： 7- 前12个直接块：0-11 8- 一级间接：12-267（假设每块256个指针） 9- 1000在哪个范围？计算得出在一级间接索引中 阶段8：块设备层和磁盘I/O 1// block层提交I/O 2struct bio *bio = bio_alloc(GFP_KERNEL, 1); 3bio-\u003ebi_sector = phys_block * (block_size/512); // 转换为扇区号 4bio-\u003ebi_bdev = bdev; 5bio-\u003ebi_end_io = end_bio_io_read; 6submit_bio(READ, bio); 物理块号→磁盘物理地址：\n1物理块号 → (柱面号，磁头号，扇区号) 2或者LBA（逻辑块地址）→ 磁盘控制器处理 阶段9：磁盘中断处理 磁盘输入完毕后，会通知CPU输入完毕，于是触发[[第2章 运行环境与运行机制#1. I/O 中断|磁盘中断]]\n1// 磁盘读取完成后触发中断 2void disk_interrupt_handler(int irq, void *dev_id) 3{ 4 // 1. 确认I/O完成 5 // 2. 将数据从磁盘控制器缓冲区复制到页缓存 6 // 3. 标记页为最新 7 SetPageUptodate(page); 8 // 4. 唤醒等待该页的进程 9 wake_up_page(page); 10} 阶段10：数据复制到用户空间 1// 页缓存数据就绪后，复制到用户缓冲区 2copy_page_to_iter(page, offset_in_page, bytes, \u0026iter); 3 4// 实际是copy_to_user 5if (copy_to_user(buf, page_address(page) + offset, count)) { 6 return -EFAULT; 7} 注意：copy_to_user需要：\n检查用户地址buf是否在用户空间 检查是否有写权限 执行实际的复制 阶段11：返回用户态 1// 系统调用返回路径 2ret_from_sys_call: 3 // 1. 检查是否需要信号处理 4 // 2. 检查是否需要调度 5 // 3. 恢复寄存器 6 RESTORE_ALL 7 8 // 4. 执行iret返回用户态 9 iret iret操作：\n1从内核栈弹出： 2EIP → 返回用户态下一条指令 3CS → 用户代码段 4EFLAGS → 恢复标志位 5ESP → 用户栈指针 6SS → 用户栈段 3、完整数据流图 1用户空间 内核空间 硬件 2 │ │ │ 3 │ read(fd,buf,count) │ │ 4 ├───────────────────►│ │ 5 │ │ 1. 系统调用入口 │ 6 │ │ system_call() │ 7 │ │ │ 8 │ │ 2. 根据fd找到file结构体 │ 9 │ │ fget(fd) │ 10 │ │ │ 11 │ │ 3. 找到inode │ 12 │ │ file→f_inode │ 13 │ │ │ 14 │ │ 4. 逻辑块计算 │ 15 │ │ pos→逻辑块号 │ 16 │ │ │ 17 │ │ 5. 物理块查找 │ 18 │ │ 逻辑块→物理块 │ 19 │ │ │ 20 │ │ 6. 检查页缓存 │ 21 │ │ 命中？─是─►复制数据 │ 22 │ │ 否 │ 23 │ │ 7. 提交磁盘I/O │ 24 │ │ submit_bio() │ 25 │ │ ├───────►磁盘 26 │ │ │ 读取 27 │ │ │◄────── 28 │ │ 8. 中断处理 │ 29 │ │ disk_interrupt() │ 30 │ │ │ 31 │ │ 9. 数据→页缓存 │ 32 │ │ │ 33 │ │10. 页缓存→用户缓冲区 │ 34 │ │ copy_to_user() │ 35 │ │ │ 36 │ │11. 更新文件位置 │ 37 │ │ file→f_pos += count │ 38 │ │ │ 39 │◄───────────────────┤12. 返回用户态 │ 40 │ 返回值/错误码 │ iret │ 41 │ │ │ 4、关键数据结构关联 1进程task_struct 2 ├── mm_struct (内存管理) 3 │ └── vm_area_struct (内存映射区域) 4 └── files_struct (用户打开文件表) 5 ├── fd_array[0] → file结构体1 6 ├── fd_array[1] → file结构体2 7 └── fd_array[fd] → 目标file结构体 8 ├── f_inode → inode (磁盘文件元数据) 9 ├── f_op → 文件操作函数表 10 └── f_pos → 当前文件位置 11 12inode 13 ├── i_size (文件大小) 14 ├── i_blocks (块数) 15 ├── i_data[] (ext4索引结构) 16 └── i_mapping → address_space (页缓存) 17 └── page_tree (页缓存树) 三、helloworld程序 1、HelloWorld程序执行全流程 阶段1：编写和编译（用户态） 1// hello.c 2#include 3int main() { 4 printf(\"Hello, World!\\n\"); 5 return 0; 6} 用户操作：\n1gcc -o hello hello.c # 编译 编译过程：\n1hello.c → 预处理器 → 编译器 → 汇编器 → 链接器 → hello可执行文件 产物分析：\nWindows：hello.exe（PE格式，Portable Executable） Linux：hello（ELF格式，Executable and Linkable Format） 关键点：\n用户态：gcc运行在用户态 涉及系统调用：文件读写（读取.c文件，写入可执行文件） 硬件参与：CPU执行gcc进程，磁盘I/O 阶段2：Shell解析命令（用户态→内核态） 用户输入：\n1./hello Shell内部处理流程：\n1// shell伪代码 2int main() { 3 while(1) { 4 read_command(); // 读取用户输入\"./hello\" 5 6 // 检查不是内置命令，需要创建新进程 7 pid = fork(); // 系统调用，进入内核态 8 if (pid == 0) { 9 // 子进程 10 execve(\"./hello\", argv, envp); // 系统调用，进入内核态 11 } else { 12 // 父进程（shell） 13 waitpid(pid); // 系统调用，等待子进程结束 14 } 15 } 16} 状态切换：\n1用户态(shell) → fork() → 内核态 → 返回用户态(子shell) 阶段3：fork()创建子进程（内核态） 内核执行：\n1// kernel/fork.c 2SYSCALL_DEFINE0(fork) 3{ 4 // 1. 分配新的task_struct（PCB） 5 struct task_struct *p = copy_process(CLONE_FORK, ...); 6 7 // 2. 复制父进程地址空间（写时复制） 8 copy_mm(clone_flags, p); 9 10 // 3. 设置子进程返回值为0 11 p-\u003ethread.sp = (unsigned long) childregs; 12 childregs-\u003eax = 0; // 子进程fork()返回0 13 14 // 4. 加入就绪队列 15 wake_up_new_task(p); 16 17 return p-\u003epid; // 父进程返回子进程PID 18} 硬件参与：\nMMU：设置页表，实现[[第3章 进程与线程模型#3. 写时复制（Copy-On-Write, COW）|写时复制（COW）]]机制 CPU：保存/恢复上下文 阶段4：execve()加载可执行文件（内核态） 子进程调用：\n1execve(\"./hello\", NULL, NULL); 内核加载器工作：\n1// fs/exec.c 2int do_execve(struct linux_binprm *bprm) 3{ 4 // 1. 检查文件格式（ELF识别） 5 retval = search_binary_handler(bprm); 6 7 // 2. 设置新的地址空间 8 setup_new_exec(bprm); 9 10 // 3. 加载程序段 11 load_elf_binary(bprm); 12 13 // 4. 设置入口点 14 start_thread(regs, elf_entry, bprm-\u003ep); 15} ELF文件映射：\n1可执行文件hello的ELF结构： 2┌─────────────────┐ 3│ ELF Header │ ← 入口地址(_start: 0x400000) 4├─────────────────┤ 5│ .text段 │ ← 代码（main, printf等） 6├─────────────────┤ 7│ .data段 │ ← 初始化数据 8├─────────────────┤ 9│ .rodata段 │ ← \"Hello, World!\\n\"字符串 10├─────────────────┤ 11│ .bss段 │ ← 未初始化数据 12├─────────────────┤ 13│ 符号表等 │ 14└─────────────────┘ 15 16映射到进程地址空间： 170x400000: _start (程序入口) 180x400100: main函数 190x400200: printf调用点 20... 关键机制：\n内存映射：将ELF文件的各个段映射到进程虚拟地址空间 延迟加载：建立虚拟内存到文件的映射，但实际数据在访问时才加载 页表设置：建立虚拟地址→物理地址的映射关系 阶段5：进程调度执行（内核态→用户态） 涉及到进程调度。调度器选择该进程运行：\n1// kernel/sched/core.c 2__schedule() { 3 // 1. 选择下一个要运行的进程 4 next = pick_next_task(rq); 5 6 // 2. 上下文切换 7 context_switch(rq, prev, next); 8} [[第4章 进程与线程调度#4. 上下文切换|上下文切换]]硬件操作：\n1; 保存当前进程寄存器 2push %eax 3push %ebx 4... 5; 切换页表（CR3寄存器） 6movl next-\u003emm-\u003epgd, %eax 7movl %eax, %cr3 8; 恢复新进程寄存器 9pop %ebx 10pop %eax 进程开始执行：\nCPU从_start开始执行（用户态） 运行时库初始化（__libc_start_main） 调用main()函数 阶段6：执行printf（用户态→内核态→用户态） printf调用链：\n1// 用户态调用链 2printf(\"Hello, World!\\n\") 3 ↓ 4vfprintf() // 格式化处理 5 ↓ 6write() // C库函数 7 ↓ 8syscall // 系统调用指令（Linux: int 0x80 或 syscall） 系统调用过程：\n1; printf最终生成的汇编 2mov $1, %eax ; 系统调用号1 = sys_write 3mov $1, %ebx ; 文件描述符1 = stdout 4mov $string, %ecx ; 字符串地址 5mov $14, %edx ; 字符串长度 6int $0x80 ; 触发软中断 内核处理write系统调用：\n1// fs/read_write.c 2SYSCALL_DEFINE3(write, unsigned int, fd, const char __user *, buf, size_t, count) 3{ 4 // 1. 参数检查 5 // 2. 调用虚拟文件系统 6 ret = vfs_write(file, buf, count, \u0026pos); 7 8 // 3. 如果是终端输出，调用终端驱动程序 9 if (file-\u003ef_op-\u003ewrite) 10 ret = file-\u003ef_op-\u003ewrite(file, buf, count, \u0026pos); 11} 终端驱动输出：\n1内核态 → 终端驱动 → 控制台设备 → 显示硬件 阶段7：缺页异常处理（关键机制） 当程序首次访问代码/数据时，触发缺页异常，涉及[[第6章 虚拟存储管理#九、内存映射文件（Memory-Mapped Files）|内存映射]]：\n1// 第一次执行main()函数时 2// CPU尝试读取0x400100地址的指令 3// 但该页尚未加载到物理内存 4 5// 触发缺页异常 6void do_page_fault(struct pt_regs *regs, unsigned long error_code) 7{ 8 // 1. 查找vm_area_struct 9 vma = find_vma(mm, address); 10 11 // 2. 如果是文件映射（如ELF代码段） 12 if (vma-\u003evm_file) { 13 // 从磁盘读取对应页 14 filemap_fault(vma, \u0026vmf); 15 } 16 17 // 3. 建立页表映射 18 handle_mm_fault(vma, address, flags); 19} 数据流：\n1CPU访问虚拟地址0x400100 2 ↓ 触发缺页异常（硬件自动） 3 ↓ CPU切换到内核态 4 ↓ 内核异常处理程序 5 ↓ 从磁盘hello文件读取.text段对应页 6 ↓ 加载到物理内存 7 ↓ 更新页表 8 ↓ 返回用户态，重新执行指令 阶段8：程序结束（用户态→内核态） main返回后：\n1return 0; // main返回 2 ↓ 3exit()被运行时库调用 4 ↓ 5_exit()系统调用 内核清理进程：\n1// kernel/exit.c 2void do_exit(long code) 3{ 4 // 1. 释放资源 5 exit_mm(current); // 释放内存 6 exit_files(current); // 关闭文件 7 exit_fs(current); // 文件系统相关 8 9 // 2. 通知父进程 10 exit_notify(current); 11 12 // 3. 调度其他进程 13 schedule(); 14} 父进程（shell）接收通知：\n1// shell调用了waitpid() 2// 内核唤醒shell，传递退出状态 2、完整流程图（含状态切换） 1用户空间 内核空间 硬件 2 │ │ │ 3 │ shell: ./hello │ │ 4 ├────fork()───────────────► │ │ 5 │ │ 1. 复制task_struct │ 6 │ │ 2. 设置COW映射 │ MMU设置页表 7 │ │ 3. 返回 │ 8 │◄────pid──────────────────-┤ │ 9 │ │ │ 10 │ 子进程: execve(\"./hello\") │ │ 11 ├────execve()──────────────►│ │ 12 │ │ 1. 解析ELF格式 │ 13 │ │ 2. 建立虚拟内存映射 │ 建立页表项 14 │ │ 3. 设置入口点_start │ 15 │ │ 4. 返回 │ 16 │◄───────(不返回)──────────--┤ │ 17 │ │ │ 18 │ 进程调度 │ │ 19 │ 被调度到CPU │ │ CPU执行 20 │ │ │ 21 │ 执行_start → main │ │ 22 │ 首次访问代码页 │ │ 23 ├────缺页异常───────────────►│ │ 24 │ │ 1. 分配物理页 │ 25 │ │ 2. 从磁盘读入代码 │ 磁盘I/O 26 │ │ 3. 更新页表 │ TLB刷新 27 │ │ 4. 返回 │ 28 │◄──────────────────────────┤ │ 29 │ │ │ 30 │ printf(\"Hello...\") │ │ 31 │ 格式化字符串 │ │ 32 ├────write系统调用─────────► │ │ 33 │ │ 1. 参数检查 │ 34 │ │ 2. 调用终端驱动 │ 35 │ │ 3. 控制台输出 │ 显示硬件 36 │ │ 4. 返回 │ 37 │◄────返回值───────────────--┤ │ 38 │ │ │ 39 │ return 0 → exit() │ │ 40 ├────_exit()───────────────►│ │ 41 │ │ 1. 释放资源 │ 42 │ │ 2. 通知父进程 │ 43 │ │ 3. 进程终止 │ 44 │ │ │ 45 │ shell被唤醒 │ │ 46 │ 显示提示符 │ │ 47 │ │ │ 3、各步骤状态/硬件/软件总结 步骤 主要操作者 CPU状态 关键硬件 关键软件 1. 编译 gcc编译器 用户态 CPU、磁盘 gcc、链接器 2. Shell解析 bash shell 用户态 CPU shell程序 3. fork() 内核 内核态 MMU、CPU 进程管理子系统 4. execve() 内核加载器 内核态 MMU ELF加载器、内存管理 5. 调度执行 内核调度器 内核态 CPU、时钟 调度器 6. 缺页异常 内存管理 内核态 MMU、磁盘 缺页处理程序、文件系统 7. printf输出 终端驱动 用户态→内核态 CPU、显示设备 C库、VFS、终端驱动 8. 进程退出 内核 内核态 CPU 进程管理、资源管理 4、核心要点总结 可执行文件格式：\nLinux：ELF格式，包含代码段(.text)、数据段(.data/.rodata/.bss)等 Windows：PE格式，结构类似但细节不同 进程创建双重机制：\nfork()：复制当前进程（写时复制优化） execve()：用新程序替换当前进程 内存映射延迟加载：\nELF文件被映射到虚拟地址空间 实际代码/数据在首次访问时通过缺页异常加载 系统调用桥梁作用：\n用户态程序通过系统调用请求内核服务 内核通过中断/异常机制接管CPU 硬件软件协同：\n硬件：CPU状态切换、MMU地址转换、中断控制器 软件：内核处理异常、驱动控制设备 这个简单的Hello, World!程序背后，是操作系统几乎所有核心子系统（进程、内存、文件、设备）的协同工作，完美体现了计算机系统的复杂性和精妙设计。\n",
+  "wordCount" : "7481",
+  "inLanguage": "zh-cn",
+  "datePublished": "2026-01-31T00:00:00Z",
+  "dateModified": "2026-01-31T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "All-on"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/os%E7%BB%BC%E5%90%88/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "All-on's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://localhost:1313/images/site-icon.jpg"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="All-on&#39;s Blog (Alt + H)">
+                <img src="http://localhost:1313/images/site-icon.jpg" alt="" aria-label="logo"
+                    height="35">All-on&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="http://localhost:1313/search/" title="搜索 (Alt &#43; /)" accesskey=/>
+                    <span>搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/posts/" title="文章">
+                    <span>文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/categories/" title="类别">
+                    <span>类别</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/archives/" title="归档">
+                    <span>归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/about/" title="关于">
+                    <span>关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/posts/">Posts</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
+    <h1 class="post-title entry-hint-parent">
+      OS综合
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-01-31 00:00:00 +0000 UTC'>2026-01-31</span>&nbsp;·&nbsp;<span>15 min</span>&nbsp;·&nbsp;<span>7481 words</span>&nbsp;·&nbsp;<span>All-on</span>
+
+</div>
+  </header> <aside id="toc-container" class="toc-container wide">
+<div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e4%b8%80open%e5%87%bd%e6%95%b0" aria-label="一、open()函数">一、<code>open()</code>函数</a><ul>
+                        
+                <li>
+                    <a href="#1%e5%85%b3%e9%94%ae%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84%e5%85%b3%e7%b3%bb%e5%9b%be" aria-label="1、关键数据结构关系图">1、关键数据结构关系图</a></li>
+                <li>
+                    <a href="#2open-%e7%b3%bb%e7%bb%9f%e8%b0%83%e7%94%a8%e7%9a%84%e5%ae%8c%e6%95%b4%e8%bf%87%e7%a8%8b" aria-label="2、open() 系统调用的完整过程">2、<code>open()</code> 系统调用的完整过程</a><ul>
+                        
+                <li>
+                    <a href="#%e6%ad%a5%e9%aa%a41%e8%b7%af%e5%be%84%e8%a7%a3%e6%9e%90%e4%b8%8einode%e6%9f%a5%e6%89%be" aria-label="步骤1：路径解析与inode查找">步骤1：路径解析与inode查找</a></li>
+                <li>
+                    <a href="#%e6%ad%a5%e9%aa%a42%e5%88%9b%e5%bb%ba%e7%b3%bb%e7%bb%9f%e6%89%93%e5%bc%80%e6%96%87%e4%bb%b6%e8%a1%a8%e6%9d%a1%e7%9b%ae" aria-label="步骤2：创建系统打开文件表条目">步骤2：创建系统打开文件表条目</a></li>
+                <li>
+                    <a href="#%e6%ad%a5%e9%aa%a43%e6%9b%b4%e6%96%b0%e7%94%a8%e6%88%b7%e6%89%93%e5%bc%80%e6%96%87%e4%bb%b6%e8%a1%a8" aria-label="步骤3：更新用户打开文件表">步骤3：更新用户打开文件表</a></li>
+                <li>
+                    <a href="#%e6%ad%a5%e9%aa%a44%e8%bf%94%e5%9b%9efd" aria-label="步骤4：返回fd">步骤4：返回fd</a></li></ul>
+                </li>
+                <li>
+                    <a href="#3%e7%94%a8%e6%88%b7%e6%89%93%e5%bc%80%e6%96%87%e4%bb%b6%e8%a1%a8%e7%9a%84%e7%9c%9f%e5%ae%9e%e7%bb%93%e6%9e%84" aria-label="3、用户打开文件表的真实结构">3、用户打开文件表的真实结构</a></li>
+                <li>
+                    <a href="#4%e5%ae%8c%e6%95%b4%e6%b5%81%e7%a8%8b%e5%9b%be" aria-label="4、完整流程图">4、完整流程图</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e4%ba%8cread%e5%87%bd%e6%95%b0" aria-label="二、read函数">二、<code>read</code>函数</a><ul>
+                        
+                <li>
+                    <a href="#1%e6%95%b4%e4%bd%93%e6%b5%81%e7%a8%8b%e6%a6%82%e8%a7%88" aria-label="1、整体流程概览">1、整体流程概览</a></li>
+                <li>
+                    <a href="#2%e8%af%a6%e7%bb%86%e6%ad%a5%e9%aa%a4%e5%88%86%e8%a7%a3" aria-label="2、详细步骤分解">2、详细步骤分解</a><ul>
+                        
+                <li>
+                    <a href="#%e9%98%b6%e6%ae%b51%e7%94%a8%e6%88%b7%e6%80%81%e8%a7%a6%e5%8f%91%e7%b3%bb%e7%bb%9f%e8%b0%83%e7%94%a8" aria-label="阶段1：用户态触发系统调用">阶段1：用户态触发系统调用</a></li>
+                <li>
+                    <a href="#%e9%98%b6%e6%ae%b52%e7%a1%ac%e4%bb%b6%e4%b8%ad%e6%96%ad%e5%a4%84%e7%90%86cpu%e7%ba%a7" aria-label="阶段2：硬件中断处理（CPU级）">阶段2：硬件中断处理（CPU级）</a></li>
+                <li>
+                    <a href="#%e9%98%b6%e6%ae%b53%e7%b3%bb%e7%bb%9f%e8%b0%83%e7%94%a8%e6%80%bb%e5%85%a5%e5%8f%a3system_call" aria-label="阶段3：系统调用总入口system_call">阶段3：系统调用总入口system_call</a></li>
+                <li>
+                    <a href="#%e9%98%b6%e6%ae%b54sys_read%e7%b3%bb%e7%bb%9f%e8%b0%83%e7%94%a8%e5%a4%84%e7%90%86" aria-label="阶段4：sys_read系统调用处理">阶段4：sys_read系统调用处理</a></li>
+                <li>
+                    <a href="#%e9%98%b6%e6%ae%b55vfs%e5%b1%82%e5%a4%84%e7%90%86vfs_read" aria-label="阶段5：VFS层处理vfs_read">阶段5：VFS层处理vfs_read</a></li>
+                <li>
+                    <a href="#%e9%98%b6%e6%ae%b56%e6%96%87%e4%bb%b6%e7%b3%bb%e7%bb%9f%e5%85%b7%e4%bd%93%e5%ae%9e%e7%8e%b0%e4%bb%a5ext4%e4%b8%ba%e4%be%8b" aria-label="阶段6：文件系统具体实现（以ext4为例）">阶段6：文件系统具体实现（以ext4为例）</a></li>
+                <li>
+                    <a href="#%e9%98%b6%e6%ae%b57%e5%9c%b0%e5%9d%80%e8%bd%ac%e6%8d%a2%e9%80%bb%e8%be%91%e5%9d%97%e7%89%a9%e7%90%86%e5%9d%97" aria-label="阶段7：地址转换（逻辑块→物理块）">阶段7：地址转换（逻辑块→物理块）</a></li>
+                <li>
+                    <a href="#%e9%98%b6%e6%ae%b58%e5%9d%97%e8%ae%be%e5%a4%87%e5%b1%82%e5%92%8c%e7%a3%81%e7%9b%98io" aria-label="阶段8：块设备层和磁盘I/O">阶段8：块设备层和磁盘I/O</a></li>
+                <li>
+                    <a href="#%e9%98%b6%e6%ae%b59%e7%a3%81%e7%9b%98%e4%b8%ad%e6%96%ad%e5%a4%84%e7%90%86" aria-label="阶段9：磁盘中断处理">阶段9：磁盘中断处理</a></li>
+                <li>
+                    <a href="#%e9%98%b6%e6%ae%b510%e6%95%b0%e6%8d%ae%e5%a4%8d%e5%88%b6%e5%88%b0%e7%94%a8%e6%88%b7%e7%a9%ba%e9%97%b4" aria-label="阶段10：数据复制到用户空间">阶段10：数据复制到用户空间</a></li>
+                <li>
+                    <a href="#%e9%98%b6%e6%ae%b511%e8%bf%94%e5%9b%9e%e7%94%a8%e6%88%b7%e6%80%81" aria-label="阶段11：返回用户态">阶段11：返回用户态</a></li></ul>
+                </li>
+                <li>
+                    <a href="#3%e5%ae%8c%e6%95%b4%e6%95%b0%e6%8d%ae%e6%b5%81%e5%9b%be" aria-label="3、完整数据流图">3、完整数据流图</a></li>
+                <li>
+                    <a href="#4%e5%85%b3%e9%94%ae%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84%e5%85%b3%e8%81%94" aria-label="4、关键数据结构关联">4、关键数据结构关联</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e4%b8%89helloworld%e7%a8%8b%e5%ba%8f" aria-label="三、helloworld程序">三、<code>helloworld</code>程序</a><ul>
+                        
+                <li>
+                    <a href="#1helloworld%e7%a8%8b%e5%ba%8f%e6%89%a7%e8%a1%8c%e5%85%a8%e6%b5%81%e7%a8%8b" aria-label="1、HelloWorld程序执行全流程">1、HelloWorld程序执行全流程</a><ul>
+                        
+                <li>
+                    <a href="#%e9%98%b6%e6%ae%b51%e7%bc%96%e5%86%99%e5%92%8c%e7%bc%96%e8%af%91%e7%94%a8%e6%88%b7%e6%80%81" aria-label="阶段1：编写和编译（用户态）">阶段1：编写和编译（用户态）</a></li>
+                <li>
+                    <a href="#%e9%98%b6%e6%ae%b52shell%e8%a7%a3%e6%9e%90%e5%91%bd%e4%bb%a4%e7%94%a8%e6%88%b7%e6%80%81%e5%86%85%e6%a0%b8%e6%80%81" aria-label="阶段2：Shell解析命令（用户态→内核态）">阶段2：Shell解析命令（用户态→内核态）</a></li>
+                <li>
+                    <a href="#%e9%98%b6%e6%ae%b53fork%e5%88%9b%e5%bb%ba%e5%ad%90%e8%bf%9b%e7%a8%8b%e5%86%85%e6%a0%b8%e6%80%81" aria-label="阶段3：fork()创建子进程（内核态）">阶段3：fork()创建子进程（内核态）</a></li>
+                <li>
+                    <a href="#%e9%98%b6%e6%ae%b54execve%e5%8a%a0%e8%bd%bd%e5%8f%af%e6%89%a7%e8%a1%8c%e6%96%87%e4%bb%b6%e5%86%85%e6%a0%b8%e6%80%81" aria-label="阶段4：execve()加载可执行文件（内核态）">阶段4：execve()加载可执行文件（内核态）</a></li>
+                <li>
+                    <a href="#%e9%98%b6%e6%ae%b55%e8%bf%9b%e7%a8%8b%e8%b0%83%e5%ba%a6%e6%89%a7%e8%a1%8c%e5%86%85%e6%a0%b8%e6%80%81%e7%94%a8%e6%88%b7%e6%80%81" aria-label="阶段5：进程调度执行（内核态→用户态）">阶段5：进程调度执行（内核态→用户态）</a></li>
+                <li>
+                    <a href="#%e9%98%b6%e6%ae%b56%e6%89%a7%e8%a1%8cprintf%e7%94%a8%e6%88%b7%e6%80%81%e5%86%85%e6%a0%b8%e6%80%81%e7%94%a8%e6%88%b7%e6%80%81" aria-label="阶段6：执行printf（用户态→内核态→用户态）">阶段6：执行printf（用户态→内核态→用户态）</a></li>
+                <li>
+                    <a href="#%e9%98%b6%e6%ae%b57%e7%bc%ba%e9%a1%b5%e5%bc%82%e5%b8%b8%e5%a4%84%e7%90%86%e5%85%b3%e9%94%ae%e6%9c%ba%e5%88%b6" aria-label="阶段7：缺页异常处理（关键机制）">阶段7：缺页异常处理（关键机制）</a></li>
+                <li>
+                    <a href="#%e9%98%b6%e6%ae%b58%e7%a8%8b%e5%ba%8f%e7%bb%93%e6%9d%9f%e7%94%a8%e6%88%b7%e6%80%81%e5%86%85%e6%a0%b8%e6%80%81" aria-label="阶段8：程序结束（用户态→内核态）">阶段8：程序结束（用户态→内核态）</a></li></ul>
+                </li>
+                <li>
+                    <a href="#2%e5%ae%8c%e6%95%b4%e6%b5%81%e7%a8%8b%e5%9b%be%e5%90%ab%e7%8a%b6%e6%80%81%e5%88%87%e6%8d%a2" aria-label="2、完整流程图（含状态切换）">2、完整流程图（含状态切换）</a></li>
+                <li>
+                    <a href="#3%e5%90%84%e6%ad%a5%e9%aa%a4%e7%8a%b6%e6%80%81%e7%a1%ac%e4%bb%b6%e8%bd%af%e4%bb%b6%e6%80%bb%e7%bb%93" aria-label="3、各步骤状态/硬件/软件总结">3、各步骤状态/硬件/软件总结</a></li>
+                <li>
+                    <a href="#4%e6%a0%b8%e5%bf%83%e8%a6%81%e7%82%b9%e6%80%bb%e7%bb%93" aria-label="4、核心要点总结">4、核心要点总结</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+</aside>
+<script>
+    let activeElement;
+    let elements;
+    window.addEventListener('DOMContentLoaded', function (event) {
+        checkTocPosition();
+
+        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
+         
+         activeElement = elements[0];
+         const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
+         document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+     }, false);
+
+    window.addEventListener('resize', function(event) {
+        checkTocPosition();
+    }, false);
+
+    window.addEventListener('scroll', () => {
+        
+        activeElement = Array.from(elements).find((element) => {
+            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
+                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
+                return element;
+            }
+        }) || activeElement
+
+        elements.forEach(element => {
+             const id = encodeURI(element.getAttribute('id')).toLowerCase();
+             if (element === activeElement){
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+             } else {
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
+             }
+         })
+     }, false);
+
+    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
+    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
+    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
+
+    function checkTocPosition() {
+        const width = document.body.scrollWidth;
+
+        if (width - main - (toc * 2) - (gap * 4) > 0) {
+            document.getElementById("toc-container").classList.add("wide");
+        } else {
+            document.getElementById("toc-container").classList.remove("wide");
+        }
+    }
+
+    function getOffsetTop(element) {
+        if (!element.getClientRects().length) {
+            return 0;
+        }
+        let rect = element.getBoundingClientRect();
+        let win = element.ownerDocument.defaultView;
+        return rect.top + win.pageYOffset;
+    }
+</script>
+
+  <div class="post-content md-content"><h1 id="一open函数">一、<code>open()</code>函数<a hidden class="anchor" aria-hidden="true" href="#一open函数">#</a></h1>
+<h2 id="1关键数据结构关系图">1、关键数据结构关系图<a hidden class="anchor" aria-hidden="true" href="#1关键数据结构关系图">#</a></h2>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln"> 1</span><span class="cl">进程A
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">├── task_struct
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">│   ├── files_struct (用户打开文件表)
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">│   │   ├── fd[0] → 指向系统打开文件表的某个file结构体
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">│   │   ├── fd[1] → 指向另一个file结构体
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">│   │   └── fd[2] → ...
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">│   └── mm_struct (内存管理)
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">│       └── vm_area_struct (内存映射区域)
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">└── 系统调用 open()/mmap() 等
+</span></span><span class="line"><span class="ln">10</span><span class="cl">
+</span></span><span class="line"><span class="ln">11</span><span class="cl">系统内核
+</span></span><span class="line"><span class="ln">12</span><span class="cl">├── file_table (系统打开文件表)
+</span></span><span class="line"><span class="ln">13</span><span class="cl">│   ├── file结构体1
+</span></span><span class="line"><span class="ln">14</span><span class="cl">│   ├── file结构体2
+</span></span><span class="line"><span class="ln">15</span><span class="cl">│   └── ...
+</span></span><span class="line"><span class="ln">16</span><span class="cl">└── inode缓存
+</span></span></code></pre></div><hr>
+<h2 id="2open-系统调用的完整过程">2、<code>open()</code> 系统调用的完整过程<a hidden class="anchor" aria-hidden="true" href="#2open-系统调用的完整过程">#</a></h2>
+<p>当调用 <code>open(&quot;file.txt&quot;, O_RDONLY)</code> 时：</p>
+<h3 id="步骤1路径解析与inode查找">步骤1：路径解析与inode查找<a hidden class="anchor" aria-hidden="true" href="#步骤1路径解析与inode查找">#</a></h3>
+<ul>
+<li>内核解析路径名，查找文件</li>
+<li>找到文件的 <strong>inode</strong>（存储在磁盘上，可能缓存于内存）</li>
+<li>验证权限（是否可读等）</li>
+</ul>
+<h3 id="步骤2创建系统打开文件表条目">步骤2：创建系统打开文件表条目<a hidden class="anchor" aria-hidden="true" href="#步骤2创建系统打开文件表条目">#</a></h3>
+<p>这里不太准确。应该说，在[[第7章 文件系统1#2. 系统打开文件表|系统打开文件表]]中查找。如果没有对应的系统打开文件表条目，则创建并将引用计数置为1；否则将引用计数加1。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln">1</span><span class="cl"><span class="c1">// 内核内部创建file结构体（系统打开文件表条目）
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">filp</span> <span class="o">=</span> <span class="nf">kmem_cache_alloc</span><span class="p">(</span><span class="n">filp_cachep</span><span class="p">,</span> <span class="n">GFP_KERNEL</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="n">filp</span><span class="o">-&gt;</span><span class="n">f_path</span><span class="p">.</span><span class="n">dentry</span> <span class="o">=</span> <span class="n">dentry</span><span class="p">;</span>  <span class="c1">// 目录项
+</span></span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="n">filp</span><span class="o">-&gt;</span><span class="n">f_op</span> <span class="o">=</span> <span class="n">inode</span><span class="o">-&gt;</span><span class="n">i_fop</span><span class="p">;</span>     <span class="c1">// 文件操作函数表
+</span></span></span><span class="line"><span class="ln">5</span><span class="cl"><span class="n">filp</span><span class="o">-&gt;</span><span class="n">f_mode</span> <span class="o">=</span> <span class="n">mode</span><span class="p">;</span>           <span class="c1">// 打开模式
+</span></span></span><span class="line"><span class="ln">6</span><span class="cl"><span class="n">filp</span><span class="o">-&gt;</span><span class="n">f_pos</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>               <span class="c1">// 文件指针位置
+</span></span></span><span class="line"><span class="ln">7</span><span class="cl"><span class="n">filp</span><span class="o">-&gt;</span><span class="n">f_count</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>             <span class="c1">// 引用计数
+</span></span></span></code></pre></div><p><strong>这是系统级别</strong>的数据结构，记录文件打开状态，<strong>所有进程共享</strong></p>
+<h3 id="步骤3更新用户打开文件表">步骤3：更新用户打开文件表<a hidden class="anchor" aria-hidden="true" href="#步骤3更新用户打开文件表">#</a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln">1</span><span class="cl"><span class="c1">// 每个进程有自己的files_struct（用户打开文件表）
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="c1">// 在其中找到一个空闲的文件描述符fd
+</span></span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="kt">int</span> <span class="n">fd</span> <span class="o">=</span> <span class="nf">get_unused_fd_flags</span><span class="p">(</span><span class="n">flags</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl">
+</span></span><span class="line"><span class="ln">5</span><span class="cl"><span class="c1">// 将用户打开文件表fd数组的第fd项指向系统打开文件表条目
+</span></span></span><span class="line"><span class="ln">6</span><span class="cl"><span class="n">current</span><span class="o">-&gt;</span><span class="n">files</span><span class="o">-&gt;</span><span class="n">fd_array</span><span class="p">[</span><span class="n">fd</span><span class="p">]</span> <span class="o">=</span> <span class="n">filp</span><span class="p">;</span>
+</span></span></code></pre></div><p>这里的 <code>current-&gt;files</code> 就是当前进程的 <code>files_struct</code></p>
+<h3 id="步骤4返回fd">步骤4：返回fd<a hidden class="anchor" aria-hidden="true" href="#步骤4返回fd">#</a></h3>
+<ul>
+<li>返回给用户的fd<strong>不是指针</strong>，而是一个<strong>数组索引</strong></li>
+<li>例如返回3，意味着用户打开文件表的第3项指向了系统打开文件表的一个条目</li>
+</ul>
+<hr>
+<h2 id="3用户打开文件表的真实结构">3、用户打开文件表的真实结构<a hidden class="anchor" aria-hidden="true" href="#3用户打开文件表的真实结构">#</a></h2>
+<p>在Linux中：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="k">struct</span> <span class="n">files_struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">    <span class="kt">atomic_t</span> <span class="n">count</span><span class="p">;</span>              <span class="c1">// 引用计数
+</span></span></span><span class="line"><span class="ln"> 3</span><span class="cl">    <span class="k">struct</span> <span class="n">fdtable</span> <span class="o">*</span><span class="n">fdt</span><span class="p">;</span>         <span class="c1">// 指向文件描述符表
+</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl">    <span class="p">...</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="k">struct</span> <span class="n">fdtable</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">max_fds</span><span class="p">;</span>        <span class="c1">// 最大文件描述符数
+</span></span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="k">struct</span> <span class="n">file</span> <span class="o">**</span><span class="n">fd</span><span class="p">;</span>            <span class="c1">// 这是一个指针数组，fd[0], fd[1], ...
+</span></span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="p">};</span>
+</span></span></code></pre></div><p><strong>关键理解</strong>：</p>
+<ul>
+<li><code>fd[3]</code> 是一个 <strong>指针</strong>，指向系统打开文件表中的 <code>struct file</code></li>
+<li>用户得到的 <strong>fd=3</strong> 是这个数组的<strong>索引</strong></li>
+<li>用户后续使用fd时，内核通过 <code>current-&gt;files-&gt;fdt-&gt;fd[fd]</code> 找到对应的 <code>struct file</code></li>
+</ul>
+<hr>
+<h2 id="4完整流程图">4、完整流程图<a hidden class="anchor" aria-hidden="true" href="#4完整流程图">#</a></h2>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln"> 1</span><span class="cl">open(&#34;file.txt&#34;) 调用过程：
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">用户态 → 内核态
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">    ↓
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">路径解析 → 找到inode
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">    ↓
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">创建file结构体（系统打开文件表）
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">    ↓
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">在进程的files_struct中找到空闲fd索引
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    ↓
+</span></span><span class="line"><span class="ln">10</span><span class="cl">设置 files-&gt;fdt-&gt;fd[fd] = &amp;file
+</span></span><span class="line"><span class="ln">11</span><span class="cl">    ↓
+</span></span><span class="line"><span class="ln">12</span><span class="cl">返回fd（整数索引）给用户
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    ↓
+</span></span><span class="line"><span class="ln">14</span><span class="cl">用户保存fd，后续用于read/write/mmap等
+</span></span></code></pre></div><hr>
+<h1 id="二read函数">二、<code>read</code>函数<a hidden class="anchor" aria-hidden="true" href="#二read函数">#</a></h1>
+<h2 id="1整体流程概览">1、整体流程概览<a hidden class="anchor" aria-hidden="true" href="#1整体流程概览">#</a></h2>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln"> 1</span><span class="cl">用户态进程调用read(fd, buf, count)
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">    ↓
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">触发int 0x80系统调用（陷入内核）
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">    ↓
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">系统调用总入口system_call()
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">    ↓
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">调用sys_read()系统调用处理函数
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    ↓
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">根据fd找到file结构体（系统打开文件表）
+</span></span><span class="line"><span class="ln">10</span><span class="cl">    ↓
+</span></span><span class="line"><span class="ln">11</span><span class="cl">根据file结构体找到inode（目录项）
+</span></span><span class="line"><span class="ln">12</span><span class="cl">    ↓
+</span></span><span class="line"><span class="ln">13</span><span class="cl">计算要读取的逻辑块号（文件偏移→逻辑块）
+</span></span><span class="line"><span class="ln">14</span><span class="cl">    ↓
+</span></span><span class="line"><span class="ln">15</span><span class="cl">通过inode索引结构找到物理块号（逻辑块→物理块）
+</span></span><span class="line"><span class="ln">16</span><span class="cl">    ↓
+</span></span><span class="line"><span class="ln">17</span><span class="cl">检查页缓存，如果命中则直接复制数据
+</span></span><span class="line"><span class="ln">18</span><span class="cl">    ↓
+</span></span><span class="line"><span class="ln">19</span><span class="cl">如果未命中，向块设备层提交I/O请求
+</span></span><span class="line"><span class="ln">20</span><span class="cl">    ↓
+</span></span><span class="line"><span class="ln">21</span><span class="cl">磁盘读取数据到页缓存，触发中断
+</span></span><span class="line"><span class="ln">22</span><span class="cl">    ↓
+</span></span><span class="line"><span class="ln">23</span><span class="cl">中断处理完成，数据就绪
+</span></span><span class="line"><span class="ln">24</span><span class="cl">    ↓
+</span></span><span class="line"><span class="ln">25</span><span class="cl">将数据从页缓存复制到用户缓冲区buf
+</span></span><span class="line"><span class="ln">26</span><span class="cl">    ↓
+</span></span><span class="line"><span class="ln">27</span><span class="cl">返回用户态，继续执行
+</span></span></code></pre></div><hr>
+<h2 id="2详细步骤分解">2、详细步骤分解<a hidden class="anchor" aria-hidden="true" href="#2详细步骤分解">#</a></h2>
+<h3 id="阶段1用户态触发系统调用">阶段1：用户态触发系统调用<a hidden class="anchor" aria-hidden="true" href="#阶段1用户态触发系统调用">#</a></h3>
+<p>从这一步开始，一直到阶段，都是具体的[[第2章 运行环境与运行机制#2. 系统调用执行流程（以Linux x86的<code>write</code>为例）|系统调用]]的流程。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln">1</span><span class="cl"><span class="c1">// 用户程序
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="kt">char</span> <span class="n">buffer</span><span class="p">[</span><span class="mi">1024</span><span class="p">];</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="kt">int</span> <span class="n">fd</span> <span class="o">=</span> <span class="nf">open</span><span class="p">(</span><span class="s">&#34;file.txt&#34;</span><span class="p">,</span> <span class="n">O_RDONLY</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="nf">read</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">buffer</span><span class="p">,</span> <span class="mi">1024</span><span class="p">);</span>  <span class="c1">// 触发系统调用
+</span></span></span></code></pre></div><p><strong>C库包装函数执行</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="line"><span class="ln">1</span><span class="cl"><span class="c1">; C库read包装函数的汇编实现
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="nf">mov</span> <span class="no">eax</span><span class="p">,</span> <span class="mi">3</span>        <span class="c1">; 系统调用号3 = sys_read
+</span></span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="nf">mov</span> <span class="no">ebx</span><span class="p">,</span> <span class="p">[</span><span class="no">esp</span><span class="err">+</span><span class="mi">4</span><span class="p">]</span>  <span class="c1">; fd参数
+</span></span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="nf">mov</span> <span class="no">ecx</span><span class="p">,</span> <span class="p">[</span><span class="no">esp</span><span class="err">+</span><span class="mi">8</span><span class="p">]</span>  <span class="c1">; buffer地址
+</span></span></span><span class="line"><span class="ln">5</span><span class="cl"><span class="nf">mov</span> <span class="no">edx</span><span class="p">,</span> <span class="p">[</span><span class="no">esp</span><span class="err">+</span><span class="mi">12</span><span class="p">]</span> <span class="c1">; count大小
+</span></span></span><span class="line"><span class="ln">6</span><span class="cl"><span class="nf">int</span> <span class="mi">0x80</span>          <span class="c1">; 触发软中断，进入内核态
+</span></span></span><span class="line"><span class="ln">7</span><span class="cl"><span class="nf">ret</span>
+</span></span></code></pre></div><hr>
+<h3 id="阶段2硬件中断处理cpu级">阶段2：硬件中断处理（CPU级）<a hidden class="anchor" aria-hidden="true" href="#阶段2硬件中断处理cpu级">#</a></h3>
+<ol>
+<li>
+<p><strong>CPU响应int 0x80指令</strong>：</p>
+<ul>
+<li>从用户态（R3）切换到内核态（R0）</li>
+<li>保存用户态上下文到<strong>内核栈</strong>：
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">压栈顺序（从高地址到低地址）：
+</span></span><span class="line"><span class="ln">2</span><span class="cl">SS（用户栈段寄存器）
+</span></span><span class="line"><span class="ln">3</span><span class="cl">ESP（用户栈指针）
+</span></span><span class="line"><span class="ln">4</span><span class="cl">EFLAGS（标志寄存器）
+</span></span><span class="line"><span class="ln">5</span><span class="cl">CS（代码段寄存器）
+</span></span><span class="line"><span class="ln">6</span><span class="cl">EIP（下一条指令地址，即返回地址）
+</span></span></code></pre></div></li>
+</ul>
+</li>
+<li>
+<p><strong>查找中断描述符表（IDT）</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln">1</span><span class="cl"><span class="c1">// IDT第0x80项在Linux初始化时设置
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="n">IDT</span><span class="p">[</span><span class="mh">0x80</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl">    <span class="p">.</span><span class="n">offset</span> <span class="o">=</span> <span class="n">system_call</span><span class="p">,</span>  <span class="c1">// 处理函数入口
+</span></span></span><span class="line"><span class="ln">4</span><span class="cl">    <span class="p">.</span><span class="n">segment_selector</span> <span class="o">=</span> <span class="n">KERNEL_CS</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">5</span><span class="cl">    <span class="p">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">TRAP_GATE</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">6</span><span class="cl">    <span class="p">.</span><span class="n">DPL</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1">// 用户态可调用
+</span></span></span><span class="line"><span class="ln">7</span><span class="cl"><span class="p">};</span>
+</span></span></code></pre></div></li>
+<li>
+<p><strong>切换到内核栈</strong>：</p>
+<ul>
+<li>从TSS（任务状态段）加载内核栈指针</li>
+<li>当前进程的<code>task_struct-&gt;thread.esp0</code>指向内核栈顶</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="阶段3系统调用总入口system_call">阶段3：系统调用总入口system_call<a hidden class="anchor" aria-hidden="true" href="#阶段3系统调用总入口system_call">#</a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// arch/x86/kernel/entry_32.S
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="nf">ENTRY</span><span class="p">(</span><span class="n">system_call</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">    <span class="c1">// 1. 保存完整上下文
+</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl">    <span class="n">SAVE_ALL</span>          <span class="c1">// 将所有通用寄存器压栈
+</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl">    
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">    <span class="c1">// 2. 参数检查
+</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl">    <span class="n">cmpl</span> <span class="err">$</span><span class="p">(</span><span class="n">NR_syscalls</span><span class="p">),</span> <span class="o">%</span><span class="n">eax</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="n">jae</span> <span class="n">badsys</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    
+</span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="c1">// 3. 调用sys_read处理函数
+</span></span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="n">call</span> <span class="o">*</span><span class="nf">sys_call_table</span><span class="p">(,</span><span class="o">%</span><span class="n">eax</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>  <span class="c1">// eax=3 → sys_read
+</span></span></span><span class="line"><span class="ln">12</span><span class="cl">    
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="c1">// 4. 保存返回值
+</span></span></span><span class="line"><span class="ln">14</span><span class="cl">    <span class="n">movl</span> <span class="o">%</span><span class="n">eax</span><span class="p">,</span> <span class="nf">PT_EAX</span><span class="p">(</span><span class="o">%</span><span class="n">esp</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">    
+</span></span><span class="line"><span class="ln">16</span><span class="cl">    <span class="c1">// 5. 检查是否需要调度
+</span></span></span><span class="line"><span class="ln">17</span><span class="cl">    <span class="n">jmp</span> <span class="n">ret_from_sys_call</span>
+</span></span></code></pre></div><p>此时栈结构（从栈底到栈顶）：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln"> 1</span><span class="cl">SS（用户栈段）
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">ESP（用户栈指针）
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">EFLAGS
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">CS
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">EIP          &lt;-- 中断硬件压栈
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">EAX
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">ECX
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">EDX
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">EBX
+</span></span><span class="line"><span class="ln">10</span><span class="cl">ESP（原始）
+</span></span><span class="line"><span class="ln">11</span><span class="cl">EBP
+</span></span><span class="line"><span class="ln">12</span><span class="cl">ESI
+</span></span><span class="line"><span class="ln">13</span><span class="cl">EDI          &lt;-- SAVE_ALL压栈
+</span></span><span class="line"><span class="ln">14</span><span class="cl">GS
+</span></span><span class="line"><span class="ln">15</span><span class="cl">FS
+</span></span><span class="line"><span class="ln">16</span><span class="cl">ES
+</span></span><span class="line"><span class="ln">17</span><span class="cl">DS
+</span></span></code></pre></div><hr>
+<h3 id="阶段4sys_read系统调用处理">阶段4：sys_read系统调用处理<a hidden class="anchor" aria-hidden="true" href="#阶段4sys_read系统调用处理">#</a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// fs/read_write.c
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="n">asmlinkage</span> <span class="kt">ssize_t</span> <span class="nf">sys_read</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">fd</span><span class="p">,</span> <span class="kt">char</span> <span class="n">__user</span> <span class="o">*</span><span class="n">buf</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">count</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">    <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">    <span class="kt">ssize_t</span> <span class="n">ret</span> <span class="o">=</span> <span class="o">-</span><span class="n">EBADF</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">    
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">    <span class="c1">// 1. 根据fd找到file结构体
+</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="n">file</span> <span class="o">=</span> <span class="nf">fget</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>  <span class="c1">// 实际代码：current-&gt;files-&gt;fd_array[fd]
+</span></span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">file</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">        <span class="k">goto</span> <span class="n">out</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl">    
+</span></span><span class="line"><span class="ln">12</span><span class="cl">    <span class="c1">// 2. 检查权限
+</span></span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">file</span><span class="o">-&gt;</span><span class="n">f_mode</span> <span class="o">&amp;</span> <span class="n">FMODE_READ</span><span class="p">))</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">        <span class="k">goto</span> <span class="n">out_fput</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">    
+</span></span><span class="line"><span class="ln">16</span><span class="cl">    <span class="c1">// 3. 调用虚拟文件系统（VFS）的读操作
+</span></span></span><span class="line"><span class="ln">17</span><span class="cl">    <span class="n">ret</span> <span class="o">=</span> <span class="nf">vfs_read</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">file</span><span class="o">-&gt;</span><span class="n">f_pos</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">18</span><span class="cl">    
+</span></span><span class="line"><span class="ln">19</span><span class="cl"><span class="nl">out_fput</span><span class="p">:</span>
+</span></span><span class="line"><span class="ln">20</span><span class="cl">    <span class="nf">fput</span><span class="p">(</span><span class="n">file</span><span class="p">);</span>  <span class="c1">// 减少引用计数
+</span></span></span><span class="line"><span class="ln">21</span><span class="cl"><span class="nl">out</span><span class="p">:</span>
+</span></span><span class="line"><span class="ln">22</span><span class="cl">    <span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">23</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p><strong>关键步骤解析</strong>：</p>
+<ol>
+<li><strong><code>fget(fd)</code></strong>：从当前进程的<code>files_struct</code>中通过fd索引找到<code>file</code>结构体指针
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// 简化逻辑
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="nf">fget</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">fd</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">    <span class="k">struct</span> <span class="n">files_struct</span> <span class="o">*</span><span class="n">files</span> <span class="o">=</span> <span class="n">current</span><span class="o">-&gt;</span><span class="n">files</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">    <span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">    <span class="nf">rcu_read_lock</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="n">file</span> <span class="o">=</span> <span class="n">files</span><span class="o">-&gt;</span><span class="n">fd_array</span><span class="p">[</span><span class="n">fd</span><span class="p">];</span>  <span class="c1">// 这就是fd的真实含义：数组索引
+</span></span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">file</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">        <span class="nf">atomic_inc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">file</span><span class="o">-&gt;</span><span class="n">f_count</span><span class="p">);</span>  <span class="c1">// 增加引用计数
+</span></span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="nf">rcu_read_unlock</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl">    <span class="k">return</span> <span class="n">file</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div></li>
+</ol>
+<hr>
+<h3 id="阶段5vfs层处理vfs_read">阶段5：VFS层处理vfs_read<a hidden class="anchor" aria-hidden="true" href="#阶段5vfs层处理vfs_read">#</a></h3>
+<p>[[第8章 文件系统2#2. 虚拟文件系统（VFS）|VFS]]负责提供统一接口。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// fs/read_write.c
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="kt">ssize_t</span> <span class="nf">vfs_read</span><span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">,</span> <span class="kt">char</span> <span class="n">__user</span> <span class="o">*</span><span class="n">buf</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="kt">loff_t</span> <span class="o">*</span><span class="n">pos</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">    <span class="kt">ssize_t</span> <span class="n">ret</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">    
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">    <span class="c1">// 1. 检查边界（文件大小、权限等）
+</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">file</span><span class="o">-&gt;</span><span class="n">f_mode</span> <span class="o">&amp;</span> <span class="n">FMODE_READ</span><span class="p">))</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">        <span class="k">return</span> <span class="o">-</span><span class="n">EBADF</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    
+</span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="c1">// 2. 调用文件系统的具体读方法
+</span></span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="n">ret</span> <span class="o">=</span> <span class="n">file</span><span class="o">-&gt;</span><span class="n">f_op</span><span class="o">-&gt;</span><span class="nf">read</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">pos</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl">    
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p><strong>file结构体关键字段</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln">1</span><span class="cl"><span class="k">struct</span> <span class="n">file</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl">    <span class="k">struct</span> <span class="n">path</span> <span class="n">f_path</span><span class="p">;</span>          <span class="c1">// 包含dentry（目录项）
+</span></span></span><span class="line"><span class="ln">3</span><span class="cl">    <span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">f_inode</span><span class="p">;</span>       <span class="c1">// 文件的inode
+</span></span></span><span class="line"><span class="ln">4</span><span class="cl">    <span class="k">const</span> <span class="k">struct</span> <span class="n">file_operations</span> <span class="o">*</span><span class="n">f_op</span><span class="p">;</span>  <span class="c1">// 操作函数表
+</span></span></span><span class="line"><span class="ln">5</span><span class="cl">    <span class="kt">loff_t</span> <span class="n">f_pos</span><span class="p">;</span>                <span class="c1">// 当前文件位置
+</span></span></span><span class="line"><span class="ln">6</span><span class="cl">    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">f_flags</span><span class="p">;</span>        <span class="c1">// 打开标志
+</span></span></span><span class="line"><span class="ln">7</span><span class="cl">    <span class="kt">fmode_t</span> <span class="n">f_mode</span><span class="p">;</span>              <span class="c1">// 文件模式
+</span></span></span><span class="line"><span class="ln">8</span><span class="cl">    <span class="c1">// ...
+</span></span></span><span class="line"><span class="ln">9</span><span class="cl"><span class="p">};</span>
+</span></span></code></pre></div><hr>
+<h3 id="阶段6文件系统具体实现以ext4为例">阶段6：文件系统具体实现（以ext4为例）<a hidden class="anchor" aria-hidden="true" href="#阶段6文件系统具体实现以ext4为例">#</a></h3>
+<p>以[[第8章 文件系统2#ext家族简介|日志文件系统ext]]作为例子。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln">1</span><span class="cl"><span class="c1">// fs/ext4/file.c
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="k">const</span> <span class="k">struct</span> <span class="n">file_operations</span> <span class="n">ext4_file_operations</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl">    <span class="p">.</span><span class="n">read</span> <span class="o">=</span> <span class="n">do_sync_read</span><span class="p">,</span>        <span class="c1">// 实际指向generic_file_aio_read
+</span></span></span><span class="line"><span class="ln">4</span><span class="cl">    <span class="p">.</span><span class="n">write</span> <span class="o">=</span> <span class="n">do_sync_write</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">5</span><span class="cl">    <span class="c1">// ...
+</span></span></span><span class="line"><span class="ln">6</span><span class="cl"><span class="p">};</span>
+</span></span></code></pre></div><p><strong>读取流程</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// mm/filemap.c
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="kt">ssize_t</span> <span class="nf">generic_file_aio_read</span><span class="p">(</span><span class="k">struct</span> <span class="n">kiocb</span> <span class="o">*</span><span class="n">iocb</span><span class="p">,</span> <span class="k">const</span> <span class="k">struct</span> <span class="n">iovec</span> <span class="o">*</span><span class="n">iov</span><span class="p">,</span> 
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">                               <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">nr_segs</span><span class="p">,</span> <span class="kt">loff_t</span> <span class="n">pos</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">    <span class="c1">// 1. 计算要读取的逻辑块
+</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl">    <span class="c1">// 文件偏移量pos → 逻辑块号
+</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl">    <span class="c1">// 例如：块大小4KB，pos=8192 → 逻辑块号=2
+</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl">    
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="c1">// 2. 检查页缓存
+</span></span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="n">page</span> <span class="o">=</span> <span class="nf">find_get_page</span><span class="p">(</span><span class="n">mapping</span><span class="p">,</span> <span class="n">index</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">page</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl">        <span class="c1">// 缓存命中，直接复制数据
+</span></span></span><span class="line"><span class="ln">13</span><span class="cl">        <span class="nf">copy_page_to_user</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">        <span class="k">return</span> <span class="n">count</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl">    
+</span></span><span class="line"><span class="ln">17</span><span class="cl">    <span class="c1">// 3. 缓存未命中，执行磁盘I/O
+</span></span></span><span class="line"><span class="ln">18</span><span class="cl">    <span class="n">ret</span> <span class="o">=</span> <span class="nf">filemap_fault</span><span class="p">(</span><span class="n">vma</span><span class="p">,</span> <span class="n">vmf</span><span class="p">);</span>  <span class="c1">// 触发缺页异常
+</span></span></span><span class="line"><span class="ln">19</span><span class="cl">    <span class="c1">// 实际会调用ext4_readpage
+</span></span></span><span class="line"><span class="ln">20</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><hr>
+<h3 id="阶段7地址转换逻辑块物理块">阶段7：地址转换（逻辑块→物理块）<a hidden class="anchor" aria-hidden="true" href="#阶段7地址转换逻辑块物理块">#</a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// fs/ext4/inode.c
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="k">static</span> <span class="kt">int</span> <span class="nf">ext4_readpage</span><span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">file</span><span class="p">,</span> <span class="k">struct</span> <span class="n">page</span> <span class="o">*</span><span class="n">page</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">    <span class="k">struct</span> <span class="n">inode</span> <span class="o">*</span><span class="n">inode</span> <span class="o">=</span> <span class="n">page</span><span class="o">-&gt;</span><span class="n">mapping</span><span class="o">-&gt;</span><span class="n">host</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">    
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">    <span class="c1">// 1. 通过inode找到文件的索引结构（ext4是extent树）
+</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl">    <span class="c1">// 逻辑块号 → 物理块号
+</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl">    
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="c1">// 2. 向块设备层提交I/O请求
+</span></span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="nf">submit_bio</span><span class="p">(</span><span class="n">READ</span><span class="p">,</span> <span class="n">bio</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p><strong>ext4 extent树查找</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">inode → i_data[]数组（前12项直接索引）
+</span></span><span class="line"><span class="ln">2</span><span class="cl">        第13项：一级间接索引
+</span></span><span class="line"><span class="ln">3</span><span class="cl">        第14项：二级间接索引
+</span></span><span class="line"><span class="ln">4</span><span class="cl">        第15项：三级间接索引
+</span></span><span class="line"><span class="ln">5</span><span class="cl">        
+</span></span><span class="line"><span class="ln">6</span><span class="cl">例如要读取逻辑块号1000：
+</span></span><span class="line"><span class="ln">7</span><span class="cl">- 前12个直接块：0-11
+</span></span><span class="line"><span class="ln">8</span><span class="cl">- 一级间接：12-267（假设每块256个指针）
+</span></span><span class="line"><span class="ln">9</span><span class="cl">- 1000在哪个范围？计算得出在一级间接索引中
+</span></span></code></pre></div><hr>
+<h3 id="阶段8块设备层和磁盘io">阶段8：块设备层和磁盘I/O<a hidden class="anchor" aria-hidden="true" href="#阶段8块设备层和磁盘io">#</a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln">1</span><span class="cl"><span class="c1">// block层提交I/O
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="k">struct</span> <span class="n">bio</span> <span class="o">*</span><span class="n">bio</span> <span class="o">=</span> <span class="nf">bio_alloc</span><span class="p">(</span><span class="n">GFP_KERNEL</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="n">bio</span><span class="o">-&gt;</span><span class="n">bi_sector</span> <span class="o">=</span> <span class="n">phys_block</span> <span class="o">*</span> <span class="p">(</span><span class="n">block_size</span><span class="o">/</span><span class="mi">512</span><span class="p">);</span>  <span class="c1">// 转换为扇区号
+</span></span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="n">bio</span><span class="o">-&gt;</span><span class="n">bi_bdev</span> <span class="o">=</span> <span class="n">bdev</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">5</span><span class="cl"><span class="n">bio</span><span class="o">-&gt;</span><span class="n">bi_end_io</span> <span class="o">=</span> <span class="n">end_bio_io_read</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">6</span><span class="cl"><span class="nf">submit_bio</span><span class="p">(</span><span class="n">READ</span><span class="p">,</span> <span class="n">bio</span><span class="p">);</span>
+</span></span></code></pre></div><p><strong>物理块号→磁盘物理地址</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">物理块号 → (柱面号，磁头号，扇区号)
+</span></span><span class="line"><span class="ln">2</span><span class="cl">或者LBA（逻辑块地址）→ 磁盘控制器处理
+</span></span></code></pre></div><hr>
+<h3 id="阶段9磁盘中断处理">阶段9：磁盘中断处理<a hidden class="anchor" aria-hidden="true" href="#阶段9磁盘中断处理">#</a></h3>
+<p>磁盘输入完毕后，会通知CPU输入完毕，于是触发[[第2章 运行环境与运行机制#1. I/O 中断|磁盘中断]]</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// 磁盘读取完成后触发中断
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="kt">void</span> <span class="nf">disk_interrupt_handler</span><span class="p">(</span><span class="kt">int</span> <span class="n">irq</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">dev_id</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">    <span class="c1">// 1. 确认I/O完成
+</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl">    <span class="c1">// 2. 将数据从磁盘控制器缓冲区复制到页缓存
+</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl">    <span class="c1">// 3. 标记页为最新
+</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl">    <span class="nf">SetPageUptodate</span><span class="p">(</span><span class="n">page</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="c1">// 4. 唤醒等待该页的进程
+</span></span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="nf">wake_up_page</span><span class="p">(</span><span class="n">page</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><hr>
+<h3 id="阶段10数据复制到用户空间">阶段10：数据复制到用户空间<a hidden class="anchor" aria-hidden="true" href="#阶段10数据复制到用户空间">#</a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln">1</span><span class="cl"><span class="c1">// 页缓存数据就绪后，复制到用户缓冲区
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="nf">copy_page_to_iter</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">offset_in_page</span><span class="p">,</span> <span class="n">bytes</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">iter</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl">
+</span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="c1">// 实际是copy_to_user
+</span></span></span><span class="line"><span class="ln">5</span><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="nf">copy_to_user</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="nf">page_address</span><span class="p">(</span><span class="n">page</span><span class="p">)</span> <span class="o">+</span> <span class="n">offset</span><span class="p">,</span> <span class="n">count</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">6</span><span class="cl">    <span class="k">return</span> <span class="o">-</span><span class="n">EFAULT</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">7</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p><strong>注意</strong>：<code>copy_to_user</code>需要：</p>
+<ol>
+<li>检查用户地址<code>buf</code>是否在用户空间</li>
+<li>检查是否有写权限</li>
+<li>执行实际的复制</li>
+</ol>
+<hr>
+<h3 id="阶段11返回用户态">阶段11：返回用户态<a hidden class="anchor" aria-hidden="true" href="#阶段11返回用户态">#</a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln">1</span><span class="cl"><span class="c1">// 系统调用返回路径
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="nl">ret_from_sys_call</span><span class="p">:</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl">    <span class="c1">// 1. 检查是否需要信号处理
+</span></span></span><span class="line"><span class="ln">4</span><span class="cl">    <span class="c1">// 2. 检查是否需要调度
+</span></span></span><span class="line"><span class="ln">5</span><span class="cl">    <span class="c1">// 3. 恢复寄存器
+</span></span></span><span class="line"><span class="ln">6</span><span class="cl">    <span class="n">RESTORE_ALL</span>
+</span></span><span class="line"><span class="ln">7</span><span class="cl">    
+</span></span><span class="line"><span class="ln">8</span><span class="cl">    <span class="c1">// 4. 执行iret返回用户态
+</span></span></span><span class="line"><span class="ln">9</span><span class="cl">    <span class="n">iret</span>
+</span></span></code></pre></div><p><strong>iret操作</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">从内核栈弹出：
+</span></span><span class="line"><span class="ln">2</span><span class="cl">EIP → 返回用户态下一条指令
+</span></span><span class="line"><span class="ln">3</span><span class="cl">CS → 用户代码段
+</span></span><span class="line"><span class="ln">4</span><span class="cl">EFLAGS → 恢复标志位
+</span></span><span class="line"><span class="ln">5</span><span class="cl">ESP → 用户栈指针
+</span></span><span class="line"><span class="ln">6</span><span class="cl">SS → 用户栈段
+</span></span></code></pre></div><hr>
+<h2 id="3完整数据流图">3、完整数据流图<a hidden class="anchor" aria-hidden="true" href="#3完整数据流图">#</a></h2>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln"> 1</span><span class="cl">用户空间              内核空间                   硬件
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">  │                    │                         │
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">  │ read(fd,buf,count) │                         │
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">  ├───────────────────►│                         │
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">  │                    │ 1. 系统调用入口           │
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">  │                    │    system_call()        │
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">  │                    │                         │
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">  │                    │ 2. 根据fd找到file结构体   │
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">  │                    │    fget(fd)             │
+</span></span><span class="line"><span class="ln">10</span><span class="cl">  │                    │                         │
+</span></span><span class="line"><span class="ln">11</span><span class="cl">  │                    │ 3. 找到inode            │
+</span></span><span class="line"><span class="ln">12</span><span class="cl">  │                    │    file→f_inode         │
+</span></span><span class="line"><span class="ln">13</span><span class="cl">  │                    │                         │
+</span></span><span class="line"><span class="ln">14</span><span class="cl">  │                    │ 4. 逻辑块计算            │
+</span></span><span class="line"><span class="ln">15</span><span class="cl">  │                    │    pos→逻辑块号          │
+</span></span><span class="line"><span class="ln">16</span><span class="cl">  │                    │                         │
+</span></span><span class="line"><span class="ln">17</span><span class="cl">  │                    │ 5. 物理块查找            │
+</span></span><span class="line"><span class="ln">18</span><span class="cl">  │                    │    逻辑块→物理块          │
+</span></span><span class="line"><span class="ln">19</span><span class="cl">  │                    │                         │
+</span></span><span class="line"><span class="ln">20</span><span class="cl">  │                    │ 6. 检查页缓存            │
+</span></span><span class="line"><span class="ln">21</span><span class="cl">  │                    │    命中？─是─►复制数据    │
+</span></span><span class="line"><span class="ln">22</span><span class="cl">  │                    │    否                   │
+</span></span><span class="line"><span class="ln">23</span><span class="cl">  │                    │    7. 提交磁盘I/O        │
+</span></span><span class="line"><span class="ln">24</span><span class="cl">  │                    │        submit_bio()     │
+</span></span><span class="line"><span class="ln">25</span><span class="cl">  │                    │                         ├───────►磁盘
+</span></span><span class="line"><span class="ln">26</span><span class="cl">  │                    │                         │        读取
+</span></span><span class="line"><span class="ln">27</span><span class="cl">  │                    │                         │◄──────
+</span></span><span class="line"><span class="ln">28</span><span class="cl">  │                    │ 8. 中断处理              │
+</span></span><span class="line"><span class="ln">29</span><span class="cl">  │                    │    disk_interrupt()     │
+</span></span><span class="line"><span class="ln">30</span><span class="cl">  │                    │                         │
+</span></span><span class="line"><span class="ln">31</span><span class="cl">  │                    │ 9. 数据→页缓存           │
+</span></span><span class="line"><span class="ln">32</span><span class="cl">  │                    │                         │
+</span></span><span class="line"><span class="ln">33</span><span class="cl">  │                    │10. 页缓存→用户缓冲区      │
+</span></span><span class="line"><span class="ln">34</span><span class="cl">  │                    │    copy_to_user()       │
+</span></span><span class="line"><span class="ln">35</span><span class="cl">  │                    │                         │
+</span></span><span class="line"><span class="ln">36</span><span class="cl">  │                    │11. 更新文件位置           │
+</span></span><span class="line"><span class="ln">37</span><span class="cl">  │                    │    file→f_pos += count  │
+</span></span><span class="line"><span class="ln">38</span><span class="cl">  │                    │                         │
+</span></span><span class="line"><span class="ln">39</span><span class="cl">  │◄───────────────────┤12. 返回用户态            │
+</span></span><span class="line"><span class="ln">40</span><span class="cl">  │  返回值/错误码       │    iret                 │
+</span></span><span class="line"><span class="ln">41</span><span class="cl">  │                    │                         │
+</span></span></code></pre></div><hr>
+<h2 id="4关键数据结构关联">4、关键数据结构关联<a hidden class="anchor" aria-hidden="true" href="#4关键数据结构关联">#</a></h2>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln"> 1</span><span class="cl">进程task_struct
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">    ├── mm_struct (内存管理)
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">    │    └── vm_area_struct (内存映射区域)
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">    └── files_struct (用户打开文件表)
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">         ├── fd_array[0] → file结构体1
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">         ├── fd_array[1] → file结构体2
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">         └── fd_array[fd] → 目标file结构体
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">              ├── f_inode → inode (磁盘文件元数据)
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">              ├── f_op → 文件操作函数表
+</span></span><span class="line"><span class="ln">10</span><span class="cl">              └── f_pos → 当前文件位置
+</span></span><span class="line"><span class="ln">11</span><span class="cl">                   
+</span></span><span class="line"><span class="ln">12</span><span class="cl">inode
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    ├── i_size (文件大小)
+</span></span><span class="line"><span class="ln">14</span><span class="cl">    ├── i_blocks (块数)
+</span></span><span class="line"><span class="ln">15</span><span class="cl">    ├── i_data[] (ext4索引结构)
+</span></span><span class="line"><span class="ln">16</span><span class="cl">    └── i_mapping → address_space (页缓存)
+</span></span><span class="line"><span class="ln">17</span><span class="cl">         └── page_tree (页缓存树)
+</span></span></code></pre></div><hr>
+<h1 id="三helloworld程序">三、<code>helloworld</code>程序<a hidden class="anchor" aria-hidden="true" href="#三helloworld程序">#</a></h1>
+<h2 id="1helloworld程序执行全流程">1、HelloWorld程序执行全流程<a hidden class="anchor" aria-hidden="true" href="#1helloworld程序执行全流程">#</a></h2>
+<h3 id="阶段1编写和编译用户态">阶段1：编写和编译（用户态）<a hidden class="anchor" aria-hidden="true" href="#阶段1编写和编译用户态">#</a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln">1</span><span class="cl"><span class="c1">// hello.c
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl">  <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;Hello, World!</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">5</span><span class="cl">  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">6</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p><strong>用户操作</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">gcc -o hello hello.c  <span class="c1"># 编译</span>
+</span></span></code></pre></div><p><strong>编译过程</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">hello.c → 预处理器 → 编译器 → 汇编器 → 链接器 → hello可执行文件
+</span></span></code></pre></div><p><strong>产物分析</strong>：</p>
+<ul>
+<li><strong>Windows</strong>：<code>hello.exe</code>（PE格式，Portable Executable）</li>
+<li><strong>Linux</strong>：<code>hello</code>（ELF格式，Executable and Linkable Format）</li>
+</ul>
+<p><strong>关键点</strong>：</p>
+<ul>
+<li><strong>用户态</strong>：gcc运行在用户态</li>
+<li><strong>涉及系统调用</strong>：文件读写（读取.c文件，写入可执行文件）</li>
+<li><strong>硬件参与</strong>：CPU执行gcc进程，磁盘I/O</li>
+</ul>
+<hr>
+<h3 id="阶段2shell解析命令用户态内核态">阶段2：Shell解析命令（用户态→内核态）<a hidden class="anchor" aria-hidden="true" href="#阶段2shell解析命令用户态内核态">#</a></h3>
+<p>用户输入：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="ln">1</span><span class="cl">./hello
+</span></span></code></pre></div><p><strong>Shell内部处理流程</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// shell伪代码
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">    <span class="k">while</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">        <span class="nf">read_command</span><span class="p">();</span>      <span class="c1">// 读取用户输入&#34;./hello&#34;
+</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl">        
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">        <span class="c1">// 检查不是内置命令，需要创建新进程
+</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl">        <span class="n">pid</span> <span class="o">=</span> <span class="nf">fork</span><span class="p">();</span>        <span class="c1">// 系统调用，进入内核态
+</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">pid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">            <span class="c1">// 子进程
+</span></span></span><span class="line"><span class="ln">10</span><span class="cl">            <span class="nf">execve</span><span class="p">(</span><span class="s">&#34;./hello&#34;</span><span class="p">,</span> <span class="n">argv</span><span class="p">,</span> <span class="n">envp</span><span class="p">);</span>  <span class="c1">// 系统调用，进入内核态
+</span></span></span><span class="line"><span class="ln">11</span><span class="cl">        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl">            <span class="c1">// 父进程（shell）
+</span></span></span><span class="line"><span class="ln">13</span><span class="cl">            <span class="nf">waitpid</span><span class="p">(</span><span class="n">pid</span><span class="p">);</span>     <span class="c1">// 系统调用，等待子进程结束
+</span></span></span><span class="line"><span class="ln">14</span><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p><strong>状态切换</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">用户态(shell) → fork() → 内核态 → 返回用户态(子shell)
+</span></span></code></pre></div><hr>
+<h3 id="阶段3fork创建子进程内核态">阶段3：fork()创建子进程（内核态）<a hidden class="anchor" aria-hidden="true" href="#阶段3fork创建子进程内核态">#</a></h3>
+<p><strong>内核执行</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// kernel/fork.c
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="nf">SYSCALL_DEFINE0</span><span class="p">(</span><span class="n">fork</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">    <span class="c1">// 1. 分配新的task_struct（PCB）
+</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl">    <span class="k">struct</span> <span class="n">task_struct</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="nf">copy_process</span><span class="p">(</span><span class="n">CLONE_FORK</span><span class="p">,</span> <span class="p">...);</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">    
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">    <span class="c1">// 2. 复制父进程地址空间（写时复制）
+</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="nf">copy_mm</span><span class="p">(</span><span class="n">clone_flags</span><span class="p">,</span> <span class="n">p</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    
+</span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="c1">// 3. 设置子进程返回值为0
+</span></span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="n">p</span><span class="o">-&gt;</span><span class="kr">thread</span><span class="p">.</span><span class="n">sp</span> <span class="o">=</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">long</span><span class="p">)</span> <span class="n">childregs</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl">    <span class="n">childregs</span><span class="o">-&gt;</span><span class="n">ax</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>  <span class="c1">// 子进程fork()返回0
+</span></span></span><span class="line"><span class="ln">13</span><span class="cl">    
+</span></span><span class="line"><span class="ln">14</span><span class="cl">    <span class="c1">// 4. 加入就绪队列
+</span></span></span><span class="line"><span class="ln">15</span><span class="cl">    <span class="nf">wake_up_new_task</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl">    
+</span></span><span class="line"><span class="ln">17</span><span class="cl">    <span class="k">return</span> <span class="n">p</span><span class="o">-&gt;</span><span class="n">pid</span><span class="p">;</span>  <span class="c1">// 父进程返回子进程PID
+</span></span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p><strong>硬件参与</strong>：</p>
+<ul>
+<li><strong>MMU</strong>：设置页表，实现[[第3章 进程与线程模型#3. 写时复制（Copy-On-Write, COW）|写时复制（COW）]]机制</li>
+<li><strong>CPU</strong>：保存/恢复上下文</li>
+</ul>
+<hr>
+<h3 id="阶段4execve加载可执行文件内核态">阶段4：execve()加载可执行文件（内核态）<a hidden class="anchor" aria-hidden="true" href="#阶段4execve加载可执行文件内核态">#</a></h3>
+<p>子进程调用：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln">1</span><span class="cl"><span class="nf">execve</span><span class="p">(</span><span class="s">&#34;./hello&#34;</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+</span></span></code></pre></div><p><strong>内核加载器工作</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// fs/exec.c
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="kt">int</span> <span class="nf">do_execve</span><span class="p">(</span><span class="k">struct</span> <span class="n">linux_binprm</span> <span class="o">*</span><span class="n">bprm</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">    <span class="c1">// 1. 检查文件格式（ELF识别）
+</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl">    <span class="n">retval</span> <span class="o">=</span> <span class="nf">search_binary_handler</span><span class="p">(</span><span class="n">bprm</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">    
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">    <span class="c1">// 2. 设置新的地址空间
+</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="nf">setup_new_exec</span><span class="p">(</span><span class="n">bprm</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    
+</span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="c1">// 3. 加载程序段
+</span></span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="nf">load_elf_binary</span><span class="p">(</span><span class="n">bprm</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl">    
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="c1">// 4. 设置入口点
+</span></span></span><span class="line"><span class="ln">14</span><span class="cl">    <span class="nf">start_thread</span><span class="p">(</span><span class="n">regs</span><span class="p">,</span> <span class="n">elf_entry</span><span class="p">,</span> <span class="n">bprm</span><span class="o">-&gt;</span><span class="n">p</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p><strong>ELF文件映射</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln"> 1</span><span class="cl">可执行文件hello的ELF结构：
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">┌─────────────────┐
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">│ ELF Header      │ ← 入口地址(_start: 0x400000)
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">├─────────────────┤
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">│ .text段         │ ← 代码（main, printf等）
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">├─────────────────┤
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">│ .data段         │ ← 初始化数据
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">├─────────────────┤
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">│ .rodata段       │ ← &#34;Hello, World!\n&#34;字符串
+</span></span><span class="line"><span class="ln">10</span><span class="cl">├─────────────────┤
+</span></span><span class="line"><span class="ln">11</span><span class="cl">│ .bss段          │ ← 未初始化数据
+</span></span><span class="line"><span class="ln">12</span><span class="cl">├─────────────────┤
+</span></span><span class="line"><span class="ln">13</span><span class="cl">│ 符号表等         │
+</span></span><span class="line"><span class="ln">14</span><span class="cl">└─────────────────┘
+</span></span><span class="line"><span class="ln">15</span><span class="cl">
+</span></span><span class="line"><span class="ln">16</span><span class="cl">映射到进程地址空间：
+</span></span><span class="line"><span class="ln">17</span><span class="cl">0x400000: _start (程序入口)
+</span></span><span class="line"><span class="ln">18</span><span class="cl">0x400100: main函数
+</span></span><span class="line"><span class="ln">19</span><span class="cl">0x400200: printf调用点
+</span></span><span class="line"><span class="ln">20</span><span class="cl">...
+</span></span></code></pre></div><p><strong>关键机制</strong>：</p>
+<ul>
+<li><strong>内存映射</strong>：将ELF文件的各个段映射到进程虚拟地址空间</li>
+<li><strong>延迟加载</strong>：建立虚拟内存到文件的映射，但实际数据在访问时才加载</li>
+<li><strong>页表设置</strong>：建立虚拟地址→物理地址的映射关系</li>
+</ul>
+<hr>
+<h3 id="阶段5进程调度执行内核态用户态">阶段5：进程调度执行（内核态→用户态）<a hidden class="anchor" aria-hidden="true" href="#阶段5进程调度执行内核态用户态">#</a></h3>
+<p>涉及到进程调度。<strong>调度器选择该进程运行</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln">1</span><span class="cl"><span class="c1">// kernel/sched/core.c
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="nf">__schedule</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl">    <span class="c1">// 1. 选择下一个要运行的进程
+</span></span></span><span class="line"><span class="ln">4</span><span class="cl">    <span class="n">next</span> <span class="o">=</span> <span class="nf">pick_next_task</span><span class="p">(</span><span class="n">rq</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">5</span><span class="cl">    
+</span></span><span class="line"><span class="ln">6</span><span class="cl">    <span class="c1">// 2. 上下文切换
+</span></span></span><span class="line"><span class="ln">7</span><span class="cl">    <span class="nf">context_switch</span><span class="p">(</span><span class="n">rq</span><span class="p">,</span> <span class="n">prev</span><span class="p">,</span> <span class="n">next</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">8</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p><strong>[[第4章 进程与线程调度#4. 上下文切换|上下文切换]]硬件操作</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">; 保存当前进程寄存器
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="nf">push</span> <span class="nv">%eax</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="nf">push</span> <span class="nv">%ebx</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="na">...</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="c1">; 切换页表（CR3寄存器）
+</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="nf">movl</span> <span class="no">next-</span><span class="err">&gt;</span><span class="no">mm-</span><span class="err">&gt;</span><span class="no">pgd</span><span class="p">,</span> <span class="nv">%eax</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="nf">movl</span> <span class="nv">%eax</span><span class="p">,</span> <span class="nv">%cr3</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="c1">; 恢复新进程寄存器
+</span></span></span><span class="line"><span class="ln"> 9</span><span class="cl"><span class="nf">pop</span> <span class="nv">%ebx</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="nf">pop</span> <span class="nv">%eax</span>
+</span></span></code></pre></div><p><strong>进程开始执行</strong>：</p>
+<ul>
+<li>CPU从<code>_start</code>开始执行（用户态）</li>
+<li>运行时库初始化（<code>__libc_start_main</code>）</li>
+<li>调用<code>main()</code>函数</li>
+</ul>
+<hr>
+<h3 id="阶段6执行printf用户态内核态用户态">阶段6：执行printf（用户态→内核态→用户态）<a hidden class="anchor" aria-hidden="true" href="#阶段6执行printf用户态内核态用户态">#</a></h3>
+<p><strong>printf调用链</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln">1</span><span class="cl"><span class="c1">// 用户态调用链
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="nf">printf</span><span class="p">(</span><span class="s">&#34;Hello, World!</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl">    <span class="err">↓</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="nf">vfprintf</span><span class="p">()</span>  <span class="c1">// 格式化处理
+</span></span></span><span class="line"><span class="ln">5</span><span class="cl">    <span class="err">↓</span>
+</span></span><span class="line"><span class="ln">6</span><span class="cl"><span class="nf">write</span><span class="p">()</span>     <span class="c1">// C库函数
+</span></span></span><span class="line"><span class="ln">7</span><span class="cl">    <span class="err">↓</span>
+</span></span><span class="line"><span class="ln">8</span><span class="cl"><span class="n">syscall</span>     <span class="c1">// 系统调用指令（Linux: int 0x80 或 syscall）
+</span></span></span></code></pre></div><p><strong>系统调用过程</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="line"><span class="ln">1</span><span class="cl"><span class="c1">; printf最终生成的汇编
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="nf">mov</span> <span class="no">$1</span><span class="p">,</span> <span class="nv">%eax</span>        <span class="c1">; 系统调用号1 = sys_write
+</span></span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="nf">mov</span> <span class="no">$1</span><span class="p">,</span> <span class="nv">%ebx</span>        <span class="c1">; 文件描述符1 = stdout
+</span></span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="nf">mov</span> <span class="no">$string</span><span class="p">,</span> <span class="nv">%ecx</span>   <span class="c1">; 字符串地址
+</span></span></span><span class="line"><span class="ln">5</span><span class="cl"><span class="nf">mov</span> <span class="no">$14</span><span class="p">,</span> <span class="nv">%edx</span>       <span class="c1">; 字符串长度
+</span></span></span><span class="line"><span class="ln">6</span><span class="cl"><span class="nf">int</span> <span class="no">$0x80</span>           <span class="c1">; 触发软中断
+</span></span></span></code></pre></div><p><strong>内核处理write系统调用</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// fs/read_write.c
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="nf">SYSCALL_DEFINE3</span><span class="p">(</span><span class="n">write</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">int</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="n">__user</span> <span class="o">*</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="kt">size_t</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">    <span class="c1">// 1. 参数检查
+</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl">    <span class="c1">// 2. 调用虚拟文件系统
+</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl">    <span class="n">ret</span> <span class="o">=</span> <span class="nf">vfs_write</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">pos</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">    
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="c1">// 3. 如果是终端输出，调用终端驱动程序
+</span></span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">file</span><span class="o">-&gt;</span><span class="n">f_op</span><span class="o">-&gt;</span><span class="n">write</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">        <span class="n">ret</span> <span class="o">=</span> <span class="n">file</span><span class="o">-&gt;</span><span class="n">f_op</span><span class="o">-&gt;</span><span class="nf">write</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">pos</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p><strong>终端驱动输出</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">内核态 → 终端驱动 → 控制台设备 → 显示硬件
+</span></span></code></pre></div><hr>
+<h3 id="阶段7缺页异常处理关键机制">阶段7：缺页异常处理（关键机制）<a hidden class="anchor" aria-hidden="true" href="#阶段7缺页异常处理关键机制">#</a></h3>
+<p><strong>当程序首次访问代码/数据时</strong>，触发缺页异常，涉及[[第6章 虚拟存储管理#九、内存映射文件（Memory-Mapped Files）|内存映射]]：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// 第一次执行main()函数时
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="c1">// CPU尝试读取0x400100地址的指令
+</span></span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="c1">// 但该页尚未加载到物理内存
+</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="c1">// 触发缺页异常
+</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="kt">void</span> <span class="nf">do_page_fault</span><span class="p">(</span><span class="k">struct</span> <span class="n">pt_regs</span> <span class="o">*</span><span class="n">regs</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">error_code</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="c1">// 1. 查找vm_area_struct
+</span></span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="n">vma</span> <span class="o">=</span> <span class="nf">find_vma</span><span class="p">(</span><span class="n">mm</span><span class="p">,</span> <span class="n">address</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">    
+</span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="c1">// 2. 如果是文件映射（如ELF代码段）
+</span></span></span><span class="line"><span class="ln">12</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">vma</span><span class="o">-&gt;</span><span class="n">vm_file</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl">        <span class="c1">// 从磁盘读取对应页
+</span></span></span><span class="line"><span class="ln">14</span><span class="cl">        <span class="nf">filemap_fault</span><span class="p">(</span><span class="n">vma</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">vmf</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl">    
+</span></span><span class="line"><span class="ln">17</span><span class="cl">    <span class="c1">// 3. 建立页表映射
+</span></span></span><span class="line"><span class="ln">18</span><span class="cl">    <span class="nf">handle_mm_fault</span><span class="p">(</span><span class="n">vma</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">flags</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p><strong>数据流</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln">1</span><span class="cl">CPU访问虚拟地址0x400100
+</span></span><span class="line"><span class="ln">2</span><span class="cl">    ↓ 触发缺页异常（硬件自动）
+</span></span><span class="line"><span class="ln">3</span><span class="cl">    ↓ CPU切换到内核态
+</span></span><span class="line"><span class="ln">4</span><span class="cl">    ↓ 内核异常处理程序
+</span></span><span class="line"><span class="ln">5</span><span class="cl">    ↓ 从磁盘hello文件读取.text段对应页
+</span></span><span class="line"><span class="ln">6</span><span class="cl">    ↓ 加载到物理内存
+</span></span><span class="line"><span class="ln">7</span><span class="cl">    ↓ 更新页表
+</span></span><span class="line"><span class="ln">8</span><span class="cl">    ↓ 返回用户态，重新执行指令
+</span></span></code></pre></div><hr>
+<h3 id="阶段8程序结束用户态内核态">阶段8：程序结束（用户态→内核态）<a hidden class="anchor" aria-hidden="true" href="#阶段8程序结束用户态内核态">#</a></h3>
+<p><strong>main返回后</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln">1</span><span class="cl"><span class="k">return</span> <span class="mi">0</span><span class="p">;</span>  <span class="c1">// main返回
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl">    <span class="err">↓</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="nf">exit</span><span class="p">()</span><span class="err">被运行时库调用</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl">    <span class="err">↓</span>
+</span></span><span class="line"><span class="ln">5</span><span class="cl"><span class="nf">_exit</span><span class="p">()</span><span class="err">系统调用</span>
+</span></span></code></pre></div><p><strong>内核清理进程</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// kernel/exit.c
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="kt">void</span> <span class="nf">do_exit</span><span class="p">(</span><span class="kt">long</span> <span class="n">code</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">    <span class="c1">// 1. 释放资源
+</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl">    <span class="nf">exit_mm</span><span class="p">(</span><span class="n">current</span><span class="p">);</span>    <span class="c1">// 释放内存
+</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl">    <span class="nf">exit_files</span><span class="p">(</span><span class="n">current</span><span class="p">);</span> <span class="c1">// 关闭文件
+</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl">    <span class="nf">exit_fs</span><span class="p">(</span><span class="n">current</span><span class="p">);</span>    <span class="c1">// 文件系统相关
+</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl">    
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="c1">// 2. 通知父进程
+</span></span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="nf">exit_notify</span><span class="p">(</span><span class="n">current</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl">    
+</span></span><span class="line"><span class="ln">12</span><span class="cl">    <span class="c1">// 3. 调度其他进程
+</span></span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="nf">schedule</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p><strong>父进程（shell）接收通知</strong>：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="ln">1</span><span class="cl"><span class="c1">// shell调用了waitpid()
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="c1">// 内核唤醒shell，传递退出状态
+</span></span></span></code></pre></div><hr>
+<h2 id="2完整流程图含状态切换">2、完整流程图（含状态切换）<a hidden class="anchor" aria-hidden="true" href="#2完整流程图含状态切换">#</a></h2>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="ln"> 1</span><span class="cl">用户空间                    内核空间                      硬件
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">  │                           │                           │
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">  │ shell: ./hello            │                           │
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">  ├────fork()───────────────► │                           │
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">  │                           │ 1. 复制task_struct         │
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">  │                           │ 2. 设置COW映射             │ MMU设置页表
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">  │                           │ 3. 返回                   │
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">  │◄────pid──────────────────-┤                           │
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">  │                           │                           │
+</span></span><span class="line"><span class="ln">10</span><span class="cl">  │ 子进程: execve(&#34;./hello&#34;)  │                           │
+</span></span><span class="line"><span class="ln">11</span><span class="cl">  ├────execve()──────────────►│                           │
+</span></span><span class="line"><span class="ln">12</span><span class="cl">  │                           │ 1. 解析ELF格式             │
+</span></span><span class="line"><span class="ln">13</span><span class="cl">  │                           │ 2. 建立虚拟内存映射         │ 建立页表项
+</span></span><span class="line"><span class="ln">14</span><span class="cl">  │                           │ 3. 设置入口点_start        │
+</span></span><span class="line"><span class="ln">15</span><span class="cl">  │                           │ 4. 返回                    │
+</span></span><span class="line"><span class="ln">16</span><span class="cl">  │◄───────(不返回)──────────--┤                           │
+</span></span><span class="line"><span class="ln">17</span><span class="cl">  │                           │                           │
+</span></span><span class="line"><span class="ln">18</span><span class="cl">  │ 进程调度                   │                           │
+</span></span><span class="line"><span class="ln">19</span><span class="cl">  │ 被调度到CPU                │                           │ CPU执行
+</span></span><span class="line"><span class="ln">20</span><span class="cl">  │                           │                           │
+</span></span><span class="line"><span class="ln">21</span><span class="cl">  │ 执行_start → main         │                           │
+</span></span><span class="line"><span class="ln">22</span><span class="cl">  │ 首次访问代码页              │                           │
+</span></span><span class="line"><span class="ln">23</span><span class="cl">  ├────缺页异常───────────────►│                           │
+</span></span><span class="line"><span class="ln">24</span><span class="cl">  │                           │ 1. 分配物理页              │
+</span></span><span class="line"><span class="ln">25</span><span class="cl">  │                           │ 2. 从磁盘读入代码           │ 磁盘I/O
+</span></span><span class="line"><span class="ln">26</span><span class="cl">  │                           │ 3. 更新页表                │ TLB刷新
+</span></span><span class="line"><span class="ln">27</span><span class="cl">  │                           │ 4. 返回                    │
+</span></span><span class="line"><span class="ln">28</span><span class="cl">  │◄──────────────────────────┤                           │
+</span></span><span class="line"><span class="ln">29</span><span class="cl">  │                           │                           │
+</span></span><span class="line"><span class="ln">30</span><span class="cl">  │ printf(&#34;Hello...&#34;)        │                           │
+</span></span><span class="line"><span class="ln">31</span><span class="cl">  │ 格式化字符串               │                           │
+</span></span><span class="line"><span class="ln">32</span><span class="cl">  ├────write系统调用─────────► │                           │
+</span></span><span class="line"><span class="ln">33</span><span class="cl">  │                           │ 1. 参数检查                │
+</span></span><span class="line"><span class="ln">34</span><span class="cl">  │                           │ 2. 调用终端驱动            │
+</span></span><span class="line"><span class="ln">35</span><span class="cl">  │                           │ 3. 控制台输出              │ 显示硬件
+</span></span><span class="line"><span class="ln">36</span><span class="cl">  │                           │ 4. 返回                    │
+</span></span><span class="line"><span class="ln">37</span><span class="cl">  │◄────返回值───────────────--┤                           │
+</span></span><span class="line"><span class="ln">38</span><span class="cl">  │                           │                           │
+</span></span><span class="line"><span class="ln">39</span><span class="cl">  │ return 0 → exit()         │                           │
+</span></span><span class="line"><span class="ln">40</span><span class="cl">  ├────_exit()───────────────►│                           │
+</span></span><span class="line"><span class="ln">41</span><span class="cl">  │                           │ 1. 释放资源                │
+</span></span><span class="line"><span class="ln">42</span><span class="cl">  │                           │ 2. 通知父进程              │
+</span></span><span class="line"><span class="ln">43</span><span class="cl">  │                           │ 3. 进程终止                │
+</span></span><span class="line"><span class="ln">44</span><span class="cl">  │                           │                           │
+</span></span><span class="line"><span class="ln">45</span><span class="cl">  │ shell被唤醒                │                           │
+</span></span><span class="line"><span class="ln">46</span><span class="cl">  │ 显示提示符                 │                           │
+</span></span><span class="line"><span class="ln">47</span><span class="cl">  │                           │                           │
+</span></span></code></pre></div><hr>
+<h2 id="3各步骤状态硬件软件总结">3、各步骤状态/硬件/软件总结<a hidden class="anchor" aria-hidden="true" href="#3各步骤状态硬件软件总结">#</a></h2>
+<table>
+	<thead>
+			<tr>
+					<th>步骤</th>
+					<th>主要操作者</th>
+					<th>CPU状态</th>
+					<th>关键硬件</th>
+					<th>关键软件</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><strong>1. 编译</strong></td>
+					<td>gcc编译器</td>
+					<td>用户态</td>
+					<td>CPU、磁盘</td>
+					<td>gcc、链接器</td>
+			</tr>
+			<tr>
+					<td><strong>2. Shell解析</strong></td>
+					<td>bash shell</td>
+					<td>用户态</td>
+					<td>CPU</td>
+					<td>shell程序</td>
+			</tr>
+			<tr>
+					<td><strong>3. fork()</strong></td>
+					<td>内核</td>
+					<td>内核态</td>
+					<td>MMU、CPU</td>
+					<td>进程管理子系统</td>
+			</tr>
+			<tr>
+					<td><strong>4. execve()</strong></td>
+					<td>内核加载器</td>
+					<td>内核态</td>
+					<td>MMU</td>
+					<td>ELF加载器、内存管理</td>
+			</tr>
+			<tr>
+					<td><strong>5. 调度执行</strong></td>
+					<td>内核调度器</td>
+					<td>内核态</td>
+					<td>CPU、时钟</td>
+					<td>调度器</td>
+			</tr>
+			<tr>
+					<td><strong>6. 缺页异常</strong></td>
+					<td>内存管理</td>
+					<td>内核态</td>
+					<td>MMU、磁盘</td>
+					<td>缺页处理程序、文件系统</td>
+			</tr>
+			<tr>
+					<td><strong>7. printf输出</strong></td>
+					<td>终端驱动</td>
+					<td>用户态→内核态</td>
+					<td>CPU、显示设备</td>
+					<td>C库、VFS、终端驱动</td>
+			</tr>
+			<tr>
+					<td><strong>8. 进程退出</strong></td>
+					<td>内核</td>
+					<td>内核态</td>
+					<td>CPU</td>
+					<td>进程管理、资源管理</td>
+			</tr>
+	</tbody>
+</table>
+<hr>
+<h2 id="4核心要点总结">4、核心要点总结<a hidden class="anchor" aria-hidden="true" href="#4核心要点总结">#</a></h2>
+<ol>
+<li>
+<p><strong>可执行文件格式</strong>：</p>
+<ul>
+<li><strong>Linux</strong>：ELF格式，包含代码段(.text)、数据段(.data/.rodata/.bss)等</li>
+<li><strong>Windows</strong>：PE格式，结构类似但细节不同</li>
+</ul>
+</li>
+<li>
+<p><strong>进程创建双重机制</strong>：</p>
+<ul>
+<li><code>fork()</code>：复制当前进程（写时复制优化）</li>
+<li><code>execve()</code>：用新程序替换当前进程</li>
+</ul>
+</li>
+<li>
+<p><strong>内存映射延迟加载</strong>：</p>
+<ul>
+<li>ELF文件被映射到虚拟地址空间</li>
+<li>实际代码/数据在首次访问时通过缺页异常加载</li>
+</ul>
+</li>
+<li>
+<p><strong>系统调用桥梁作用</strong>：</p>
+<ul>
+<li>用户态程序通过系统调用请求内核服务</li>
+<li>内核通过中断/异常机制接管CPU</li>
+</ul>
+</li>
+<li>
+<p><strong>硬件软件协同</strong>：</p>
+<ul>
+<li><strong>硬件</strong>：CPU状态切换、MMU地址转换、中断控制器</li>
+<li><strong>软件</strong>：内核处理异常、驱动控制设备</li>
+</ul>
+</li>
+</ol>
+<p>这个简单的<code>Hello, World!</code>程序背后，是操作系统几乎所有核心子系统（进程、内存、文件、设备）的协同工作，完美体现了计算机系统的复杂性和精妙设计。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="http://localhost:1313/posts/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">
+    <span class="title">« </span>
+    <span>机器学习</span>
+  </a>
+  <a class="next" href="http://localhost:1313/posts/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E7%AC%AC1%E7%AB%A0-%E6%A6%82%E8%BF%B0/">
+    <span class="title"> »</span>
+    <span>第1章 概述</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">All-on&#39;s Blog</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
